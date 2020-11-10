@@ -8,7 +8,7 @@ class Wind:
 
     def __init__(self, width, height, title='Calculator', resize=(False, False), icon=None, ):
         self.wind = tk.Tk()
-        self.wind.geometry(f'{width}x{height}+200+200')
+        self.wind.geometry(f'{width}x{height}+200+400')
         self.wind['bg'] = 'cyan'
         self.wind.title(title)
         self.wind.resizable(resize[0], resize[1])
