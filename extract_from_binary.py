@@ -29,6 +29,7 @@ N_Nyq = q  # Номер зоны Найквиста
 
 delta_t = 8.1925e-3
 delta_f = 7.8125
+num_of_polar = 1
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'
@@ -51,7 +52,75 @@ time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез ча�
 # 173, 173.6, 173.8, 174.38
 # t_cal = [0, 14, 17, 31]         # Для скана "20200318-1353_-24-3"
 # t_cal = [0, 13, 17, 35]
+
+
 def extract(file_name0):
+    file_name = file_name0 + '.bin'
+    file_name_out = file_name0 + '.txt'
+    i = 0
+    k = 0
+    spectr = []
+    frame = ' '
+
+    try:
+        if os.path.isfile(file_name) == 1:
+            pass
+        else:
+            print('\n \t', file_name, ' not found!!!\n')
+
+        f_in = open(file_name, 'rb')
+
+        while frame:
+
+            spectr_frame = []
+            # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
+            # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
+            for k in range(129):
+                frame = f_in.read(8)
+                frame_int = int.from_bytes(frame, byteorder='little')
+                if k == 0:
+                    frame_num = frame_int & 0xFFFFFFF
+
+                    # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
+                    # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
+                    if i == 0:
+                        n_aver = (frame_int & 0x3F00000000) >> 32
+                        bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
+                        bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
+                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
+                    spectr_frame.append(frame_num)
+
+                else:
+                    spectr_val = (frame_int & 0x7FFFFFFFFFFFFF)
+                    pp_good = (frame_int & 0xFF80000000000000) >> 55
+                    spectr_frame.append(spectr_val)
+                    pass
+
+            spectr.append(spectr_frame)
+            print(i, frame_num)
+            i += 1
+
+        pass
+
+        spectr.pop(-1)
+        N = len(spectr)
+        n_frame_last = spectr[-1][0]
+        rest = (n_frame_last + 1) % 2**(6 - n_aver)
+        if rest:
+            for k in range(rest):
+                spectr.pop(-1)
+        print(n_frame_last, spectr[-1][0])
+    finally:
+        f_in.close()
+        pass
+
+        spectr1 = convert_to_matrix(spectr, spectr[-1][0] + 1, n_aver)
+    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver ' + str(bound_left) + '-kurt'))
+
+    return spectr1, n_aver
+
+
+def extract_two_polar(file_name0):
     file_name = file_name0 + '.bin'
     file_name_out = file_name0 + '.txt'
     i = 0
@@ -429,7 +498,10 @@ def path_to_fig():
 
 
 if not os.path.isfile(file_name0 + '.txt'):
-    spectr_extr, n_aver = extract(file_name0)
+    if num_of_polar == 1:
+        spectr_extr, n_aver = extract(file_name0)
+    else:
+        spectr_extr, n_aver = extract_two_polar(file_name0)
 else:
     spectr_extr = np.loadtxt(file_name0 + '.txt')
     f_in1 = open(file_name0 + '.txt')
