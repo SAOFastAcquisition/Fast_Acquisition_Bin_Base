@@ -125,7 +125,8 @@ def extract_two_polar(file_name0):
     file_name_out = file_name0 + '.txt'
     i = 0
     k = 0
-    spectr = []
+    spectr_left = []
+    spectr_right = []
     attenuators = []
     frame = ' '
 
@@ -173,29 +174,33 @@ def extract_two_polar(file_name0):
                     spectr_frame.append(spectr_val)
                     pass
 
-            spectr.append(spectr_frame)
+            if antenna == 1:
+                spectr_left.append(spectr_frame)
+            else:
+                spectr_right.append(spectr_frame)
             print(i, frame_num)
             i += 1
 
         pass
 
-        spectr.pop(-1)
-        N = len(spectr)
-        n_frame_last = spectr[-1][0]
+        spectr_right.pop(-1)
+        spectr_left.pop(-1)
+        n_right = len(spectr_right)
+        n_left = len(spectr_left)
+        n_frame_last = spectr_left[-1][0]
         rest = (n_frame_last + 1) % 2**(6 - n_aver)
         if rest:
             for k in range(rest):
-                spectr.pop(-1)
-        print(n_frame_last, spectr[-1][0])
+                spectr_left.pop(-1)
+        print(n_frame_last, spectr_left[-1][0])
     finally:
         f_in.close()
         pass
 
-        spectr1 = convert_to_matrix(spectr, spectr[-1][0] + 1, n_aver)
-    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver ' + str(bound_left) + '-kurt '
-                                               + str(att_1) + '-att_1 ' + str(att_2) + '-att_2 '
-                                               + str(att_3) + '-att_3 '))
-    return spectr1, n_aver, attenuators
+        spectr1 = convert_to_matrix(spectr_left, spectr_left[-1][0] + 1, n_aver)
+        spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
+    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver '))
+    return spectr1, spectr2, n_aver
 
 
 def convert_to_matrix(S_total, counter, n_aver):
