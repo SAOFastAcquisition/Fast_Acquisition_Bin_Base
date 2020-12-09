@@ -126,6 +126,7 @@ def extract_two_polar(file_name0):
     i = 0
     k = 0
     spectr = []
+    attenuators = []
     frame = ' '
 
     try:
@@ -141,7 +142,7 @@ def extract_two_polar(file_name0):
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
             # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
-            for k in range(129):
+            for k in range(130):
                 frame = f_in.read(8)
                 frame_int = int.from_bytes(frame, byteorder='little')
                 if k == 0:
@@ -155,6 +156,16 @@ def extract_two_polar(file_name0):
                         bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
                     spectr_frame.append(frame_num)
+                elif k == 1:
+                    att_1 = frame_int & 0x7
+                    att_2 = (frame_int & 0x38) >> 3
+                    att_3 = (frame_int & 0x1C0) >> 6
+                    noise_gen_on = (frame_int & 0x200) >> 9
+                    antenna = (frame_int & 0x400) >> 10
+                    coupler = (frame_int & 0x800) >> 11
+                    attenuators = [att_1, att_2, att_3]
+
+                    pass
 
                 else:
                     spectr_val = (frame_int & 0x7FFFFFFFFFFFFF)
@@ -181,9 +192,10 @@ def extract_two_polar(file_name0):
         pass
 
         spectr1 = convert_to_matrix(spectr, spectr[-1][0] + 1, n_aver)
-    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver ' + str(bound_left) + '-kurt'))
-
-    return spectr1, n_aver
+    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver ' + str(bound_left) + '-kurt '
+                                               + str(att_1) + '-att_1 ' + str(att_2) + '-att_2 '
+                                               + str(att_3) + '-att_3 '))
+    return spectr1, n_aver, attenuators
 
 
 def convert_to_matrix(S_total, counter, n_aver):
@@ -506,6 +518,7 @@ else:
     spectr_extr = np.loadtxt(file_name0 + '.txt')
     f_in1 = open(file_name0 + '.txt')
     n_aver = int((f_in1.readline())[2])
+
     f_in1.close()
 
 aver_param = 2 ** (6 - n_aver)
