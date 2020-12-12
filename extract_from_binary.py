@@ -14,8 +14,8 @@ start = datetime.now()
 
 # head_path = path_to_YaDisk()
 head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
-# file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_08_04test\\20200804_load1_NS_-06_2'
-file_name0 = head_path + '\\2020_08_04test\\20200804_load2_NS_-00_2'
+# file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
+file_name0 = head_path + '\\2020_12_12test\\20201212_04'
 calibration_file_name = 'Noise_afc_-02_-33-3'
 q = int(file_name0[-1])
 
@@ -23,13 +23,13 @@ q = int(file_name0[-1])
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 1  # Установка разрешения по частоте
-kt = 16  # Установка разрешения по времени
+kt = 1  # Установка разрешения по времени
 N_Nyq = q  # Номер зоны Найквиста
 # *****************************************************
 
 delta_t = 8.1925e-3
 delta_f = 7.8125
-num_of_polar = 1
+num_of_polar = 2
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'
@@ -122,7 +122,7 @@ def extract(file_name0):
 
 def extract_two_polar(file_name0):
     file_name = file_name0 + '.bin'
-    file_name_out = file_name0 + '.txt'
+    # file_name_out = file_name0 + '.txt'
     i = 0
     k = 0
     spectr_left = []
@@ -158,12 +158,12 @@ def extract_two_polar(file_name0):
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
                     spectr_frame.append(frame_num)
                 elif k == 1:
-                    att_1 = frame_int & 0x7
-                    att_2 = (frame_int & 0x38) >> 3
-                    att_3 = (frame_int & 0x1C0) >> 6
-                    noise_gen_on = (frame_int & 0x200) >> 9
-                    antenna = (frame_int & 0x400) >> 10
-                    coupler = (frame_int & 0x800) >> 11
+                    att_1 = frame_int & 0x3F
+                    att_2 = (frame_int & 0xFC0) >> 6
+                    att_3 = (frame_int & 0x3F000) >> 12
+                    noise_gen_on = (frame_int & 0x40000) >> 18
+                    antenna = (frame_int & 0x80000) >> 19
+                    coupler = (frame_int & 0x100000) >> 20
                     attenuators = [att_1, att_2, att_3]
 
                     pass
@@ -182,24 +182,34 @@ def extract_two_polar(file_name0):
             i += 1
 
         pass
-
-        spectr_right.pop(-1)
-        spectr_left.pop(-1)
         n_right = len(spectr_right)
         n_left = len(spectr_left)
-        n_frame_last = spectr_left[-1][0]
-        rest = (n_frame_last + 1) % 2**(6 - n_aver)
-        if rest:
-            for k in range(rest):
-                spectr_left.pop(-1)
-        print(n_frame_last, spectr_left[-1][0])
+        if n_right > 1:
+            spectr_right.pop(-1)
+            n_frame_last = spectr_right[-1][0]
+            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            if rest:
+                for k in range(rest):
+                    spectr_right.pop(-1)
+            print(n_frame_last, spectr_right[-1][0])
+        if n_left > 1:
+            spectr_left.pop(-1)
+            n_frame_last = spectr_left[-1][0]
+            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            if rest:
+                for k in range(rest):
+                    spectr_left.pop(-1)
+            print(n_frame_last, spectr_left[-1][0])
     finally:
         f_in.close()
         pass
 
+    if n_left > 1:
         spectr1 = convert_to_matrix(spectr_left, spectr_left[-1][0] + 1, n_aver)
+        np.savetxt(file_name0+'_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
+    if n_right > 1:
         spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
-    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver '))
+        np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
     return spectr1, spectr2, n_aver
 
 
@@ -518,7 +528,7 @@ if not os.path.isfile(file_name0 + '.txt'):
     if num_of_polar == 1:
         spectr_extr, n_aver = extract(file_name0)
     else:
-        spectr_extr, n_aver = extract_two_polar(file_name0)
+        spectr_extr_left, spectr_extr_right, n_aver = extract_two_polar(file_name0)
 else:
     spectr_extr = np.loadtxt(file_name0 + '.txt')
     f_in1 = open(file_name0 + '.txt')
