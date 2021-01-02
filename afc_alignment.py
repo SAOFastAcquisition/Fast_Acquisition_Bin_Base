@@ -27,7 +27,7 @@ def noise_kp(file_name, diff='n'):
     return kp_norm, n_col
 
 
-def align_func(calibr_file_name, diff='n', aver_param=2):
+def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object = 2) -> object:
     """ Функция возвращает коэффициенты, выравнивающие исходную АЧХ
 
     """
@@ -39,8 +39,10 @@ def align_func(calibr_file_name, diff='n', aver_param=2):
     # Определение пути к файлу, где лежат результаты измерения АЧХ
     # по мощности с генератором шума на входе тракта, чтение параметра
     # усреднения n_aver_noise для этого измерения
-    head_path = path_to_YaDisk()
-    file_name0 = head_path + '\\Measure\\Fast_Acquisition\\Calibration\\' + calibr_file_name
+    # head_path = path_to_YaDisk()
+    head_path = 'E:\\BinData'
+    # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\Calibration\\' + calibr_file_name
+    file_name0 = head_path + '\\2020_12_16calibr\\' + calibr_file_name
     n_Nyq = int(calibr_file_name[-1])
     f_in1 = open(file_name0 + '.txt')
     n_aver_noise = int((f_in1.readline())[2])

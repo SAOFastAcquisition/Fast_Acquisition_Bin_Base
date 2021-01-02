@@ -13,17 +13,20 @@ from afc_alignment1 import align_func1
 start = datetime.now()
 
 # head_path = path_to_YaDisk()
-head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
+# head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
+head_path = 'E:\\Measure_res'
 # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2020_12_12test\\20201212_04'
-calibration_file_name = 'Noise_afc_-02_-33-3'
+file_name0 = head_path + '\\2020_12_18sun\\20201215_left_03_+16_2'
 q = int(file_name0[-1])
+
+if not file_name0.find('left') == -1:
+    calibration_file_name = '20201215_left_03_cNG_' + str(q)
 
 # D:\YandexDisk\Measure\Fast_Acquisition\06022020calibr
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 1  # Установка разрешения по частоте
-kt = 1  # Установка разрешения по времени
+kf = 8  # Установка разрешения по частоте
+kt = 8  # Установка разрешения по времени
 N_Nyq = q  # Номер зоны Найквиста
 # *****************************************************
 
@@ -41,7 +44,7 @@ t_start_flame = 103.6
 t_stop_flame = 105
 
 if N_Nyq == 3:
-    freq_spect_mask = [2250, 2315, 2370, 2500, 2600, 2670, 2690, 2730, 2735, 2740]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
+    freq_spect_mask = [2120, 2300,  2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
                        # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1950, 2000]
@@ -123,6 +126,12 @@ def extract(file_name0):
 def extract_two_polar(file_name0):
     file_name = file_name0 + '.bin'
     # file_name_out = file_name0 + '.txt'
+    # *********** Если система работает с одной поляризацией ************
+    if not file_name0.find('Ant2') == -1:
+        antenna2_0 = 1
+    else:
+        antenna2_0 = 0
+    # *******************************************************************
     i = 0
     k = 0
     spectr_left = []
@@ -137,7 +146,7 @@ def extract_two_polar(file_name0):
             print('\n \t', file_name, ' not found!!!\n')
 
         f_in = open(file_name, 'rb')
-
+        antenna = 0
         while frame:
 
             spectr_frame = []
@@ -162,6 +171,7 @@ def extract_two_polar(file_name0):
                     att_2 = (frame_int & 0xFC0) >> 6
                     att_3 = (frame_int & 0x3F000) >> 12
                     noise_gen_on = (frame_int & 0x40000) >> 18
+                    antenna_before = antenna
                     antenna = (frame_int & 0x80000) >> 19
                     coupler = (frame_int & 0x100000) >> 20
                     attenuators = [att_1, att_2, att_3]
@@ -174,17 +184,32 @@ def extract_two_polar(file_name0):
                     spectr_frame.append(spectr_val)
                     pass
 
-            if antenna == 1:
+            if antenna == 0 and (antenna_before - antenna == 0):
                 spectr_left.append(spectr_frame)
-            else:
+            elif len(spectr_left) > 1 and ((antenna_before - antenna) != 0):
+                spectr_left.pop(-1)
+
+            if antenna == 1 and (antenna_before - antenna) == 0:
                 spectr_right.append(spectr_frame)
-            print(i, frame_num)
+            elif len(spectr_right) > 1 and ((antenna_before - antenna) != 0):
+                spectr_right.pop(-1)
+            print(i, frame_num, antenna)
             i += 1
 
         pass
         n_right = len(spectr_right)
         n_left = len(spectr_left)
-        if n_right > 1:
+
+        # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
+        # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
+        # то необходима следующая процедура перестановки значений переменных
+        if n_right == 0 and antenna2_0 == 1:
+            spectr_right = spectr_left
+            spectr_left = []
+            n_right = len(spectr_right)
+            n_left = len(spectr_left)
+        # **********************************************************************************
+        if n_right > 1 :
             spectr_right.pop(-1)
             n_frame_last = spectr_right[-1][0]
             rest = (n_frame_last + 1) % 2**(6 - n_aver)
@@ -192,7 +217,7 @@ def extract_two_polar(file_name0):
                 for k in range(rest):
                     spectr_right.pop(-1)
             print(n_frame_last, spectr_right[-1][0])
-        if n_left > 1:
+        if n_left >1:
             spectr_left.pop(-1)
             n_frame_last = spectr_left[-1][0]
             rest = (n_frame_last + 1) % 2**(6 - n_aver)
@@ -206,10 +231,17 @@ def extract_two_polar(file_name0):
 
     if n_left > 1:
         spectr1 = convert_to_matrix(spectr_left, spectr_left[-1][0] + 1, n_aver)
-        np.savetxt(file_name0+'_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
+        np.savetxt(file_name0 + '_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
+    else:
+        spectr1 = []
+        np.savetxt(file_name0 + '_left.txt', spectr1)
     if n_right > 1:
         spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
         np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
+    else:
+        spectr2 = []
+        np.savetxt(file_name0 + '_right.txt', spectr2)
+
     return spectr1, spectr2, n_aver
 
 
@@ -220,6 +252,7 @@ def convert_to_matrix(S_total, counter, n_aver):
     вставляет значение 2'''
 
     S = [[int(2)] * 128 for i in range(counter)]
+    # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
         S[s[0]] = s[1:]
     n = 128 * (2 ** (6 - n_aver))
@@ -524,25 +557,47 @@ def path_to_fig():
     return
 
 
-if not os.path.isfile(file_name0 + '.txt'):
+if not (os.path.isfile(file_name0 + '.txt') or os.path.isfile(file_name0 + '_left.txt')):
     if num_of_polar == 1:
         spectr_extr, n_aver = extract(file_name0)
     else:
         spectr_extr_left, spectr_extr_right, n_aver = extract_two_polar(file_name0)
 else:
-    spectr_extr = np.loadtxt(file_name0 + '.txt')
-    f_in1 = open(file_name0 + '.txt')
-    n_aver = int((f_in1.readline())[2])
-
+    if num_of_polar == 1:
+        spectr_extr = np.loadtxt(file_name0 + '.txt')
+        f_in1 = open(file_name0 + '.txt')
+        n_aver = int((f_in1.readline())[2])
+    else:
+        spectr_extr_left = np.loadtxt(file_name0 + '_left.txt')
+        spectr_extr_right = np.loadtxt(file_name0 + '_right.txt')
+        if np.size(spectr_extr_left) > 1:
+            f_in1 = open(file_name0 + '_left.txt')
+            n_aver = int((f_in1.readline())[2])
+        else:
+            f_in1 = open(file_name0 + '_right.txt')
+            n_aver = int((f_in1.readline())[2])
     f_in1.close()
-
+if not file_name0.find('Ant1') == -1:
+    spectr_extr = spectr_extr_left
+elif not file_name0.find('Ant2') == -1:
+    spectr_extr = spectr_extr_right
+elif not file_name0.find('pol2') == -1:
+    # spectr_extr = spectr_extr_left
+    len_left = len(spectr_extr_left)
+    len_right = len(spectr_extr_right)
+    len_spectrum = min(len_right, len_left)
+    spectr_extr = spectr_extr_right[:len_spectrum, :] + spectr_extr_left[:len_spectrum, :]
+    print(len_left, len_right)
+    pass
+else:
+    spectr_extr = spectr_extr_left
 aver_param = 2 ** (6 - n_aver)
 
 if align == 'y':
     align_coeff = align_func(calibration_file_name, 'y', aver_param)
     spectr_extr = spectr_extr * align_coeff
 
-print('spectr_extr.shape = ', spectr_extr.shape)
+# print('spectr_extr.shape = ', spectr_extr.shape)
 
 # Приведение номеров отсчетов спектра в соответствие с ростом частоты слева направо
 N_row, N_col = np.shape(spectr_extr)
@@ -557,7 +612,7 @@ if N_Nyq % 2 == 0:
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 spectr_freq, spectr_time = form_spectr_sp1(freq_spect_mask, time_spect_mask)
 # np.savetxt(file_name0+'_scan'+'.txt', spectr_time)
-# np.savetxt(file_name0+'_spectr'+'.txt', spectr_extr1)
+# np.savetxt(file_name0+'_spectr'+'.txt', spectr_freq)
 if noise_calibr == 'y':
     spectr_time = calibration(t_cal, spectr_time)
 

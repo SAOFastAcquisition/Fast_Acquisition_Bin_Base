@@ -15,6 +15,11 @@ import os
 def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] * 20):
 
     size_sp1 = spectr1.shape
+    for i in range(size_sp1[0]):
+        for j in range(size_sp1[1]):
+            if spectr1[i, j] < 100:
+                spectr1[i, j] = 'NaN'
+
     freq_line_sp1 = size_sp1[0]
 
     title0 = file_name0[-19:-2]
@@ -48,7 +53,18 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
         title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
                  ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
 
-    elif not file_name0.find('test') == -1:
+    elif not (file_name0.find('Calibrate') == -1):
+        if not (file_name0.find('Ant1') == -1):
+            title2 = 'Calibration Left_Pol'
+        if not (file_name0.find('Ant2') == -1):
+                title2 = 'Calibration Right_Pol'
+        if not (file_name0.find('pol2') == -1):
+            title2 = 'Calibration L&R Pol'
+        title0 = file_name0[-24:-2]
+        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+                 ' mode=' + title0[9:13] + ' source=' + title0[14:23]
+
+    elif not (file_name0.find('test') == -1):
         title2 = 'Interference Test'
         title0 = file_name0[-24:-2]
         title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
