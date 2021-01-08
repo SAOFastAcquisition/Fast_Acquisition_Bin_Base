@@ -1,5 +1,7 @@
 import numpy as np
-from Fig_plot import fig_plot as fp
+import sys
+from Supporting_func.Fig_plot import fig_plot as fp
+sys.path.insert(0, r'E:/rep1/Supporting_func')
 #from Restriction import afc_correction as afc
 x = np.linspace(0, 1, 100)
 y = lambda x: np.sin(10 * x)

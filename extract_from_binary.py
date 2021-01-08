@@ -1,22 +1,26 @@
 import numpy as np
-import struct
 import os
-import scipy.io
+import sys
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from datetime import datetime
-import Fig_plot as fp
-from path_to_Yandex_Disk import path_to_YaDisk
-from afc_alignment import align_func
-from afc_alignment1 import align_func1
+from Supporting_func import Fig_plot as fp
+from Supporting_func.afc_alignment import align_func
 
+# import scipy.io
+# import struct
+# from path_to_Yandex_Disk import path_to_YaDisk
+# from Supporting_func.afc_alignment1 import align_func1
+
+sys.path.insert(0, r'E:/rep1/Supporting_func')
 start = datetime.now()
 
 # head_path = path_to_YaDisk()
 # head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
 head_path = 'E:\\Measure_res'
 # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2020_12_18sun\\20201215_left_03_+16_2'
+file_name0 = head_path + '\\2020_12_18sun\\20201218_Ant1_02_+00_3'
 q = int(file_name0[-1])
 
 if not file_name0.find('left') == -1:
@@ -25,8 +29,8 @@ if not file_name0.find('left') == -1:
 # D:\YandexDisk\Measure\Fast_Acquisition\06022020calibr
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 8  # Установка разрешения по частоте
-kt = 8  # Установка разрешения по времени
+kf = 4  # Установка разрешения по частоте
+kt = 16  # Установка разрешения по времени
 N_Nyq = q  # Номер зоны Найквиста
 # *****************************************************
 
@@ -36,6 +40,7 @@ num_of_polar = 2
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'
+polar = 'both'
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -47,7 +52,7 @@ if N_Nyq == 3:
     freq_spect_mask = [2120, 2300,  2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
                        # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 else:
-    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1950, 2000]
+    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1790, 1950]
 
 # Динамическая маска (зависит от длины записи во времени)
 # time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
@@ -577,6 +582,36 @@ else:
             f_in1 = open(file_name0 + '_right.txt')
             n_aver = int((f_in1.readline())[2])
     f_in1.close()
+
+if align == 'y':
+    # align_coeff = align_func(calibration_file_name, 'y', aver_param)
+    path_output = r'E:\Measure_res\Calibr_coeff_2020_12'
+    if polar == 'left':
+        if N_Nyq == 2:
+            file_name_calibr: str = path_output + r'\Calibr_Ant1_2.txt'
+        else:
+            file_name_calibr: str = path_output + r'\Calibr_Ant1_3.txt'
+        align_coeff = np.loadtxt(file_name_calibr)
+        spectr_extr_left = spectr_extr_left * align_coeff
+    if polar == 'right':
+        if N_Nyq == 2:
+            file_name_calibr: str = path_output + r'\Calibr_Ant1_2.txt'
+        else:
+            file_name_calibr: str = path_output + r'\Calibr_Ant1_3.txt'
+        align_coeff = np.loadtxt(file_name_calibr)
+        spectr_extr_right = spectr_extr_right * align_coeff
+    if polar == 'both':
+        if N_Nyq == 2:
+            file_name_calibr1: str = path_output + r'\Calibr_Ant1_2.txt'
+            file_name_calibr2: str = path_output + r'\Calibr_Ant2_2.txt'
+        else:
+            file_name_calibr1: str = path_output + r'\Calibr_Ant1_3.txt'
+            file_name_calibr2: str = path_output + r'\Calibr_Ant2_3.txt'
+        align_coeff1 = np.loadtxt(file_name_calibr1)
+        align_coeff2 = np.loadtxt(file_name_calibr2)
+        spectr_extr_left = spectr_extr_left * align_coeff1
+        spectr_extr_right = spectr_extr_right * align_coeff2
+
 if not file_name0.find('Ant1') == -1:
     spectr_extr = spectr_extr_left
 elif not file_name0.find('Ant2') == -1:
@@ -586,16 +621,21 @@ elif not file_name0.find('pol2') == -1:
     len_left = len(spectr_extr_left)
     len_right = len(spectr_extr_right)
     len_spectrum = min(len_right, len_left)
-    spectr_extr = spectr_extr_right[:len_spectrum, :] + spectr_extr_left[:len_spectrum, :]
+
+    if polar == 'left':
+        spectr_extr = spectr_extr_left
+    elif polar == 'right':
+        spectr_extr = spectr_extr_left
+    elif polar == 'both':
+        spectr_extr = spectr_extr_right[:len_spectrum, :] + spectr_extr_left[:len_spectrum, :]
+        # spectr_extr = spectr_extr_left + spectr_extr_right
     print(len_left, len_right)
     pass
 else:
     spectr_extr = spectr_extr_left
 aver_param = 2 ** (6 - n_aver)
 
-if align == 'y':
-    align_coeff = align_func(calibration_file_name, 'y', aver_param)
-    spectr_extr = spectr_extr * align_coeff
+
 
 # print('spectr_extr.shape = ', spectr_extr.shape)
 
@@ -629,7 +669,8 @@ if graph_3d_perm == 'n' or contour_2d_perm == 'n':
     spectr_extr1 = spectr_construction(spectr_extr, kf, kt)
 # Информация о временном и частотном резрешениях
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
-            ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz')]
+            ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
+            ('polarisation ' + polar)]
 path_to_fig()
 
 if graph_3d_perm == 'y':

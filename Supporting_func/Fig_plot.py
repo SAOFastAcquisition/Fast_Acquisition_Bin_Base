@@ -22,11 +22,12 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
 
     freq_line_sp1 = size_sp1[0]
 
-    title0 = file_name0[-19:-2]
-
-    title1 = '  '+title0[0:4]+'.'+title0[4:6]+'.'+title0[6:8] +\
-             ' time='+title0[9:11]+':'+title0[11:13]+' azimuth='+title0[14:17]
-
+    # title0 = file_name0[-19:-2]
+    # title1 = '  '+title0[0:4]+'.'+title0[4:6]+'.'+title0[6:8] +\
+    #          ' time='+title0[9:11]+':'+title0[11:13]+' azimuth='+title0[14:17]
+    title0 = file_name0[-22:-2]
+    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+             ' mode='+title0[9:13]+' attenuation='+title0[14:16]+' azimuth='+title0[17:20]
     fig, ax = plt.subplots(1, figsize=(12, 6))
 
     line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
@@ -71,7 +72,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
                  ' channel att=' + title0[15:18] + ' source dBm=' + title0[19:22]
         pass
     else:
-        title2 = [ ]
+        title2 = []
 
     if flag:
         ax.set_xlabel('Freq, MHz', fontsize=20)
@@ -80,6 +81,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
         ax.set_title('Spectrum'+title1, fontsize=24)
         y1 = y_min + 0.15 * (y_max - y_min) / 10
         y2 = y_min
+        y3 = y_max - (y_max - y_min) / 10
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
@@ -91,9 +93,12 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
         ax.set_title(title2+' scan'+title1, fontsize=24)
         y1 = y_min + (y_max - y_min) / 10
         y2 = y_min
+        y3 = y_max - (y_max - y_min) / 10
 
     plt.text(x_min, y1, inform[0], fontsize=16)
     plt.text(x_min, y2, inform[1], fontsize=16)
+    plt.text(x_min, y3, inform[2], fontsize=16)
+
 
     m = 0
     for i in range(freq_line_sp1):

@@ -3,20 +3,21 @@ import numpy as np
 from path_to_Yandex_Disk import path_to_YaDisk
 
 
-def noise_kp(file_name, diff='n'):
+def noise_kp(file_name, n_nyq, diff='n'):
     """ Функция принимает файл шумового измерения мощностной АЧХ и возвращает
         нормированный к максимуму коэффициент передачи тракта по мощности"""
-    spectr_noise_out = np.loadtxt(file_name + '.txt')
+    if not file_name.find(r'E:\Measure') == -1:
+        file_name0 = file_name
+    else:
+        file_name0 = file_name + '.txt'
+    spectr_noise_out = np.loadtxt(file_name0)
     n_row, n_col = np.shape(spectr_noise_out)
     s = np.zeros(n_col)
     s1 = np.zeros(n_col)
     # Усреднение по времени
     for i in range(n_col):
         if diff == 'n':
-            if int(file_name[-1]) == 2:
-                s[i] = np.sum(spectr_noise_out[1600:, i]) / (n_row - 1600)
-            else:
-                s[i] = np.sum(spectr_noise_out[:1600, i]) / 1600
+            s[i] = np.sum(spectr_noise_out[:500, i]) / 500
         else:
             s[i] = np.sum(spectr_noise_out[:1600, i]) / 1600
             s1[i] = np.sum(spectr_noise_out[2000:3600, i]) / 1600
@@ -24,7 +25,7 @@ def noise_kp(file_name, diff='n'):
 
     s_max = np.max(s)
     kp_norm = s / s_max
-    return kp_norm, n_col
+    return kp_norm, n_col, s
 
 
 def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object = 2) -> object:
@@ -42,29 +43,45 @@ def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object 
     # head_path = path_to_YaDisk()
     head_path = 'E:\\BinData'
     # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\Calibration\\' + calibr_file_name
-    file_name0 = head_path + '\\2020_12_16calibr\\' + calibr_file_name
-    n_Nyq = int(calibr_file_name[-1])
-    f_in1 = open(file_name0 + '.txt')
+
+    if not calibr_file_name.find('left') == -1:
+        file_name0 = calibr_file_name
+        n_nyq = int(calibr_file_name[-10])
+        f_in1 = open(file_name0)
+    elif not calibr_file_name.find('right') == -1:
+        file_name0 = calibr_file_name
+        n_nyq = int(calibr_file_name[-11])
+        f_in1 = open(file_name0)
+    else:
+        file_name0 = head_path + '\\2020_12_16calibr\\' + calibr_file_name
+        n_nyq = int(calibr_file_name[-1])
+        f_in1 = open(file_name0 + '.txt')
+
     n_aver_noise = int((f_in1.readline())[2])
     aver_param_noise = 2 ** (6 - n_aver_noise)
     f_in1.close()
 
-    kp_norm, n_col = noise_kp(file_name0, diff)
+    kp_norm, n_col, spectrum_cal = noise_kp(file_name0, n_nyq, diff)
 
     # Исключение корректировки коэффициента усиления в зоне действия режекторных фильтров
-    if n_Nyq == 3:
+    if n_nyq == 3:
         n1 = int((80 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
         n2 = int((230 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
     else:
-        n1 = int((810 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
-        n2 = int((890 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n1 = int((100 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n2 = int((212 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
     kp_norm[n1:n2] = 1
 
     band = int(aver_param_noise / aver_param)
     kp_band = [np.sum(kp_norm[band * i:band * (i + 1)]) / band for i in range(int(n_col / band))]
-
     align_coeff = [1 / a for a in kp_band]
-    return align_coeff
+
+    if n_nyq == 3:
+        freq = np.linspace(1000 * (n_nyq - 1) + 3.9063 / aver_param, 1000 * n_nyq - 3.9063 / aver_param, n_col)
+    else:
+        freq = np.linspace(1000 * n_nyq - 3.9063 / aver_param, 1000 * (n_nyq - 1) + 3.9063 / aver_param, n_col)
+
+    return align_coeff, freq * 1000000, spectrum_cal
 
 
 if __name__ == '__main__':
