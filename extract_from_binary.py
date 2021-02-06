@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from datetime import datetime
 from Supporting_func import Fig_plot as fp
+# from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_func
 
 # import scipy.io
@@ -20,7 +21,7 @@ start = datetime.now()
 # head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
 head_path = 'E:\\Measure_res'
 # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2020_12_18sun\\20201218_Ant1_02_+00_3'
+file_name0 = head_path + '\\2020_12_22sun\\20201222_pol2_06_+00_2'
 q = int(file_name0[-1])
 
 if not file_name0.find('left') == -1:
@@ -30,7 +31,7 @@ if not file_name0.find('left') == -1:
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 16  # Установка разрешения по времени
+kt = 1  # Установка разрешения по времени
 N_Nyq = q  # Номер зоны Найквиста
 # *****************************************************
 
@@ -39,7 +40,7 @@ delta_f = 7.8125
 num_of_polar = 2
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'
+align = 'y'
 polar = 'both'
 noise_calibr = 'n'
 graph_3d_perm = 'n'
@@ -52,7 +53,7 @@ if N_Nyq == 3:
     freq_spect_mask = [2120, 2300,  2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
                        # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 else:
-    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1790, 1950]
+    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
 # Динамическая маска (зависит от длины записи во времени)
 # time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
@@ -186,6 +187,8 @@ def extract_two_polar(file_name0):
                 else:
                     spectr_val = (frame_int & 0x7FFFFFFFFFFFFF)
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
+                    if pp_good / 256 < 0.78125:
+                        spectr_val = 2
                     spectr_frame.append(spectr_val)
                     pass
 
@@ -281,7 +284,7 @@ def spectr_construction(Spectr, kf, kt):
         for j in range(N_col1):
             try:
                 S1[i, j] = np.sum(Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf])
-                N_mesh = (Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf] != 0).sum()
+                N_mesh = (Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf] > 10).sum()
                 if N_mesh == 0:
                     S1[i, j] = 2
                 else:
@@ -377,8 +380,18 @@ def form_spectr_sp1(freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_
         while kt * (i + 1) < N_row:
             if kf == 1:
                 s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind])
+                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind] > 100).sum()
+                if n_mesh == 0:
+                    s_time[i, j] = 2
+                else:
+                    s_time[i, j] /= n_mesh
             else:
                 s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)])
+                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 100).sum()
+                if n_mesh == 0:
+                    s_time[i, j] = 2
+                else:
+                    s_time[i, j] /= n_mesh
             i += 1
         ind_spec.append(ind)
         j += 1
@@ -393,13 +406,24 @@ def form_spectr_sp1(freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_
         while (j + 1) * kf < N_col:
             if kt == 1:
                 s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf])
+                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 10).sum()
+                if n_mesh == 0:
+                    s_freq[i, j] = 2
+                else:
+                    s_freq[i, j] /= n_mesh
             else:
                 s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf])
+                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 10).sum()
+                if n_mesh == 0:
+                    s_freq[i, j] = 2
+                else:
+                    s_freq[i, j] /= n_mesh
+
             j += 1
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq // kt // kf, s_time // kt // kf
+    return s_freq, s_time
 
 
 def pic_title():
@@ -641,13 +665,13 @@ aver_param = 2 ** (6 - n_aver)
 
 # Приведение номеров отсчетов спектра в соответствие с ростом частоты слева направо
 N_row, N_col = np.shape(spectr_extr)
-t_spect = N_row * delta_t
 if N_Nyq % 2 == 0:
     for i in range(N_row):
         spectr_extr[i][0:] = spectr_extr[i][-1::-1]
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
 # Динамическая маска (зависит от длины записи во времени)
+t_spect = N_row * delta_t
 # time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 spectr_freq, spectr_time = form_spectr_sp1(freq_spect_mask, time_spect_mask)

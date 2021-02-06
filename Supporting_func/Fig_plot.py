@@ -60,10 +60,10 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
         if not (file_name0.find('Ant2') == -1):
                 title2 = 'Calibration Right_Pol'
         if not (file_name0.find('pol2') == -1):
-            title2 = 'Calibration L&R Pol'
-        title0 = file_name0[-24:-2]
+            title2 = 'Calibration L&R Pol' # 20201224_Ant1_HotL_3
+        title0 = file_name0[-20:-2]
         title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' mode=' + title0[9:13] + ' source=' + title0[14:23]
+                 ' mode=' + title0[9:13] + ' source=' + title0[14:18]
 
     elif not (file_name0.find('test') == -1):
         title2 = 'Interference Test'
