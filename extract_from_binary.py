@@ -21,7 +21,7 @@ start = datetime.now()
 # head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
 head_path = 'E:\\Measure_res'
 # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2020_12_22sun\\20201222_pol2_06_+00_2'
+file_name0 = head_path + '\\2021_02_10test\\20210210_Ant1_Load_2'
 q = int(file_name0[-1])
 
 if not file_name0.find('left') == -1:
@@ -30,7 +30,7 @@ if not file_name0.find('left') == -1:
 # D:\YandexDisk\Measure\Fast_Acquisition\06022020calibr
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 4  # Установка разрешения по частоте
+kf = 1  # Установка разрешения по частоте
 kt = 1  # Установка разрешения по времени
 N_Nyq = q  # Номер зоны Найквиста
 # *****************************************************
@@ -40,8 +40,8 @@ delta_f = 7.8125
 num_of_polar = 2
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'y'
-polar = 'both'
+align = 'n'
+polar = 'left'
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -180,6 +180,7 @@ def extract_two_polar(file_name0):
                     antenna_before = antenna
                     antenna = (frame_int & 0x80000) >> 19
                     coupler = (frame_int & 0x100000) >> 20
+                    band = (frame_int & 0x8000000000000000) >> 63
                     attenuators = [att_1, att_2, att_3]
 
                     pass
@@ -201,7 +202,7 @@ def extract_two_polar(file_name0):
                 spectr_right.append(spectr_frame)
             elif len(spectr_right) > 1 and ((antenna_before - antenna) != 0):
                 spectr_right.pop(-1)
-            print(i, frame_num, antenna)
+            print(i, frame_num, band)
             i += 1
 
         pass
@@ -217,7 +218,7 @@ def extract_two_polar(file_name0):
             n_right = len(spectr_right)
             n_left = len(spectr_left)
         # **********************************************************************************
-        if n_right > 1 :
+        if n_right > 1:
             spectr_right.pop(-1)
             n_frame_last = spectr_right[-1][0]
             rest = (n_frame_last + 1) % 2**(6 - n_aver)
@@ -225,7 +226,7 @@ def extract_two_polar(file_name0):
                 for k in range(rest):
                     spectr_right.pop(-1)
             print(n_frame_last, spectr_right[-1][0])
-        if n_left >1:
+        if n_left > 1:
             spectr_left.pop(-1)
             n_frame_last = spectr_left[-1][0]
             rest = (n_frame_last + 1) % 2**(6 - n_aver)
