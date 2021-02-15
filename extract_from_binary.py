@@ -38,6 +38,7 @@ N_Nyq = q  # Номер зоны Найквиста
 delta_t = 8.1925e-3
 delta_f = 7.8125
 num_of_polar = 2
+band_size = 'half'
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'
@@ -246,6 +247,151 @@ def extract_two_polar(file_name0):
         np.savetxt(file_name0 + '_left.txt', spectr1)
     if n_right > 1:
         spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
+        np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
+    else:
+        spectr2 = []
+        np.savetxt(file_name0 + '_right.txt', spectr2)
+
+    return spectr1, spectr2, n_aver
+
+def extract_whole_band(file_name0):
+    file_name = file_name0 + '.bin'
+    # file_name_out = file_name0 + '.txt'
+    # *********** Если система работает с одной поляризацией ************
+    if not file_name0.find('Ant2') == -1:
+        antenna2_0 = 1
+    else:
+        antenna2_0 = 0
+    # *******************************************************************
+    i = 0
+    k = 0
+    if band_size == 'half':
+        spectrum_left = []
+        spectrum_right = []
+    else:
+        spectrum_right_1 = []
+        spectrum_left_1 = []
+        spectrum_left_2 = []
+        spectrum_right_2 = []
+
+    attenuators = []
+    frame = ' '
+
+    try:
+        if os.path.isfile(file_name) == 1:
+            pass
+        else:
+            print('\n \t', file_name, ' not found!!!\n')
+
+        f_in = open(file_name, 'rb')
+        antenna = 0
+        while frame:
+
+            spectr_frame = []
+            # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
+            # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
+            for k in range(130):
+                frame = f_in.read(8)
+                frame_int = int.from_bytes(frame, byteorder='little')
+                if k == 0:
+                    frame_num = frame_int & 0xFFFFFFF
+
+                    # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
+                    # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
+                    if i == 0:
+                        n_aver = (frame_int & 0x3F00000000) >> 32
+                        bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
+                        bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
+                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
+                    spectr_frame.append(frame_num)
+                elif k == 1:
+                    att_1 = frame_int & 0x3F
+                    att_2 = (frame_int & 0xFC0) >> 6
+                    att_3 = (frame_int & 0x3F000) >> 12
+                    noise_gen_on = (frame_int & 0x40000) >> 18
+                    antenna_before = antenna
+                    antenna = (frame_int & 0x80000) >> 19
+                    coupler = (frame_int & 0x100000) >> 20
+                    band = (frame_int & 0x8000000000000000) >> 63
+                    attenuators = [att_1, att_2, att_3]
+
+                    pass
+
+                else:
+                    spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF)
+                    pp_good = (frame_int & 0xFF80000000000000) >> 55
+                    if pp_good / 256 < 0.78125:
+                        spectrum_val = 2
+                    spectr_frame.append(spectrum_val)
+                    pass
+
+            if antenna == 0 and (antenna_before - antenna == 0):
+                if band:
+                    spectrum_left_2.append(spectr_frame)
+                    if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
+                        spectrum_left_2.pop(-1)
+                else:
+                    spectrum_left_1.append(spectr_frame)
+                    if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
+                        spectrum_left_1.pop(-1)
+            if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0) and band == 0:
+                spectrum_left_1.pop(-1)
+            if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0) and band == 1:
+                spectrum_left_2.pop(-1)
+
+
+            if antenna == 1 and (antenna_before - antenna) == 0:
+                if band:
+                    spectrum_right_2.append(spectr_frame)
+                else:
+                    spectrum_right_1.append(spectr_frame)
+            if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0) and band == 0:
+                spectrum_right_1.pop(-1)
+            if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0) and band == 1:
+                spectrum_right_2.pop(-1)
+            print(i, frame_num, band)
+            i += 1
+
+        pass
+        n_right = len(spectrum_right)
+        n_left = len(spectrum_left)
+
+        # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
+        # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
+        # то необходима следующая процедура перестановки значений переменных
+        if n_right == 0 and antenna2_0 == 1:
+            spectrum_right = spectrum_left
+            spectrum_left = []
+            n_right = len(spectrum_right)
+            n_left = len(spectrum_left)
+        # **********************************************************************************        if n_right > 1:
+            spectrum_right.pop(-1)
+            n_frame_last = spectrum_right[-1][0]
+            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            if rest:
+                for k in range(rest):
+                    spectrum_right.pop(-1)
+            print(n_frame_last, spectrum_right[-1][0])
+        if n_left > 1:
+            spectrum_left.pop(-1)
+            n_frame_last = spectrum_left[-1][0]
+            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            if rest:
+                for k in range(rest):
+                    spectrum_left.pop(-1)
+            print(n_frame_last, spectrum_left[-1][0])
+    finally:
+        f_in.close()
+        pass
+
+    if n_left > 1:
+        spectr1 = convert_to_matrix(spectrum_left, spectrum_left[-1][0] + 1, n_aver)
+        np.savetxt(file_name0 + '_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
+    else:
+        spectr1 = []
+        np.savetxt(file_name0 + '_left.txt', spectr1)
+    if n_right > 1:
+        spectr2 = convert_to_matrix(spectrum_right, spectrum_right[-1][0] + 1, n_aver)
         np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
     else:
         spectr2 = []
