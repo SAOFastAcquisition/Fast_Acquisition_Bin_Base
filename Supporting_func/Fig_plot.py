@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.font_manager as font_manager
+from matplotlib.ticker import MaxNLocator
 import pylab
 import os
 # from IPython.display import set_matplotlib_formats
@@ -201,3 +202,74 @@ def path_to_pic(file_path,  flag, format='png'):
             add_pass1 = add_pass0 + '.' + format
 
     return add_pass1
+
+
+def graph_contour_2d(*args):
+    import matplotlib.font_manager as font_manager
+    xval, yval, z, s = args
+    x, y = np.meshgrid(xval, yval)
+    z = np.log10(z)
+
+    levels = MaxNLocator(nbins=15).tick_values(z.min(), z.max())
+    # pick the desired colormap, sensible levels, and define a normalization
+    # instance which takes data values and translates those into levels.
+    cmap = plt.get_cmap('jet')
+
+    fig, ax1 = plt.subplots(1, figsize=(12, 6))
+
+    cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
+
+    x_min = xval[1]
+    y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
+    y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
+    fig.colorbar(cf, ax=ax1)
+    title1, title2 = pic_title()
+    ax1.set_title(title2 + ' ' + title1, fontsize=20)
+    ax1.set_xlabel('Freq, MHz', fontsize=18)
+    ax1.set_ylabel('Time, s', fontsize=18)
+
+    plt.grid(b=True, which='major', color='#666666', linestyle='-')
+    plt.minorticks_on()
+    plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+    plt.tick_params(axis='both', which='major', labelsize=16)
+
+    plt.text(x_min, y1, info_txt[0], fontsize=16)
+    plt.text(x_min, y2, info_txt[1], fontsize=16)
+
+    # adjust spacing between subplots so `ax1` title and `ax0` tick labels
+    # don't overlap
+    fig.tight_layout()
+    add_path0 = fp.path_to_pic(file_name0 + '\\', 2, 'png')
+    fig.savefig(file_name0 + '\\' + add_path0)
+    plt.show()
+    return
+
+    # Модуль проверки: формировалась ли ранее матрица спектра по времени и частоте
+    # если - нет, то идем в extract(file_name0), если - да, то загружаем
+
+
+def graph_3d(*args):
+    from mpl_toolkits.mplot3d import Axes3D
+    from matplotlib import cm
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    xval, yval, z, s = args
+    x, y = np.meshgrid(xval, yval)
+    ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
+    title1, title2 = pic_title()
+    ax.set_title(title2 + ' ' + title1, fontsize=20)
+    ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
+    ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
+    ax.set_xlabel('Frequency, MHz', fontsize=16)
+    ax.set_ylabel('Time, s', fontsize=16)
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    # cmap = plt.get_cmap('jet')
+    if s:
+        surf = ax.plot_surface(x, y, z, rstride=2, cstride=2, cmap=cm.plasma)
+        plt.savefig(file_name0 + '_wK' + '.png', format='png', dpi=100)
+        return
+    surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
+    add_path0 = fp.path_to_pic(file_name0 + '\\', 3)
+    plt.savefig(file_name0 + '\\' + add_path0, format='png', dpi=100)
+    plt.show()
+    return

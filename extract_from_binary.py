@@ -1,13 +1,12 @@
 import numpy as np
 import os
 import sys
-
+import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
 from datetime import datetime
 from Supporting_func import Fig_plot as fp
 # from Supporting_func import stat_cleaning
-from Supporting_func.afc_alignment import align_func
+from Supporting_func.afc_alignment import align_spectrum
 
 # import scipy.io
 # import struct
@@ -37,12 +36,12 @@ N_Nyq = q  # Номер зоны Найквиста
 
 delta_t = 8.1925e-3
 delta_f = 7.8125
-num_of_polar = 2
-band_size = 'half'
+num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
+band_size = 'whole'  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'
-polar = 'left'
+align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+polar = 'both'  # Принамает значения поляризаций: 'both', 'left', 'right'
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -51,20 +50,22 @@ t_start_flame = 103.6
 t_stop_flame = 105
 
 if N_Nyq == 3:
-    freq_spect_mask = [2120, 2300,  2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
-                       # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
+    freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
+    # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
 # Динамическая маска (зависит от длины записи во времени)
 # time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
+
+
 # 173, 173.6, 173.8, 174.38
 # t_cal = [0, 14, 17, 31]         # Для скана "20200318-1353_-24-3"
 # t_cal = [0, 13, 17, 35]
 
 
-def extract(file_name0):
+def extract():
     file_name = file_name0 + '.bin'
     file_name_out = file_name0 + '.txt'
     i = 0
@@ -115,7 +116,7 @@ def extract(file_name0):
         spectr.pop(-1)
         N = len(spectr)
         n_frame_last = spectr[-1][0]
-        rest = (n_frame_last + 1) % 2**(6 - n_aver)
+        rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
         if rest:
             for k in range(rest):
                 spectr.pop(-1)
@@ -130,7 +131,7 @@ def extract(file_name0):
     return spectr1, n_aver
 
 
-def extract_two_polar(file_name0):
+def extract_two_polar():
     file_name = file_name0 + '.bin'
     # file_name_out = file_name0 + '.txt'
     # *********** Если система работает с одной поляризацией ************
@@ -222,7 +223,7 @@ def extract_two_polar(file_name0):
         if n_right > 1:
             spectr_right.pop(-1)
             n_frame_last = spectr_right[-1][0]
-            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
             if rest:
                 for k in range(rest):
                     spectr_right.pop(-1)
@@ -230,7 +231,7 @@ def extract_two_polar(file_name0):
         if n_left > 1:
             spectr_left.pop(-1)
             n_frame_last = spectr_left[-1][0]
-            rest = (n_frame_last + 1) % 2**(6 - n_aver)
+            rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
             if rest:
                 for k in range(rest):
                     spectr_left.pop(-1)
@@ -241,22 +242,21 @@ def extract_two_polar(file_name0):
 
     if n_left > 1:
         spectr1 = convert_to_matrix(spectr_left, spectr_left[-1][0] + 1, n_aver)
-        np.savetxt(file_name0 + '_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
     else:
         spectr1 = []
-        np.savetxt(file_name0 + '_left.txt', spectr1)
     if n_right > 1:
         spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
-        np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
     else:
         spectr2 = []
-        np.savetxt(file_name0 + '_right.txt', spectr2)
+    spectrum_extr = pd.Series([spectr1, spectr2])
+    np.save(file_name0 + '_spectrum', spectrum_extr)
+    head = np.array([n_aver, 6, 8])
+    np.savetxt(file_name0 + '_head.txt', head)
+    return spectrum_extr, n_aver
 
-    return spectr1, spectr2, n_aver
 
-def extract_whole_band(file_name0):
+def extract_whole_band():
     file_name = file_name0 + '.bin'
-    # file_name_out = file_name0 + '.txt'
     # *********** Если система работает с одной поляризацией ************
     if not file_name0.find('Ant2') == -1:
         antenna2_0 = 1
@@ -264,16 +264,10 @@ def extract_whole_band(file_name0):
         antenna2_0 = 0
     # *******************************************************************
     i = 0
-    k = 0
-    if band_size == 'half':
-        spectrum_left = []
-        spectrum_right = []
-    else:
-        spectrum_right_1 = []
-        spectrum_left_1 = []
-        spectrum_left_2 = []
-        spectrum_right_2 = []
-
+    spectrum_right_1 = []
+    spectrum_left_1 = []
+    spectrum_left_2 = []
+    spectrum_right_2 = []
     attenuators = []
     frame = ' '
 
@@ -282,11 +276,11 @@ def extract_whole_band(file_name0):
             pass
         else:
             print('\n \t', file_name, ' not found!!!\n')
+            return
 
         f_in = open(file_name, 'rb')
         antenna = 0
         while frame:
-
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
             # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
@@ -320,7 +314,7 @@ def extract_whole_band(file_name0):
                 else:
                     spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF)
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    if pp_good / 256 < 0.78125:
+                    if pp_good / 256 < 0.1:
                         spectrum_val = 2
                     spectr_frame.append(spectrum_val)
                     pass
@@ -328,76 +322,97 @@ def extract_whole_band(file_name0):
             if antenna == 0 and (antenna_before - antenna == 0):
                 if band:
                     spectrum_left_2.append(spectr_frame)
-                    if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
-                        spectrum_left_2.pop(-1)
                 else:
                     spectrum_left_1.append(spectr_frame)
-                    if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
-                        spectrum_left_1.pop(-1)
-            if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0) and band == 0:
+            if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_left_1.pop(-1)
-            if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0) and band == 1:
+            if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_left_2.pop(-1)
-
 
             if antenna == 1 and (antenna_before - antenna) == 0:
                 if band:
                     spectrum_right_2.append(spectr_frame)
                 else:
                     spectrum_right_1.append(spectr_frame)
-            if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0) and band == 0:
+            if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_1.pop(-1)
-            if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0) and band == 1:
+            if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_2.pop(-1)
+
             print(i, frame_num, band)
             i += 1
-
         pass
-        n_right = len(spectrum_right)
-        n_left = len(spectrum_left)
-
+        n_right1 = len(spectrum_right_1)
+        n_left1 = len(spectrum_left_1)
+        n_right2 = len(spectrum_right_2)
+        n_left2 = len(spectrum_left_2)
         # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
         # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
         # то необходима следующая процедура перестановки значений переменных
+        n_right = np.max(len(spectrum_right_1), len(spectrum_right_2))
         if n_right == 0 and antenna2_0 == 1:
-            spectrum_right = spectrum_left
-            spectrum_left = []
-            n_right = len(spectrum_right)
-            n_left = len(spectrum_left)
-        # **********************************************************************************        if n_right > 1:
-            spectrum_right.pop(-1)
-            n_frame_last = spectrum_right[-1][0]
-            rest = (n_frame_last + 1) % 2**(6 - n_aver)
-            if rest:
-                for k in range(rest):
-                    spectrum_right.pop(-1)
-            print(n_frame_last, spectrum_right[-1][0])
-        if n_left > 1:
-            spectrum_left.pop(-1)
-            n_frame_last = spectrum_left[-1][0]
-            rest = (n_frame_last + 1) % 2**(6 - n_aver)
-            if rest:
-                for k in range(rest):
-                    spectrum_left.pop(-1)
-            print(n_frame_last, spectrum_left[-1][0])
+            spectrum_right_1 = spectrum_left_1
+            spectrum_left_1 = []
+            spectrum_right_2 = spectrum_left_2
+            spectrum_left_2 = []
+            n_right1 = len(spectrum_right_1)
+            n_left1 = len(spectrum_left_1)
+            n_right2 = len(spectrum_right_2)
+            n_left2 = len(spectrum_left_2)
+        if n_right1 > 1:
+            spectrum_right_1 = cut_spectrum(spectrum_right_1, n_aver)
+        if n_left1 > 1:
+            spectrum_left_1 = cut_spectrum(spectrum_left_1, n_aver)
+        if n_right2 > 1:
+            spectrum_right_2 = cut_spectrum(spectrum_right_2, n_aver)
+        if n_left2 > 1:
+            spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
     finally:
         f_in.close()
         pass
+    spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
+    return save_spectrum(spectrum_extr, n_aver)
 
-    if n_left > 1:
-        spectr1 = convert_to_matrix(spectrum_left, spectrum_left[-1][0] + 1, n_aver)
-        np.savetxt(file_name0 + '_left.txt', spectr1, header=(str(n_aver) + '-n_aver '))
-    else:
-        spectr1 = []
-        np.savetxt(file_name0 + '_left.txt', spectr1)
-    if n_right > 1:
-        spectr2 = convert_to_matrix(spectrum_right, spectrum_right[-1][0] + 1, n_aver)
-        np.savetxt(file_name0 + '_right.txt', spectr2, header=(str(n_aver) + '-n_aver '))
-    else:
-        spectr2 = []
-        np.savetxt(file_name0 + '_right.txt', spectr2)
 
-    return spectr1, spectr2, n_aver
+def save_spectrum(spectrum_extr, n_aver):
+    spectrum1 = spectrum_extr[0]
+    spectrum2 = spectrum_extr[1]
+    spectrum3 = spectrum_extr[2]
+    spectrum4 = spectrum_extr[3]
+    if len(spectrum1) > 1:
+        spectrum1_low = convert_to_matrix(spectrum1, spectrum1[-1][0] + 1, n_aver)
+        pass
+    else:
+        spectrum1_low = []
+    if len(spectrum2) > 1:
+        spectrum1_high = convert_to_matrix(spectrum2, spectrum2[-1][0] + 1, n_aver)
+    else:
+        spectrum1_high = []
+    if len(spectrum3) > 1:
+        spectrum2_low = convert_to_matrix(spectrum3, spectrum3[-1][0] + 1, n_aver)
+    else:
+        spectrum2_low = []
+    if len(spectrum4) > 1:
+        spectrum2_high = convert_to_matrix(spectrum4, spectrum4[-1][0] + 1, n_aver)
+    else:
+        spectrum2_high = []
+    spectrum_whole = pd.Series([spectrum1_low, spectrum1_high, spectrum2_low, spectrum2_high])
+    np.save(file_name0 + '_spectrum', spectrum_whole)
+    head = np.array([n_aver, 5, 7])
+    np.savetxt(file_name0 + '_head.txt', head)
+
+    return spectrum_whole, n_aver
+
+
+def cut_spectrum(spectrum, n_aver):
+    spectrum.pop(-1)
+    n_frame_last = spectrum[-1][0]
+    rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
+    if rest:
+        for k in range(rest):
+            spectrum.pop(-1)
+    print(n_frame_last, spectrum[-1][0])
+    return spectrum
 
 
 def convert_to_matrix(S_total, counter, n_aver):
@@ -477,47 +492,22 @@ def line_legend(freq_mask):
     return legend_time, legend_freq
 
 
-def form_spectr_sp():
-    """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
-    по времени на частотах freq_spect_mask
-
-    """
-    ind_spec = []
-    ind_time = []
-    s_freq = np.zeros((len(time_spect_mask), N_col // kf))
-    s_time = np.zeros((N_row // kt, len(freq_spect_mask)))
-    i = 0
-    for f in freq_spect_mask:
-        ind = int((f - (N_Nyq - 1) * 1000) // (delta_f / aver_param * kf))
-        if ind > N_col // kf - 1:
-            ind = -1
-        s_time[:, i] = spectr_extr1[:, ind]
-        ind_spec.append(ind)
-        i += 1
-    i = 0
-    for t in time_spect_mask:
-        ind = int(t // (delta_t * kt))
-        if ind > N_row // kt - 1:
-            ind = -1
-        s_freq[i, :] = spectr_extr1[ind, :]
-        ind_time.append(ind)
-        i += 1
-    s_time = s_time.transpose()
-    return s_freq, s_time
-
-
-def form_spectr_sp1(freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_spect_mask):
+def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_spect_mask):
     """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
     """
     ind_spec = []
     ind_time = []
+    N_col = np.shape(spectr_extr)[1]
     s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
     j = 0
     for f in freq_spect_mask_in:
-        ind1 = (f - (N_Nyq - 1) * 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
+        if band_size == 'half':
+            ind1 = (f - (N_Nyq - 1) * 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
+        elif band_size == 'whole':
+            ind1 = (f - 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
         ind = int(ind1)
         if ind > N_col - int(kf / 2) - 1:
             ind = N_col - int(kf / 2) - 1
@@ -597,77 +587,6 @@ def pic_title():
     return title1, title2
 
 
-def graph_3d(*args):
-    from mpl_toolkits.mplot3d import Axes3D
-    from matplotlib import cm
-    fig = plt.figure(figsize=(12, 8))
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-    xval, yval, z, s = args
-    x, y = np.meshgrid(xval, yval)
-    ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
-    title1, title2 = pic_title()
-    ax.set_title(title2 + ' ' + title1, fontsize=20)
-    ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
-    ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
-    ax.set_xlabel('Frequency, MHz', fontsize=16)
-    ax.set_ylabel('Time, s', fontsize=16)
-    plt.tick_params(axis='both', which='major', labelsize=14)
-    # cmap = plt.get_cmap('jet')
-    if s:
-        surf = ax.plot_surface(x, y, z, rstride=2, cstride=2, cmap=cm.plasma)
-        plt.savefig(file_name0 + '_wK' + '.png', format='png', dpi=100)
-        return
-    surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
-    add_path0 = fp.path_to_pic(file_name0 + '\\', 3)
-    plt.savefig(file_name0 + '\\' + add_path0, format='png', dpi=100)
-    plt.show()
-    return
-
-
-def graph_contour_2d(*args):
-    import matplotlib.font_manager as font_manager
-    xval, yval, z, s = args
-    x, y = np.meshgrid(xval, yval)
-    z = np.log10(z)
-
-    levels = MaxNLocator(nbins=15).tick_values(z.min(), z.max())
-    # pick the desired colormap, sensible levels, and define a normalization
-    # instance which takes data values and translates those into levels.
-    cmap = plt.get_cmap('jet')
-
-    fig, ax1 = plt.subplots(1, figsize=(12, 6))
-
-    cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
-
-    x_min = xval[1]
-    y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
-    y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
-    fig.colorbar(cf, ax=ax1)
-    title1, title2 = pic_title()
-    ax1.set_title(title2 + ' ' + title1, fontsize=20)
-    ax1.set_xlabel('Freq, MHz', fontsize=18)
-    ax1.set_ylabel('Time, s', fontsize=18)
-
-    plt.grid(b=True, which='major', color='#666666', linestyle='-')
-    plt.minorticks_on()
-    plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
-    plt.tick_params(axis='both', which='major', labelsize=16)
-
-    plt.text(x_min, y1, info_txt[0], fontsize=16)
-    plt.text(x_min, y2, info_txt[1], fontsize=16)
-
-    # adjust spacing between subplots so `ax1` title and `ax0` tick labels
-    # don't overlap
-    fig.tight_layout()
-    add_path0 = fp.path_to_pic(file_name0 + '\\', 2, 'png')
-    fig.savefig(file_name0 + '\\' + add_path0)
-    plt.show()
-    return
-
-    # Модуль проверки: формировалась ли ранее матрица спектра по времени и частоте
-    # если - нет, то идем в extract(file_name0), если - да, то загружаем
-
-
 def calibration(t_cal, spectrum):
     size_spectrum = spectrum.shape
     level_matrix = np.ones((size_spectrum[0], 2))
@@ -733,102 +652,141 @@ def path_to_fig():
     return
 
 
-if not (os.path.isfile(file_name0 + '.txt') or os.path.isfile(file_name0 + '_left.txt')):
-    if num_of_polar == 1:
-        spectr_extr, n_aver = extract(file_name0)
+def preparing_data():
+    """ Функция в зависимости от вида данных (полная полоса 1-3 ГГц, половинная полоса 1-2 или 2-3 ГГц,
+    с двумя поляризациями или одной) выдает данные для построения графиков"""
+
+    # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
+    # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
+    if not (os.path.isfile(file_name0 + '_spectrum.npy') or os.path.isfile(file_name0 + '_left1.npy')):
+        if num_of_polar == 2 and band_size == 'whole':
+            spectrum, n_aver = extract_whole_band()
+        if num_of_polar == 2 and band_size == 'half':
+            spectrum, n_aver = extract_two_polar()
     else:
-        spectr_extr_left, spectr_extr_right, n_aver = extract_two_polar(file_name0)
-else:
-    if num_of_polar == 1:
-        spectr_extr = np.loadtxt(file_name0 + '.txt')
-        f_in1 = open(file_name0 + '.txt')
-        n_aver = int((f_in1.readline())[2])
-    else:
-        spectr_extr_left = np.loadtxt(file_name0 + '_left.txt')
-        spectr_extr_right = np.loadtxt(file_name0 + '_right.txt')
-        if np.size(spectr_extr_left) > 1:
-            f_in1 = open(file_name0 + '_left.txt')
-            n_aver = int((f_in1.readline())[2])
-        else:
-            f_in1 = open(file_name0 + '_right.txt')
-            n_aver = int((f_in1.readline())[2])
-    f_in1.close()
-
-if align == 'y':
-    # align_coeff = align_func(calibration_file_name, 'y', aver_param)
-    path_output = r'E:\Measure_res\Calibr_coeff_2020_12'
-    if polar == 'left':
+        spectrum = np.load(file_name0 + '_spectrum.npy', allow_pickle=True)
+        n_aver = np.loadtxt(file_name0 + '_head.txt')[0]
+    if num_of_polar == 2 and band_size == 'whole':
+        spectrum_left1 = spectrum[0]
+        spectrum_left2 = spectrum[1]
+        spectrum_right1 = spectrum[2]
+        spectrum_right2 = spectrum[3]
+    # Выдает спектры для левой и правой поляризаций шириной по 1 ГГц. При нумерации спектров учитывается
+    # значение зоны Найквиста. С индексом "1" - 1-2 ГГц, с индексом "2" - 2-3 ГГц, как и для случая выше.
+    # На выходе формально все 4 спектра, но для незадействованной полосы они пустые
+    elif num_of_polar == 2 and band_size == 'half':
         if N_Nyq == 2:
-            file_name_calibr: str = path_output + r'\Calibr_Ant1_2.txt'
+            spectrum_left1 = spectrum[0]
+            spectrum_right1 = spectrum[1]
+            spectrum_left2 = []
+            spectrum_right2 = []
         else:
-            file_name_calibr: str = path_output + r'\Calibr_Ant1_3.txt'
-        align_coeff = np.loadtxt(file_name_calibr)
-        spectr_extr_left = spectr_extr_left * align_coeff
-    if polar == 'right':
-        if N_Nyq == 2:
-            file_name_calibr: str = path_output + r'\Calibr_Ant1_2.txt'
-        else:
-            file_name_calibr: str = path_output + r'\Calibr_Ant1_3.txt'
-        align_coeff = np.loadtxt(file_name_calibr)
-        spectr_extr_right = spectr_extr_right * align_coeff
-    if polar == 'both':
-        if N_Nyq == 2:
-            file_name_calibr1: str = path_output + r'\Calibr_Ant1_2.txt'
-            file_name_calibr2: str = path_output + r'\Calibr_Ant2_2.txt'
-        else:
-            file_name_calibr1: str = path_output + r'\Calibr_Ant1_3.txt'
-            file_name_calibr2: str = path_output + r'\Calibr_Ant2_3.txt'
-        align_coeff1 = np.loadtxt(file_name_calibr1)
-        align_coeff2 = np.loadtxt(file_name_calibr2)
-        spectr_extr_left = spectr_extr_left * align_coeff1
-        spectr_extr_right = spectr_extr_right * align_coeff2
-
-if not file_name0.find('Ant1') == -1:
-    spectr_extr = spectr_extr_left
-elif not file_name0.find('Ant2') == -1:
-    spectr_extr = spectr_extr_right
-elif not file_name0.find('pol2') == -1:
-    # spectr_extr = spectr_extr_left
-    len_left = len(spectr_extr_left)
-    len_right = len(spectr_extr_right)
-    len_spectrum = min(len_right, len_left)
-
-    if polar == 'left':
-        spectr_extr = spectr_extr_left
-    elif polar == 'right':
-        spectr_extr = spectr_extr_left
-    elif polar == 'both':
-        spectr_extr = spectr_extr_right[:len_spectrum, :] + spectr_extr_left[:len_spectrum, :]
-        # spectr_extr = spectr_extr_left + spectr_extr_right
-    print(len_left, len_right)
+            spectrum_left2 = spectrum[0]
+            spectrum_right2 = spectrum[1]
+            spectrum_left1 = []
+            spectrum_right1 = []
     pass
-else:
-    spectr_extr = spectr_extr_left
+
+    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(n_aver)
+
+
+def unite_spectrum(spec):
+    spec1 = spec[0]
+    spec2 = spec[1]
+    spec3 = spec[2]
+    spec4 = spec[3]
+    ind = []
+    if np.size(spec1) and np.size(spec2):
+        n_row = np.min([np.shape(spec1)[0], np.shape(spec2)[0]])
+        spec1 = spec1[:n_row]
+        spec2 = spec2[:n_row]
+        spec_left = np.hstack((spec1, spec2))
+        ind.append('left_whole')
+    elif np.size(spec1):
+        spec_left = spec1
+        ind.append('left_half1')
+    elif np.size(spec2):
+        spec_left = spec2
+        ind.append('left_half2')
+    else:
+        spec_left = []
+    if np.size(spec3) and np.size(spec4):
+        n_row = np.min([np.shape(spec3)[0], np.shape(spec4)[0]])
+        spec3 = spec3[:n_row]
+        spec4 = spec4[:n_row]
+        spec_right = np.hstack(spec3, spec4)
+        ind.append('right_whole')
+    elif np.size(spec3):
+        spec_right = spec3
+        ind.append('right_half1')
+    elif np.size(spec4):
+        spec_right = spec4
+        ind.append('right_half2')
+    else:
+        spec_right = []
+    if np.size(spec_left) and np.size(spec_right):
+        n_row1 = np.min([np.shape(spec_left)[0], np.shape(spec_right)[0]])
+        spec_left = spec_left[:n_row1]
+        spec_right = spec_right[:n_row1]
+        united_spec = pd.Series([spec_left, spec_right], ind)
+    elif np.size(spec_left):
+        united_spec = pd.Series([spec_left], ind)
+    else:
+        united_spec = pd.Series([spec_right], ind)
+
+    return united_spec
+
+
+# Чтение с диска, если спектры ранее извлекались,
+# или извлечение спектров из исходных записей
+spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver = preparing_data()
 aver_param = 2 ** (6 - n_aver)
 
+# Выравнивание спектров по результатам шумовых измерений АЧХ
+if align == 'y':
+    path_output = r'E:\Measure_res\Calibr_coeff_2020_12'
+    spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
+        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, path_output)
 
-
-# print('spectr_extr.shape = ', spectr_extr.shape)
-
-# Приведение номеров отсчетов спектра в соответствие с ростом частоты слева направо
-N_row, N_col = np.shape(spectr_extr)
-if N_Nyq % 2 == 0:
+# Приведение порядка следования отсчетов по частоте к нормальному
+if np.size(spectr_extr_left1):
+    N_row = np.shape(spectr_extr_left1)[0]
     for i in range(N_row):
-        spectr_extr[i][0:] = spectr_extr[i][-1::-1]
+        spectr_extr_left1[i][0:] = spectr_extr_left1[i][-1::-1]
+if np.size(spectr_extr_right1):
+    N_row = np.shape(spectr_extr_right1)[0]
+    for i in range(N_row):
+        spectr_extr_right1[i][0:] = spectr_extr_right1[i][-1::-1]
+
+spectrum = pd.Series([spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2])
+
+united_spectrum = unite_spectrum(spectrum)
+ser_ind = united_spectrum.index
+if len(ser_ind) == 2:
+    spectrum_extr = united_spectrum[0] + united_spectrum[1]
+else:
+    spectrum_extr = united_spectrum[0]
+
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
 # time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-spectr_freq, spectr_time = form_spectr_sp1(freq_spect_mask, time_spect_mask)
+
+spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
 # np.savetxt(file_name0+'_scan'+'.txt', spectr_time)
 # np.savetxt(file_name0+'_spectr'+'.txt', spectr_freq)
 if noise_calibr == 'y':
     spectr_time = calibration(t_cal, spectr_time)
 
 # Формирование строк-аргументов по времени и частоте и легенды
-freq = np.linspace(1000 * (N_Nyq - 1) + 3.9063 / aver_param * kf, 1000 * N_Nyq - 3.9063 / aver_param * kf, N_col // kf)
+N_col = np.shape(spectrum_extr)[1]
+if band_size == 'half':
+    freq = np.linspace(1000 * (N_Nyq - 1) + 3.9063 / aver_param * kf, 1000 * N_Nyq - 3.9063 / aver_param * kf,
+                       N_col // kf)
+elif band_size == 'whole':
+    freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
 # ***********************************************
@@ -836,7 +794,7 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 # ***********************************************
 
 # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-if graph_3d_perm == 'n' or contour_2d_perm == 'n':
+if graph_3d_perm == 'y' or contour_2d_perm == 'y':
     spectr_extr1 = spectr_construction(spectr_extr, kf, kt)
 # Информация о временном и частотном резрешениях
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
@@ -848,7 +806,6 @@ if graph_3d_perm == 'y':
     graph_3d(freq, timeS, spectr_extr1, 0)
 if contour_2d_perm == 'y':
     graph_contour_2d(freq, timeS, spectr_extr1, 0)
-
 
 # if align == 'y':
 #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
