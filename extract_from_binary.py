@@ -20,7 +20,7 @@ start = datetime.now()
 # head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
 head_path = 'E:\\Measure_res'
 # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2021_02_10test\\20210210_Ant1_Load_2'
+file_name0 = head_path + '\\2020_12_22sun\\20201222_pol2_06_+00_2'
 q = int(file_name0[-1])
 
 if not file_name0.find('left') == -1:
@@ -37,7 +37,7 @@ N_Nyq = q  # Номер зоны Найквиста
 delta_t = 8.1925e-3
 delta_f = 7.8125
 num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
-band_size = 'whole'  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
+band_size = 'half'  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
@@ -52,11 +52,11 @@ t_stop_flame = 105
 if N_Nyq == 3:
     freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
     # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
+elif band_size == 'whole':
+    freq_spect_mask = [1050, 1171, 1380, 1500, 1535, 1600, 1700, 1750, 2120, 2300, 2700, 2820, 2900]
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
-# Динамическая маска (зависит от длины записи во времени)
-# time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
 
 
@@ -283,7 +283,7 @@ def extract_whole_band():
         while frame:
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
-            # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
+            # и 128-ми значений спектра в список spectr_frame на позиции [2:129]
             for k in range(130):
                 frame = f_in.read(8)
                 frame_int = int.from_bytes(frame, byteorder='little')
@@ -371,14 +371,16 @@ def extract_whole_band():
         f_in.close()
         pass
     spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
-    return save_spectrum(spectrum_extr, n_aver)
+    head = [n_aver, bound_left, bound_right]
+    return save_spectrum(spectrum_extr, head)
 
 
-def save_spectrum(spectrum_extr, n_aver):
+def save_spectrum(spectrum_extr, head):
     spectrum1 = spectrum_extr[0]
     spectrum2 = spectrum_extr[1]
     spectrum3 = spectrum_extr[2]
     spectrum4 = spectrum_extr[3]
+    n_aver = head[0]
     if len(spectrum1) > 1:
         spectrum1_low = convert_to_matrix(spectrum1, spectrum1[-1][0] + 1, n_aver)
         pass
@@ -398,7 +400,6 @@ def save_spectrum(spectrum_extr, n_aver):
         spectrum2_high = []
     spectrum_whole = pd.Series([spectrum1_low, spectrum1_high, spectrum2_low, spectrum2_high])
     np.save(file_name0 + '_spectrum', spectrum_whole)
-    head = np.array([n_aver, 5, 7])
     np.savetxt(file_name0 + '_head.txt', head)
 
     return spectrum_whole, n_aver
@@ -768,18 +769,25 @@ else:
     spectrum_extr = united_spectrum[0]
 
 
-# Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
-# Динамическая маска (зависит от длины записи во времени)
-t_spect = N_row * delta_t
-# time_spect_mask = [(lambda i: (t_spect * (i + 0.05) / 7) // 10 * 10)(i) for i in range(7)]
-time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
-spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
-# np.savetxt(file_name0+'_scan'+'.txt', spectr_time)
-# np.savetxt(file_name0+'_spectr'+'.txt', spectr_freq)
 if noise_calibr == 'y':
     spectr_time = calibration(t_cal, spectr_time)
 
+# # ***********************************************
+# # ***        Графический вывод данных        ****
+# # ***********************************************
+
+# Динамическая маска (зависит от длины записи во времени)
+t_spect = N_row * delta_t
+time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+
+if band_size == 'whole':
+    freq_spect_mask = []
+
+# Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
+spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
+# np.savetxt(file_name0+'_scan'+'.txt', spectr_time)
+# np.savetxt(file_name0+'_spectr'+'.txt', spectr_freq)
 # Формирование строк-аргументов по времени и частоте и легенды
 N_col = np.shape(spectrum_extr)[1]
 if band_size == 'half':
@@ -789,9 +797,20 @@ elif band_size == 'whole':
     freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
-# ***********************************************
-# ***        Графический вывод данных        ****
-# ***********************************************
+line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
+info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
+            ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
+            ('polarisation ' + polar)]
+path_to_fig()
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, file_name0, line_legend_time)
+fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, file_name0, line_legend_freq)
+n_start_flame = int(t_start_flame // (delta_t * kt))
+n_stop_flame = int(t_stop_flame // (delta_t * kt))
+
+
+# *********************************************************
+# ***        Вывод данных двумерный и трехмерный       ****
+# *********************************************************
 
 # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
 if graph_3d_perm == 'y' or contour_2d_perm == 'y':
