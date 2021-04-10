@@ -2,9 +2,10 @@ import numpy as np
 # import os
 import matplotlib.pyplot as plt
 
-path_to_data = 'E:\\Measure_res\\2020_12_20sun\\20201220_pol2_06_+20_2_left'
+path_to_data = r'E:\Measure_res\2021_03_28sun\2021-03-28_12-12_spectrum'
 
-data_input = np.int64(np.loadtxt(path_to_data + '.txt'))
+# data_input = np.int64(np.loadtxt(path_to_data + '.txt'))
+data_input = np.load(path_to_data + '.npy', allow_pickle=True)[0]
 data_shape = data_input.shape
 max_data = np.max(data_input)
 kurt_frame = np.array([])
@@ -52,25 +53,25 @@ for j in range(data_shape[1]):
     kurt = var_var / mean_mean
     kurt_frame = np.append(kurt_frame, kurt)
 
-    plt.grid()
-    plt.plot(mean_frame_ind, frame_mean)
-    plt.show()
-
-    fig, ax = plt.subplots(1, figsize=(12, 6))
-    y_max = np.max(data_input[:, j])
-    y_min = np.min(data_input[:, j])
-    x_min = 0
-    x_max = data_shape[0]
-    argument = np.arange(0, data_shape[0])
-    ax.plot(argument, data_input[:, j])
-    ax.plot(argument, time_row)
+    # plt.grid()
+    # plt.plot(mean_frame_ind, frame_mean)
+    # plt.show()
+    #
+    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    # y_max = np.max(data_input[:, j])
+    # y_min = np.min(data_input[:, j])
+    # x_min = 0
+    # x_max = data_shape[0]
+    # argument = np.arange(0, data_shape[0])
+    # ax.plot(argument, data_input[:, j])
+    # ax.plot(argument, time_row)
     if kurt < 0.25:
         data_input[:, j] = time_row
     else:
         data_input[:, j] = 10
-    ax.plot(argument, data_input[:, j] * 0.9)
+    # ax.plot(argument, data_input[:, j] * 0.9)
     # if j == 11:
-    plt.show()
+    # plt.show()
     frame_var = np.array([])
     frame_mean = np.array([])
     pass

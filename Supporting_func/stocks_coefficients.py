@@ -44,7 +44,10 @@ def initial_scan_cut(data):
             frame_ind0 = np.append(frame_ind0, i)
         else:
             # Средний индекс отсчетов за полупериод усреднения
-            mean_ind = int((np.max(frame_ind0) + np.min(frame_ind0)) / 2)
+            try:
+                mean_ind = int((np.max(frame_ind0) + np.min(frame_ind0)) / 2)
+            except ValueError:
+                pass
 
             # if mean_ind - mean_frame_ind_left[-1] < 50 or mean_ind - mean_frame_ind_left[-1] > 70:
             #     if mean_frame_ind_left[-1] + 60 < data_shape1[0]:
@@ -173,29 +176,30 @@ def pol_intensity(data, mean_time_ind):
     return pol_spectrum
 
 
-head_path = 'E:\\Measure_res'
-# file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0_left = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_left'
-file_name0_right = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_right'
+if __name__ == '__main__':
+    head_path = 'E:\\Measure_res'
+    # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
+    file_name0_left = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_left'
+    file_name0_right = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_right'
 
-input_data = {'left': np.loadtxt(file_name0_left + '.txt'),
-              'right': np.loadtxt(file_name0_right + '.txt')}
+    input_data = {'left': np.loadtxt(file_name0_left + '.txt'),
+                  'right': np.loadtxt(file_name0_right + '.txt')}
 
-a = input_data['left']
-b = input_data['right']
-mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
-c = pol_intensity(a, mean_frame_ind_left)
-d = pol_intensity(b, mean_frame_ind_right)
+    a = input_data['left']
+    b = input_data['right']
+    mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
+    c = pol_intensity(a, mean_frame_ind_left)
+    d = pol_intensity(b, mean_frame_ind_right)
 
-# Параметры Стокса
-s0 = c + d
-s1 = c - d
-mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) / 2
+    # Параметры Стокса
+    s0 = c + d
+    s1 = c - d
+    mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) / 2
 
-for j in range(0, 256, 10):
-    plt.grid()
-    plt.plot(mean_frame_ind_pol, s0[:, j])
-    plt.plot(mean_frame_ind_pol, s1[:, j])
-    plt.show()
+    for j in range(0, 256, 10):
+        plt.grid()
+        plt.plot(mean_frame_ind_pol, s0[:, j])
+        plt.plot(mean_frame_ind_pol, s1[:, j])
+        plt.show()
 
-pass
+    pass

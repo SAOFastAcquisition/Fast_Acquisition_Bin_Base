@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from datetime import datetime
 from Supporting_func import Fig_plot as fp
 # from Supporting_func import stat_cleaning
@@ -17,31 +17,30 @@ sys.path.insert(0, r'E:/rep1/Supporting_func')
 start = datetime.now()
 
 # head_path = path_to_YaDisk()
-# head_path = 'E:\\BinData'       # E:\BinData\2020_06_30test
-head_path = 'E:\\Measure_res'
-# file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-file_name0 = head_path + '\\2020_12_22sun\\20201222_pol2_06_+00_2'
-q = int(file_name0[-1])
+head_path = r'E:\Measure_res'
+file_name0 = head_path + r'\2021_03_28sun\2021-03-28_01+28'
+# q = int(file_name0[-1])
+q = 2
 
 if not file_name0.find('left') == -1:
     calibration_file_name = '20201215_left_03_cNG_' + str(q)
 
-# D:\YandexDisk\Measure\Fast_Acquisition\06022020calibr
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 1  # Установка разрешения по частоте
-kt = 1  # Установка разрешения по времени
-N_Nyq = q  # Номер зоны Найквиста
+kf = 4  # Установка разрешения по частоте
+kt = 8  # Установка разрешения по времени
+N_Nyq = 2  # Номер зоны Найквиста
+shift = 10
 # *****************************************************
 
 delta_t = 8.1925e-3
 delta_f = 7.8125
-num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
-band_size = 'half'  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
+num_of_polar = 2        # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
+band_size = 'whole'     # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
-polar = 'both'  # Принамает значения поляризаций: 'both', 'left', 'right'
+align = 'n'             # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+polar = 'both'          # Принамает значения поляризаций: 'both', 'left', 'right'
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -53,12 +52,21 @@ if N_Nyq == 3:
     freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
     # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 elif band_size == 'whole':
-    freq_spect_mask = [1050, 1171, 1380, 1500, 1535, 1600, 1700, 1750, 2120, 2300, 2700, 2820, 2900]
+    n1 = 2
+    n2 = 9
+    # freq_spect_mask = [2100, 2300, 2490, 2550, 2700, 2730, 2750, 2800, 2920]
+    # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
+    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
+    # freq_spect_mask = [2300, 2330, 2420, 2470, 2500, 2530]
+    # freq_spect_mask = [1050, 1700]
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
 
+att_val = [i * 0.5 for i in range(64)]
+att_dict = {s: 10 ** (s / 10) for s in att_val}
+pass
 
 # 173, 173.6, 173.8, 174.38
 # t_cal = [0, 14, 17, 31]         # Для скана "20200318-1353_-24-3"
@@ -300,19 +308,36 @@ def extract_whole_band():
                     spectr_frame.append(frame_num)
                 elif k == 1:
                     att_1 = frame_int & 0x3F
+                    att_1 = int((63 - att_1) / 2)
                     att_2 = (frame_int & 0xFC0) >> 6
+                    att_2 = int((63 - att_2) / 2)
                     att_3 = (frame_int & 0x3F000) >> 12
+                    att_3 = int((63 - att_3) / 2)
                     noise_gen_on = (frame_int & 0x40000) >> 18
                     antenna_before = antenna
                     antenna = (frame_int & 0x80000) >> 19
+                    if antenna == 1:
+                        pass
                     coupler = (frame_int & 0x100000) >> 20
                     band = (frame_int & 0x8000000000000000) >> 63
                     attenuators = [att_1, att_2, att_3]
-
+                    if i == 10:
+                        att01 = att_1
+                        att02 = att_2
+                        att03 = att_3
                     pass
 
                 else:
-                    spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF)
+                    spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF) >> shift
+
+                    # Отбросили "shift" младших разрядов двоичного представления или 3 разряда десятичного
+                    # при "shift=10"
+                    if band:
+                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
+                    else:
+                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
+                    if spectrum_val > 1000000000:
+                        spectrum_val = 1000000000
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
                     if pp_good / 256 < 0.1:
                         spectrum_val = 2
@@ -339,17 +364,18 @@ def extract_whole_band():
             if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_2.pop(-1)
 
-            print(i, frame_num, band)
+            print(i, frame_num, band, attenuators)
             i += 1
         pass
         n_right1 = len(spectrum_right_1)
         n_left1 = len(spectrum_left_1)
         n_right2 = len(spectrum_right_2)
         n_left2 = len(spectrum_left_2)
+
         # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
         # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
         # то необходима следующая процедура перестановки значений переменных
-        n_right = np.max(len(spectrum_right_1), len(spectrum_right_2))
+        n_right = np.max([len(spectrum_right_1), len(spectrum_right_2)])
         if n_right == 0 and antenna2_0 == 1:
             spectrum_right_1 = spectrum_left_1
             spectrum_left_1 = []
@@ -359,19 +385,25 @@ def extract_whole_band():
             n_left1 = len(spectrum_left_1)
             n_right2 = len(spectrum_right_2)
             n_left2 = len(spectrum_left_2)
+
+        # Приведение длины записи к величине кратной количеству частот
         if n_right1 > 1:
             spectrum_right_1 = cut_spectrum(spectrum_right_1, n_aver)
+            spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
         if n_left1 > 1:
             spectrum_left_1 = cut_spectrum(spectrum_left_1, n_aver)
+            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
         if n_right2 > 1:
             spectrum_right_2 = cut_spectrum(spectrum_right_2, n_aver)
+            spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
         if n_left2 > 1:
             spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
+            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
     finally:
         f_in.close()
         pass
     spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
-    head = [n_aver, bound_left, bound_right]
+    head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
     return save_spectrum(spectrum_extr, head)
 
 
@@ -561,7 +593,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq, s_time
+    return s_freq * (2 ** (shift - 10)), s_time * (2 ** (shift - 10))
 
 
 def pic_title():
@@ -667,10 +699,26 @@ def preparing_data():
     else:
         spectrum = np.load(file_name0 + '_spectrum.npy', allow_pickle=True)
         n_aver = np.loadtxt(file_name0 + '_head.txt')[0]
+
+        # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями,
+        # одновременно понижая разрядность данных, меняя их тип с int64 до int32 и уменьшая
+        # занимаемую ими память
     if num_of_polar == 2 and band_size == 'whole':
+        # if np.size(spectrum[0]) > 1:
+        #     spectrum_left1 = (spectrum[0] / 1000).astype(np.int32)
+        # else:
         spectrum_left1 = spectrum[0]
+        # if np.size(spectrum[1]) > 1:
+        #     spectrum_left2 = (spectrum[1] / 1000).astype(np.int32)
+        # else:
         spectrum_left2 = spectrum[1]
+        # if np.size(spectrum[2]) > 1:
+        #     spectrum_right1 = (spectrum[2] / 1000).astype(np.int32)
+        # else:
         spectrum_right1 = spectrum[2]
+        # if np.size(spectrum[3]) > 1:
+        #     spectrum_right2 = (spectrum[3] / 1000).astype(np.int32)
+        # else:
         spectrum_right2 = spectrum[3]
     # Выдает спектры для левой и правой поляризаций шириной по 1 ГГц. При нумерации спектров учитывается
     # значение зоны Найквиста. С индексом "1" - 1-2 ГГц, с индексом "2" - 2-3 ГГц, как и для случая выше.
@@ -715,7 +763,7 @@ def unite_spectrum(spec):
         n_row = np.min([np.shape(spec3)[0], np.shape(spec4)[0]])
         spec3 = spec3[:n_row]
         spec4 = spec4[:n_row]
-        spec_right = np.hstack(spec3, spec4)
+        spec_right = np.hstack((spec3, spec4))
         ind.append('right_whole')
     elif np.size(spec3):
         spec_right = spec3
@@ -781,13 +829,12 @@ if noise_calibr == 'y':
 t_spect = N_row * delta_t
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
-if band_size == 'whole':
-    freq_spect_mask = []
+#if band_size == 'whole':
+ #   freq_spect_mask = []
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
 spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
-# np.savetxt(file_name0+'_scan'+'.txt', spectr_time)
-# np.savetxt(file_name0+'_spectr'+'.txt', spectr_freq)
+# np.save(file_name0 + '_spectr', spectr_time)
 # Формирование строк-аргументов по времени и частоте и легенды
 N_col = np.shape(spectrum_extr)[1]
 if band_size == 'half':
@@ -830,13 +877,6 @@ if contour_2d_perm == 'y':
 #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
 #     spectr_extr = spectr_extr * align_coeff1
 
-
-line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
-
-fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, file_name0, line_legend_time)
-fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, file_name0, line_legend_freq)
-n_start_flame = int(t_start_flame // (delta_t * kt))
-n_stop_flame = int(t_stop_flame // (delta_t * kt))
 # if graph_3d_perm == 'y':
 #     graph_3d(freq, timeS[n_start_flame:n_stop_flame], spectr_extr1[n_start_flame:n_stop_flame, :], 0)
 # fp.fig_multi_axes(spectr_time[:10, n_start_flame:n_stop_flame], timeS[n_start_flame:n_stop_flame],

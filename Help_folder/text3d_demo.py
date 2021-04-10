@@ -44,4 +44,10 @@ ax.set_xlabel('X axis')
 ax.set_ylabel('Y axis')
 ax.set_zlabel('Z axis')
 
-plt.show()
+# plt.show()
+att = [i*0.5 for i in range(64)]
+s = {s: 10 ** (s / 10) for s in att}
+
+for f in att:
+    f = 2
+pass

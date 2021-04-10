@@ -40,8 +40,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
     plt.minorticks_on()
     plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
 
-    y_max = spectr1.max()
-    y_min = spectr1.min()
+    y_max = np.nanmax(spectr1)
+    y_min = np.nanmin(spectr1)
     x_min = argument.min()
     x_max = argument.max()
 
@@ -273,3 +273,8 @@ def graph_3d(*args):
     plt.savefig(file_name0 + '\\' + add_path0, format='png', dpi=100)
     plt.show()
     return
+
+
+if __name__ == '__main__':
+    fig_plot()
+    pass
