@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import pandas as pd
+import pickle
 from path_to_Yandex_Disk import path_to_YaDisk
 
 
@@ -84,16 +86,23 @@ def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object 
     return align_coeff, freq * 1000000, spectrum_cal
 
 
-def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, path_calibration):
+def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibration):
     """ Принимает спектры левой (spectrum1, spectrum2) и правой (spectrum3, spectrum4) поляризаций.
     При этом spectrum1 и spectrum3 относятся ко второй зоне Найквиста и имеют обратный порядок следования
     отсчетов по частоте. По пути path_calibration загружаем выравнивающие коэффициенты для спектров.
     Ant1 - левая поляризация, Ant2 - правая, 2 - вторая зана Найквиста и обратный порядок следования
     коэффициентоа по частоте, 3 - третья"""
 
-    file_name_calibr1: str = path_calibration + r'\Calibr_Ant1_2.txt'
-    align_coeff1 = np.loadtxt(file_name_calibr1)
-    len_calibr = np.size(align_coeff1)
+    # file_name_calibr1: str = path_calibration + r'\Calibr_Ant1_2.txt'
+    # align_coeff = np.loadtxt(path_calibration)
+    with open(path_calibration, 'rb') as inp:
+        calibration_frame_inp = pickle.load(inp)
+    r = calibration_frame_inp.iloc[2]
+    align_coeff = [r['spectrum_left1'], r['spectrum_left2'], r['spectrum_right1'], r['spectrum_right2']]
+    # align_coeff2 =
+    # align_coeff3 =
+    # align_coeff4 =
+    len_calibr = np.size(align_coeff[1])
     if np.size(spectrum1):
         l1 = np.shape(spectrum1)[1]
     else:
@@ -114,32 +123,35 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, path_calibration)
     # Проверка совпадения разрешения по частоте принимаемых функцией спектров и калибровочных
     # коэффифиентов
     len_freq_spectrum = np.array([l1, l2, l3, l4]).max()
+    align_coeff_matched = [[], [], [], []]
     if int(len_calibr) != int(len_freq_spectrum):
-        s = len_freq_spectrum / len_calibr
-
+        s = int(len_calibr / len_freq_spectrum)
         print(f"Вам надо уменьшить разрешение по частоте в {s} раз")
-        consent = str(input('Продолжить выполнение без выравнивания АЧХ (y/n)?'))
-        if consent == 'y':
-            return spectrum1, spectrum2, spectrum3, spectrum4
-        else:
-            pass
+        # consent = str(input('Продолжить выполнение без выравнивания АЧХ (y/n)?'))
+        # if consent == 'y':
+        #     return spectrum1, spectrum2, spectrum3, spectrum4
+        # else:
+        #     pass
+        j = 0
 
+        for obj in align_coeff:
+            align_coeff_matched[j] = [np.sum(obj[i*s:i*s+s]) / s for i in range(int(len_calibr / s))]
+            j += 1
     else:
-        file_name_calibr2: str = path_calibration + r'\Calibr_Ant1_3.txt'
-        file_name_calibr3: str = path_calibration + r'\Calibr_Ant2_2.txt'
-        file_name_calibr4: str = path_calibration + r'\Calibr_Ant2_3.txt'
-        align_coeff2 = np.loadtxt(file_name_calibr2)
-        align_coeff3 = np.loadtxt(file_name_calibr3)
-        align_coeff4 = np.loadtxt(file_name_calibr4)
+        align_coeff_matched = align_coeff
+        # file_name_calibr2: str = path_calibration + r'\Calibr_Ant1_3.txt'
+        # file_name_calibr3: str = path_calibration + r'\Calibr_Ant2_2.txt'
+        # file_name_calibr4: str = path_calibration + r'\Calibr_Ant2_3.txt'
+
 
     if l1:
-        spectrum1 = spectrum1 * align_coeff1
+        spectrum1 = spectrum1 * align_coeff_matched[0]
     if l2:
-        spectrum2 = spectrum2 * align_coeff2
+        spectrum2 = spectrum2 * align_coeff_matched[1]
     if l3:
-        spectrum3 = spectrum3 * align_coeff3
+        spectrum3 = spectrum3 * align_coeff_matched[2]
     if l4:
-        spectrum4 = spectrum4 * align_coeff4
+        spectrum4 = spectrum4 * align_coeff_matched[3]
 
     return spectrum1, spectrum2, spectrum3, spectrum4
 

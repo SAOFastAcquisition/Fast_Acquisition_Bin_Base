@@ -1,7 +1,10 @@
 import numpy as np
 import os
 import sys
+import pickle
 import matplotlib.pyplot as plt
+import pandas as pd
+from Supporting_func.afc_alignment import align_spectrum
 
 sys.path.insert(0, r'E:/rep1/Supporting_func')
 
@@ -19,9 +22,9 @@ def initial_scan_cut(data):
 
     # Выбор скана (выбор хорошо заполненного отсчетами скана) для определения
     # положения центра импульса меандра с левой поляризацией в отсчетах скана
-    while np.size(time_ind) < 0.44 * data_shape[0]:
-        j += 1
+    while np.size(time_ind) < 0.3 * data_shape[0]:
         time_row = np.array(data[:, j])
+        j += 1
         # Выбор индексов ненулевых значений скана
         time_ind = np.argwhere(time_row > 100)
 
@@ -177,16 +180,35 @@ def pol_intensity(data, mean_time_ind):
 
 
 if __name__ == '__main__':
-    head_path = 'E:\\Measure_res'
+    # head_path = 'E:\\Measure_res'
+    align = 'y'
+    head_path = r'F:\Fast_Acquisition\2020'
+    file_path = r'F:\Fast_Acquisition\2021\Results' + r'\2021_03_27sun\2021-03-27_06+12'
+    folder_align_path = r'F:\Fast_Acquisition\Alignment'
+    align_file_name = r'\Align_coeff.bin'
+    with open(file_path + '_head.bin', 'rb') as inp:
+        head = pickle.load(inp)
+    spectrum = np.load(file_path + '_spectrum.npy', allow_pickle=True)
+    if align == 'y':
+        path_output = folder_align_path + align_file_name
+        # spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
+        spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
+                           path_output)
     # file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_12_09test\\20201209_2chan_ML_-00_3'
-    file_name0_left = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_left'
-    file_name0_right = head_path + r'\2020_12_22sun\20201222_pol2_06_+00_2_right'
+    # file_name0_left = head_path + r'\2020_12_22sun\20201222_pol2_06_+04_3_left'
+    # file_name0_right = head_path + r'\2020_12_22sun\20201222_pol2_06_+04_3_right'
 
-    input_data = {'left': np.loadtxt(file_name0_left + '.txt'),
-                  'right': np.loadtxt(file_name0_right + '.txt')}
+    input_data_upper = {'left': spectrum[1],
+                  'right': spectrum[3]}
+    input_data_lower = {'left': spectrum[0],
+                        'right': spectrum[2]}
 
-    a = input_data['left']
-    b = input_data['right']
+    # a = input_data_upper['left']
+    # b = input_data_upper['right']
+    a = input_data_lower['left']
+    # a = a[-1::-1][:]
+    b = input_data_lower['right']
+    # b = b[-1::-1][:]
     mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
     c = pol_intensity(a, mean_frame_ind_left)
     d = pol_intensity(b, mean_frame_ind_right)
@@ -194,7 +216,9 @@ if __name__ == '__main__':
     # Параметры Стокса
     s0 = c + d
     s1 = c - d
-    mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) / 2
+    mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2
+    stocks_coeff = pd.Series([s0, s1, mean_frame_ind_pol])
+    np.save(file_path + '_stocks', stocks_coeff)
 
     for j in range(0, 256, 10):
         plt.grid()

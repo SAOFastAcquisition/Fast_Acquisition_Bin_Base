@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import sys
+import os
+import pickle
 import matplotlib.pyplot as plt
 from Supporting_func.stocks_coefficients import initial_scan_cut
 
@@ -42,7 +44,7 @@ def clean_func(data, frame_centers_loc, length_frame):
         frame = data[ind_frame - delta_ind:ind_frame + delta_ind, :]
         form = np.shape(frame)
         for j in range(form[1]):
-        # for j in [n, m]:
+        # for j in [n, m]:          # Используются при отладке
             frame_small = frame[:, j]
             mean_frame = np.mean(frame_small[frame_small > 100])
             sigma_mean_frame = np.sqrt(np.var(frame_small[frame_small > 100]))
@@ -84,8 +86,7 @@ def clean_func(data, frame_centers_loc, length_frame):
 
 def func_frame_unipolar(data, length_frame=63):
     if not length_frame % 2:
-        print('/n /n Число отсчетов должно быть нечетным/n /n')
-
+        raise ValueError('Число отсчетов должно быть нечетным')
     form_data = np.shape(data)
     n = form_data[0] // length_frame
     frame_centers_local = [length_frame // 2 + length_frame * k for k in range(n)]
@@ -99,6 +100,7 @@ def func_frame_centers():
     Для наблюдения в одной поляризации длина отрезка разбиения (период) по умолчению равна 63. Для незадействованной
     поляризации и полосы частот соответствующие frame_centers являются []"""
 
+    #           **** Для диапазона частот 1-2 ГГц ****
     if np.size(spectrum_input[0]) > 1 and np.size(spectrum_input[2]) > 1:
         frame_centers_left1, frame_centers_right1 = initial_scan_cut(spectrum_input[0])
     elif np.size(spectrum_input[0]) > 1:
@@ -111,6 +113,7 @@ def func_frame_centers():
         frame_centers_left1 = []
         frame_centers_right1 = []
 
+    #           **** Для диапазона частот 2-3 ГГц ****
     if np.size(spectrum_input[1]) > 1 and np.size(spectrum_input[3]) > 1:
         frame_centers_left2, frame_centers_right2 = initial_scan_cut(spectrum_input[1])
     elif np.size(spectrum_input[1]) > 1:
@@ -120,8 +123,9 @@ def func_frame_centers():
         frame_centers_right2 = func_frame_unipolar(spectrum_input[3])
         frame_centers_left2 = []
     else:
-        frame_centers_left1 = []
-        frame_centers_right1 = []
+        frame_centers_left2 = []
+        frame_centers_right2 = []
+
     frame_centers_local = [np.array(frame_centers_left1, dtype=np.int32),
                            np.array(frame_centers_left2, dtype=np.int32),
                            np.array(frame_centers_right1, dtype=np.int32),
@@ -130,11 +134,14 @@ def func_frame_centers():
 
 
 if __name__ == '__main__':
-
-    path_to_data = r'E:\Measure_res\2021_03_28sun\2021-03-28_01+28_spectrum'
-    spectrum_input = np.load(path_to_data + '.npy', allow_pickle=True)
+    # path_to_data0 = r'E:\Measure_res\2021_03_28sun\2021-03-28_02+24_'
+    path_to_data0 = r'F:\Fast_Acquisition\2021\Results' + r'\2021_03_27sun\2021-03-27_06+12_'
+    spectrum_input = np.load(path_to_data0 + 'spectrum.npy', allow_pickle=True)
+    with open(path_to_data0 + 'head.bin', 'rb') as inp:
+        head = pickle.load(inp)
+    n_aver = int(head['n_aver'])
+    freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
     spectrum_out = [[], [], [], []]
-    freq_resolution = 7.8125e6
     debugging = 'n'
 
     # Если запись содержит две поляризации, то длина отрезка разбиения (полупериод переключения
@@ -144,6 +151,7 @@ if __name__ == '__main__':
         length_frame = 34
     else:
         length_frame = 63
+
     frame_centers = func_frame_centers()
 
     for i in range(4):
@@ -151,8 +159,9 @@ if __name__ == '__main__':
             spectrum = clean_func(spectrum_input[i], frame_centers[i], length_frame)
             spectrum = np.array(spectrum, dtype=np.int32)
             spectrum_out[i] = spectrum
-        print('/n Data ', i, 'calculated /n')
+        print('Data ', i, 'calculated')
     print('calc over')
 
     if not debugging == 'y':
-        np.save(path_to_data + '_clean', spectrum_out)
+        os.rename(path_to_data0 + 'spectrum.npy', path_to_data0 + 'spectrum_prime.npy')
+        np.save(path_to_data0 + 'spectrum', spectrum_out)

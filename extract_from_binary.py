@@ -2,14 +2,17 @@ import numpy as np
 import os
 import sys
 import pandas as pd
+import pickle
+import json as jsn
 # import matplotlib.pyplot as plt
 from datetime import datetime
+
+from pandas._libs import json
+
 from Supporting_func import Fig_plot as fp
 # from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_spectrum
 
-# import scipy.io
-# import struct
 # from path_to_Yandex_Disk import path_to_YaDisk
 # from Supporting_func.afc_alignment1 import align_func1
 
@@ -18,29 +21,38 @@ start = datetime.now()
 
 # head_path = path_to_YaDisk()
 head_path = r'E:\Measure_res'
-file_name0 = head_path + r'\2021_03_28sun\2021-03-28_01+28'
-# q = int(file_name0[-1])
-q = 2
+# file_name0 = head_path + r'\2021_03_28sun\2021-03-28_02+24'
+file_name0 = r'F:\Fast_Acquisition\2021\Results' + r'\2021_03_27sun\2021-03-27_06+12'
+# file_name0 = r'F:\Fast_Acquisition\2021\Results\2021_04_15test\2021-04-15_01'
+folder_align_path = r'F:\Fast_Acquisition\Alignment'
+align_file_name = r'\Align_coeff.bin'
+date_ind = file_name0.rindex(r'\20')
+date = file_name0[date_ind + 1:date_ind + 11]
 
 if not file_name0.find('left') == -1:
     calibration_file_name = '20201215_left_03_cNG_' + str(q)
 
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 4  # Установка разрешения по частоте
-kt = 8  # Установка разрешения по времени
+kf = 1  # Установка разрешения по частоте
+kt = 1  # Установка разрешения по времени
 N_Nyq = 2  # Номер зоны Найквиста
-shift = 10
+shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
 
 delta_t = 8.1925e-3
 delta_f = 7.8125
-num_of_polar = 2        # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
-band_size = 'whole'     # Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
+num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
+if num_of_polar == 1:
+    q = int(file_name0[-1])
+    N_Nyq = q
+band_size_init = 'whole'
+# band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
+# polar = 'both'        Принамает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'             # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
-polar = 'both'          # Принамает значения поляризаций: 'both', 'left', 'right'
+align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -51,14 +63,12 @@ t_stop_flame = 105
 if N_Nyq == 3:
     freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
     # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
-elif band_size == 'whole':
-    n1 = 2
-    n2 = 9
+elif band_size_init == 'whole':
+    n1 = 1
+    n2 = 1
     # freq_spect_mask = [2100, 2300, 2490, 2550, 2700, 2730, 2750, 2800, 2920]
-    # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
-    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
-    # freq_spect_mask = [2300, 2330, 2420, 2470, 2500, 2530]
-    # freq_spect_mask = [1050, 1700]
+    freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
+    # freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
@@ -67,6 +77,7 @@ time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез ча�
 att_val = [i * 0.5 for i in range(64)]
 att_dict = {s: 10 ** (s / 10) for s in att_val}
 pass
+
 
 # 173, 173.6, 173.8, 174.38
 # t_cal = [0, 14, 17, 31]         # Для скана "20200318-1353_-24-3"
@@ -403,8 +414,57 @@ def extract_whole_band():
         f_in.close()
         pass
     spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
-    head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
+    # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
+    band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
+
+    head = {'date': date,
+            'measure_kind': measure_kind,    # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+            'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
+            # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
+            'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
+            'n_aver': n_aver,
+            'shift': shift,
+            'kurtosis': bound_left,
+            'att1': att01,
+            'att2': att02,
+            'att3': att03,
+            'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
+            'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
+
+
+def status_func(n_left1, n_left2, n_right1, n_right2):
+
+    # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
+    # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
+    if (n_left1 > 1 and n_left2 > 1) or (n_right1 > 1 and n_right2 > 1):
+        band_size = 'whole'
+    if (n_left1 > 1 or n_right1 > 1) and (n_left2 == 0 and n_right2 == 0):
+        band_size = 'half_low'
+    if (n_left2 > 1 or n_right2 > 1) and (n_left1 == 0 and n_right1 == 0):
+        band_size = 'half_upper'
+
+    # polar Принамает значения поляризаций: 'both', 'left', 'right'
+    if (n_left1 > 1 or n_left2 > 1) and (n_right1 == 0 or n_right2 == 0):
+        polar = 'left'
+    if (n_left1 == 0 or n_left2 == 0) and (n_right1 > 1 or n_right2 > 1):
+        polar = 'right'
+    if (n_left1 > 1 or n_left2 > 1) and (n_right1 > 1 or n_right2 > 1):
+        polar = 'both'
+
+    # Определение вида измерений: наблюдение Солнца, Луны, калибровка АЧХ
+    measure_kind = ''
+    if file_name0.find('test') != -1:
+        l = file_name0.find('test')
+        measure_kind = 'test'
+    if file_name0.find('sun') != -1:
+        measure_kind = 'Sun'
+    if file_name0.find('moon') != -1:
+        measure_kind = 'Moon'
+    if file_name0.find('calibration') != -1:
+        measure_kind = 'calibration'
+
+    return band_size, polar, measure_kind
 
 
 def save_spectrum(spectrum_extr, head):
@@ -412,7 +472,10 @@ def save_spectrum(spectrum_extr, head):
     spectrum2 = spectrum_extr[1]
     spectrum3 = spectrum_extr[2]
     spectrum4 = spectrum_extr[3]
-    n_aver = head[0]
+    n_aver = head['n_aver']
+    band_size = head['band_size']
+    polar = head['polar']
+    measure_kind = head['measure_kind']
     if len(spectrum1) > 1:
         spectrum1_low = convert_to_matrix(spectrum1, spectrum1[-1][0] + 1, n_aver)
         pass
@@ -432,9 +495,12 @@ def save_spectrum(spectrum_extr, head):
         spectrum2_high = []
     spectrum_whole = pd.Series([spectrum1_low, spectrum1_high, spectrum2_low, spectrum2_high])
     np.save(file_name0 + '_spectrum', spectrum_whole)
-    np.savetxt(file_name0 + '_head.txt', head)
+    with open(file_name0 + '_head.bin', 'wb') as out:
+        pickle.dump(head, out)
+    jsn.dump(head, open(file_name0 + '_head.txt', "w"))
+    # np.savetxt(file_name0 + '_head.bin', head)
 
-    return spectrum_whole, n_aver
+    return spectrum_whole, n_aver, measure_kind, band_size, polar
 
 
 def cut_spectrum(spectrum, n_aver):
@@ -449,18 +515,21 @@ def cut_spectrum(spectrum, n_aver):
 
 
 def convert_to_matrix(S_total, counter, n_aver):
-    '''Функция принимает список списков S, который формируется в extract(file_name0) и превращает его в матрицу,
+    """Функция принимает список списков S, который формируется в extract(file_name0) и превращает его в матрицу,
     строки которой - спектры с разрешением 7.8125/(2**(6-n_aver)) МГц, а столбцы - зависимость значения
     спектра на фиксированной частоте от времени. Разрешение по времени - 8192 мкс. Вместо пропущенных пакетов
-    вставляет значение 2'''
+    вставляет значение 2"""
 
     S = [[int(2)] * 128 for i in range(counter)]
     # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
         S[s[0]] = s[1:]
-    n = 128 * (2 ** (6 - n_aver))
+    aver_param_loc = 2 ** (6 - n_aver)
+    n = 128 * aver_param_loc
     print(len(S))
-    s_ar = np.reshape(S, (-1, n))
+    k = int(len(S) // aver_param_loc)
+    s_agreed = S[0: k * 8]
+    s_ar = np.reshape(s_agreed, (-1, n))
     return s_ar
 
 
@@ -537,9 +606,9 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
     j = 0
     for f in freq_spect_mask_in:
-        if band_size == 'half':
+        if band_size_init == 'half':
             ind1 = (f - (N_Nyq - 1) * 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
-        elif band_size == 'whole':
+        elif band_size_init == 'whole':
             ind1 = (f - 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
         ind = int(ind1)
         if ind > N_col - int(kf / 2) - 1:
@@ -692,13 +761,18 @@ def preparing_data():
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     if not (os.path.isfile(file_name0 + '_spectrum.npy') or os.path.isfile(file_name0 + '_left1.npy')):
-        if num_of_polar == 2 and band_size == 'whole':
-            spectrum, n_aver = extract_whole_band()
-        if num_of_polar == 2 and band_size == 'half':
+        if num_of_polar == 2 and band_size_init == 'whole':
+            spectrum, n_aver, measure_kind, band_size, polar = extract_whole_band()
+        if num_of_polar == 2 and band_size_init == 'half':
             spectrum, n_aver = extract_two_polar()
     else:
         spectrum = np.load(file_name0 + '_spectrum.npy', allow_pickle=True)
-        n_aver = np.loadtxt(file_name0 + '_head.txt')[0]
+        with open(file_name0 + '_head.bin', 'rb') as inp:
+            head = pickle.load(inp)
+            n_aver = head['n_aver']
+            band_size = head['band_size']
+            polar = head['polar']
+            # n_aver = head['n_aver']
 
         # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями,
         # одновременно понижая разрядность данных, меняя их тип с int64 до int32 и уменьшая
@@ -736,7 +810,7 @@ def preparing_data():
             spectrum_right1 = []
     pass
 
-    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(n_aver)
+    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(n_aver), band_size, polar
 
 
 def unite_spectrum(spec):
@@ -788,14 +862,17 @@ def unite_spectrum(spec):
 
 # Чтение с диска, если спектры ранее извлекались,
 # или извлечение спектров из исходных записей
-spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver = preparing_data()
+spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
+    preparing_data()
 aver_param = 2 ** (6 - n_aver)
+with open(file_name0 + '_head.bin', 'rb') as inp:
+    head = pickle.load(inp)
 
 # Выравнивание спектров по результатам шумовых измерений АЧХ
 if align == 'y':
-    path_output = r'E:\Measure_res\Calibr_coeff_2020_12'
+    path_output = folder_align_path + align_file_name
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
-        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, path_output)
+        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, head, path_output)
 
 # Приведение порядка следования отсчетов по частоте к нормальному
 if np.size(spectr_extr_left1):
@@ -816,8 +893,6 @@ if len(ser_ind) == 2:
 else:
     spectrum_extr = united_spectrum[0]
 
-
-
 if noise_calibr == 'y':
     spectr_time = calibration(t_cal, spectr_time)
 
@@ -829,18 +904,18 @@ if noise_calibr == 'y':
 t_spect = N_row * delta_t
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
-#if band_size == 'whole':
- #   freq_spect_mask = []
+# if band_size == 'whole':
+#   freq_spect_mask = []
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
 spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
 # np.save(file_name0 + '_spectr', spectr_time)
 # Формирование строк-аргументов по времени и частоте и легенды
 N_col = np.shape(spectrum_extr)[1]
-if band_size == 'half':
+if band_size_init == 'half':
     freq = np.linspace(1000 * (N_Nyq - 1) + 3.9063 / aver_param * kf, 1000 * N_Nyq - 3.9063 / aver_param * kf,
                        N_col // kf)
-elif band_size == 'whole':
+elif band_size_init == 'whole':
     freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
@@ -853,7 +928,6 @@ fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, file_name0, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, file_name0, line_legend_freq)
 n_start_flame = int(t_start_flame // (delta_t * kt))
 n_stop_flame = int(t_stop_flame // (delta_t * kt))
-
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
