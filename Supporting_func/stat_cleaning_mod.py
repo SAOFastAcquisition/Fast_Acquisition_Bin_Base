@@ -5,8 +5,11 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 from Supporting_func.stocks_coefficients import initial_scan_cut
+from pathlib import Path
+from Supporting_func.stocks_coefficients import path_to_data
 
-sys.path.insert(0, r'E:/rep1/Supporting_func')
+current_dir = Path.cwd()
+sys.path.insert(0, current_dir)
 
 
 def clean_func(data, frame_centers_loc, length_frame):
@@ -134,10 +137,15 @@ def func_frame_centers():
 
 
 if __name__ == '__main__':
-    # path_to_data0 = r'E:\Measure_res\2021_03_28sun\2021-03-28_02+24_'
-    path_to_data0 = r'F:\Fast_Acquisition\2021\Results' + r'\2021_03_27sun\2021-03-27_06+12_'
-    spectrum_input = np.load(path_to_data0 + 'spectrum.npy', allow_pickle=True)
-    with open(path_to_data0 + 'head.bin', 'rb') as inp:
+
+    current_data_file = '2021-03-27_06+12'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_03_27sun'  # Папка с текущими данными
+    current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+
+    file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+
+    spectrum_input = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+    with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     n_aver = int(head['n_aver'])
     freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
@@ -161,7 +169,10 @@ if __name__ == '__main__':
             spectrum_out[i] = spectrum
         print('Data ', i, 'calculated')
     print('calc over')
-
+    path_to_data0 = str(Path(file_path_data, current_data_file))
     if not debugging == 'y':
-        os.rename(path_to_data0 + 'spectrum.npy', path_to_data0 + 'spectrum_prime.npy')
-        np.save(path_to_data0 + 'spectrum', spectrum_out)
+        if not Path(file_path_data, current_data_file + '_spectrum_prime.npy').is_file():
+            os.rename(path_to_data0 + '_spectrum.npy', path_to_data0 + '_spectrum_prime.npy')
+            np.save(path_to_data0 + '_spectrum', spectrum_out)
+        else:
+            raise Error('File _spectrum_prime.npy is existing')

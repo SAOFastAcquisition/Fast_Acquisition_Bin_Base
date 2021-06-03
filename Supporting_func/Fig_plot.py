@@ -4,6 +4,8 @@ import matplotlib.font_manager as font_manager
 from matplotlib.ticker import MaxNLocator
 import pylab
 import os
+from pathlib import Path
+
 # from IPython.display import set_matplotlib_formats
 # set_matplotlib_formats('svg')
 
@@ -13,8 +15,8 @@ import os
 '''
 
 
-def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] * 20):
-
+def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, line_legend=[2] * 20):
+    file_name0 = str(file_name0_path)
     size_sp1 = spectr1.shape
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
@@ -119,8 +121,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0, line_legend=[2] 
     fig.savefig(file_name0 + '\\' + add_pass1)
 
 
-def fig_multi_axes(spectr1, argument, inform, file_name0, freq_mask):
-
+def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask):
+    file_name0 = str(file_name0path)
     size_sp1 = spectr1.shape
     freq_line_sp1 = size_sp1[0]
 
@@ -173,8 +175,8 @@ def fig_multi_axes(spectr1, argument, inform, file_name0, freq_mask):
     font = font_manager.FontProperties(family='Comic Sans MS',
                                        weight='bold',
                                        style='normal', size=16)
-    add_pass1 = path_to_pic(file_name0 + '\\', 0)
-    fig.savefig(file_name0 + '\\' + add_pass1)
+    add_pass1 = path_to_pic(file_name0, 0)
+    fig.savefig(Path(file_name0, add_pass1))
 
 
 def path_to_pic(file_path,  flag, format='png'):
@@ -189,10 +191,10 @@ def path_to_pic(file_path,  flag, format='png'):
 
     l = len(add_pass0)
     add_pass1 = add_pass0 + '.' + format
-    if not os.path.isfile(file_path + add_pass1):
+    if not os.path.isfile(Path(file_path, add_pass1)):
         pass
     else:
-        while os.path.isfile(file_path + add_pass1):
+        while os.path.isfile(Path(file_path, add_pass1)):
             num = int(add_pass0[l-2:l]) + 1
             num_str = str(num)
             if num >= 10:

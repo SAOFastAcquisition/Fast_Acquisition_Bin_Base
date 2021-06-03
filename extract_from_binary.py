@@ -6,30 +6,31 @@ import pickle
 import json as jsn
 # import matplotlib.pyplot as plt
 from datetime import datetime
-
+from pathlib import Path
 from pandas._libs import json
-
+from pathlib import Path
 from Supporting_func import Fig_plot as fp
 # from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_spectrum
+from Supporting_func.stocks_coefficients import path_to_data
 
-# from path_to_Yandex_Disk import path_to_YaDisk
+current_dir = Path.cwd()
+home_dir = Path.home()
+
 # from Supporting_func.afc_alignment1 import align_func1
 
-sys.path.insert(0, r'E:/rep1/Supporting_func')
+sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-# head_path = path_to_YaDisk()
-head_path = r'E:\Measure_res'
-# file_name0 = head_path + r'\2021_03_28sun\2021-03-28_02+24'
-file_name0 = r'F:\Fast_Acquisition\2021\Results' + r'\2021_03_27sun\2021-03-27_06+12'
-# file_name0 = r'F:\Fast_Acquisition\2021\Results\2021_04_15test\2021-04-15_01'
-folder_align_path = r'F:\Fast_Acquisition\Alignment'
-align_file_name = r'\Align_coeff.bin'
-date_ind = file_name0.rindex(r'\20')
-date = file_name0[date_ind + 1:date_ind + 11]
+current_data_file = '2021-03-27_06+12'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_03_27sun'          # Папка с текущими данными
+align_file_name = 'Align_coeff.bin'    # Имя файла с текущими коэффициентами выравнивания АЧХ
+current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
 
-if not file_name0.find('left') == -1:
+file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+folder_align_path = Path(head_path, 'Alignment')
+date = current_data_file[0:11]
+if not str(Path(file_path_data, current_data_file)).find('left') == -1:
     calibration_file_name = '20201215_left_03_cNG_' + str(q)
 
 # !!!! ******************************************* !!!!
@@ -85,8 +86,8 @@ pass
 
 
 def extract():
-    file_name = file_name0 + '.bin'
-    file_name_out = file_name0 + '.txt'
+    file_name = Path(file_path_data, current_data_file + '.bin')
+    file_name_out = Path(file_path_data, current_data_file + '.txt')
     i = 0
     k = 0
     spectr = []
@@ -275,9 +276,9 @@ def extract_two_polar():
 
 
 def extract_whole_band():
-    file_name = file_name0 + '.bin'
+    file_name = Path(file_path_data, current_data_file + '.bin')
     # *********** Если система работает с одной поляризацией ************
-    if not file_name0.find('Ant2') == -1:
+    if not str(file_name).find('Ant2') == -1:
         antenna2_0 = 1
     else:
         antenna2_0 = 0
@@ -454,8 +455,9 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
 
     # Определение вида измерений: наблюдение Солнца, Луны, калибровка АЧХ
     measure_kind = ''
+    file_name0 = str(Path(file_path_data, current_data_file))
     if file_name0.find('test') != -1:
-        l = file_name0.find('test')
+        # l = file_name0.find('test')
         measure_kind = 'test'
     if file_name0.find('sun') != -1:
         measure_kind = 'Sun'
@@ -494,10 +496,10 @@ def save_spectrum(spectrum_extr, head):
     else:
         spectrum2_high = []
     spectrum_whole = pd.Series([spectrum1_low, spectrum1_high, spectrum2_low, spectrum2_high])
-    np.save(file_name0 + '_spectrum', spectrum_whole)
-    with open(file_name0 + '_head.bin', 'wb') as out:
+    np.save(Path(file_path_data, current_data_file + '_spectrum'), spectrum_whole)
+    with open(Path(file_path_data, current_data_file + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
-    jsn.dump(head, open(file_name0 + '_head.txt', "w"))
+    jsn.dump(head, open(Path(file_path_data, current_data_file + '_head.txt'), "w"))
     # np.savetxt(file_name0 + '_head.bin', head)
 
     return spectrum_whole, n_aver, measure_kind, band_size, polar
@@ -749,8 +751,8 @@ def path_to_fig():
     """ Создает директорию для рисунков обрабатываемого наблюдения, если она до этого не была создана,
     название директории  совпадает с названием исходного файла данных наблюдения
     """
-    if not os.path.isdir(file_name0):
-        os.mkdir(file_name0)
+    if not os.path.isdir(Path(file_path_data, current_data_file)):
+        os.mkdir(Path(file_path_data, current_data_file))
     return
 
 
@@ -760,14 +762,14 @@ def preparing_data():
 
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
-    if not (os.path.isfile(file_name0 + '_spectrum.npy') or os.path.isfile(file_name0 + '_left1.npy')):
+    if not (os.path.isfile(Path(file_path_data, current_data_file + '_spectrum.npy')) or os.path.isfile(Path(file_path_data, current_data_file + '_left1.npy'))):
         if num_of_polar == 2 and band_size_init == 'whole':
             spectrum, n_aver, measure_kind, band_size, polar = extract_whole_band()
         if num_of_polar == 2 and band_size_init == 'half':
             spectrum, n_aver = extract_two_polar()
     else:
-        spectrum = np.load(file_name0 + '_spectrum.npy', allow_pickle=True)
-        with open(file_name0 + '_head.bin', 'rb') as inp:
+        spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+        with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
             head = pickle.load(inp)
             n_aver = head['n_aver']
             band_size = head['band_size']
@@ -865,12 +867,12 @@ def unite_spectrum(spec):
 spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
     preparing_data()
 aver_param = 2 ** (6 - n_aver)
-with open(file_name0 + '_head.bin', 'rb') as inp:
+with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
     head = pickle.load(inp)
 
 # Выравнивание спектров по результатам шумовых измерений АЧХ
 if align == 'y':
-    path_output = folder_align_path + align_file_name
+    path_output = Path(folder_align_path, align_file_name)
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
         align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, head, path_output)
 
@@ -924,8 +926,8 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar)]
 path_to_fig()
-fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, file_name0, line_legend_time)
-fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, file_name0, line_legend_freq)
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), line_legend_time)
+fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), line_legend_freq)
 n_start_flame = int(t_start_flame // (delta_t * kt))
 n_stop_flame = int(t_stop_flame // (delta_t * kt))
 

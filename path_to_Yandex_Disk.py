@@ -1,4 +1,6 @@
 import os
+from pathlib import *
+
 
 def path_to_YaDisk():
 
@@ -18,5 +20,10 @@ def path_to_YaDisk():
 
 if __name__ == '__main__':
     path_to_YaDisk()
+    current_dir = Path.cwd()
+    home_dir = Path.home()
+
+    print(current_dir)
+    print(home_dir)
 
 
