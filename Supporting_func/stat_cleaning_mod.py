@@ -4,12 +4,17 @@ import sys
 import os
 import pickle
 import matplotlib.pyplot as plt
+from pandas._libs import json
 from Supporting_func.stocks_coefficients import initial_scan_cut
 from pathlib import Path
 from Supporting_func.stocks_coefficients import path_to_data
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
+
+
+class CustomError(Exception):
+    pass
 
 
 def clean_func(data, frame_centers_loc, length_frame):
@@ -138,7 +143,7 @@ def func_frame_centers():
 
 if __name__ == '__main__':
 
-    current_data_file = '2021-03-27_06+12'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2021-03-27_02+28'  # Имя файла с исходными текущими данными без расширения
     current_data_dir = '2021_03_27sun'  # Папка с текущими данными
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
@@ -147,6 +152,8 @@ if __name__ == '__main__':
     spectrum_input = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
+    if head['cleaned'] == 'yes':
+        raise CustomError('***** Data is cleaned *****')
     n_aver = int(head['n_aver'])
     freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
     spectrum_out = [[], [], [], []]
@@ -169,10 +176,14 @@ if __name__ == '__main__':
             spectrum_out[i] = spectrum
         print('Data ', i, 'calculated')
     print('calc over')
+    head['cleaned'] = 'yes'
     path_to_data0 = str(Path(file_path_data, current_data_file))
     if not debugging == 'y':
         if not Path(file_path_data, current_data_file + '_spectrum_prime.npy').is_file():
             os.rename(path_to_data0 + '_spectrum.npy', path_to_data0 + '_spectrum_prime.npy')
             np.save(path_to_data0 + '_spectrum', spectrum_out)
+            with open(Path(file_path_data, current_data_file + '_head.bin'), 'wb') as out:
+                pickle.dump(head, out)
+            jsn.dump(head, open(Path(file_path_data, current_data_file + '_head.txt'), "w"))
         else:
-            raise Error('File _spectrum_prime.npy is existing')
+            raise CustomError('File _spectrum_prime.npy is existing')

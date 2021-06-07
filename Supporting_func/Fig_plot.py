@@ -15,9 +15,16 @@ from pathlib import Path
 '''
 
 
-def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, line_legend=[2] * 20):
+def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_legend=[2] * 20):
     file_name0 = str(file_name0_path)
     size_sp1 = spectr1.shape
+
+    az = file_name0[-3:]
+    att1 = str(head['att1'])
+    att2 = str(head['att2'])
+    att3 = str(head['att3'])
+    date = head['date'][:-1]
+
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
             if spectr1[i, j] < 100:
@@ -49,42 +56,48 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, line_legend
 
     if not file_name0.find('sun') == -1:
         title2 = 'Sun intensity'
-    elif not file_name0.find('crab') == -1:
-        title2 = 'Crab intensity'
-    elif not file_name0.find('calibr') == -1:
-        title2 = 'Calibration'
-        title0 = file_name0[-23:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
+        title02 = 'Sun spectrum '
+        title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+    # elif not file_name0.find('crab') == -1:
+    #     title2 = 'Crab intensity'
+    # elif not file_name0.find('calibration') == -1:
+    #     title2 = 'Calibration'
+    #     title0 = file_name0[-23:-2]
+    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+    #              ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
 
-    elif not (file_name0.find('Calibrate') == -1):
-        if not (file_name0.find('Ant1') == -1):
-            title2 = 'Calibration Left_Pol'
-        if not (file_name0.find('Ant2') == -1):
-                title2 = 'Calibration Right_Pol'
-        if not (file_name0.find('pol2') == -1):
-            title2 = 'Calibration L&R Pol' # 20201224_Ant1_HotL_3
-        title0 = file_name0[-20:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' mode=' + title0[9:13] + ' source=' + title0[14:18]
+    # elif not (file_name0.find('Calibrate') == -1):
+    #     if not (file_name0.find('Ant1') == -1):
+    #         title2 = 'Calibration Left_Pol'
+    #     if not (file_name0.find('Ant2') == -1):
+    #             title2 = 'Calibration Right_Pol'
+    #     if not (file_name0.find('pol2') == -1):
+    #         title2 = 'Calibration L&R Pol' # 20201224_Ant1_HotL_3
+    #     title0 = file_name0[-20:-2]
+    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+    #              ' mode=' + title0[9:13] + ' source=' + title0[14:18]
+    #
+    # elif not (file_name0.find('test') == -1):
+    #     title2 = 'Interference Test'
+    #     title0 = file_name0[-24:-2]
+    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+    #              ' channel att=' + title0[15:18] + ' source dBm=' + title0[19:22]
+    #     pass
+    # else:
+    #     title2 = []
 
-    elif not (file_name0.find('test') == -1):
-        title2 = 'Interference Test'
-        title0 = file_name0[-24:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' channel att=' + title0[15:18] + ' source dBm=' + title0[19:22]
-        pass
-    else:
-        title2 = []
+    # if head['measure_kind'] == 'sun':
+    #     title1 = 'Sun intensity ' + date + ' ' + az + '/n' + 'att1=' + att1
 
     if flag:
         ax.set_xlabel('Freq, MHz', fontsize=20)
         ax.set_yscale('log')
         ax.set_ylabel('Power Spectrum', fontsize=20)
-        ax.set_title('Spectrum'+title1, fontsize=24)
-        y1 = y_min + 0.15 * (y_max - y_min) / 10
+        ax.set_title(title02 + title1, fontsize=24)
+        y1 = y_min * 2
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
+        y4 = y_min * 4
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
@@ -94,14 +107,15 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, line_legend
             ax.set_ylim(0, 4)
         ax.set_ylabel('Intensity', fontsize=20)
         ax.set_title(title2+' scan'+title1, fontsize=24)
-        y1 = y_min + (y_max - y_min) / 10
-        y2 = y_min
+        y1 = y_max - 3 * (y_max - y_min) / 10
+        y2 = y_max - 4 * (y_max - y_min) / 10
         y3 = y_max - (y_max - y_min) / 10
+        y4 = y_max - (y_max - y_min) / 5
 
     plt.text(x_min, y1, inform[0], fontsize=16)
     plt.text(x_min, y2, inform[1], fontsize=16)
     plt.text(x_min, y3, inform[2], fontsize=16)
-
+    plt.text(x_min, y4, inform[3], fontsize=16)
 
     m = 0
     for i in range(freq_line_sp1):

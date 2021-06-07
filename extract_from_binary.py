@@ -22,7 +22,7 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-03-27_06+12'      # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-03-27_02+28'      # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_03_27sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'    # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
@@ -52,7 +52,7 @@ band_size_init = 'whole'
 # polar = 'both'        Принамает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
@@ -68,8 +68,9 @@ elif band_size_init == 'whole':
     n1 = 1
     n2 = 1
     # freq_spect_mask = [2100, 2300, 2490, 2550, 2700, 2730, 2750, 2800, 2920]
-    freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
+    # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
     # freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
+    freq_spect_mask = [1050, 1380, 1500, 1600, 1950, 2100, 2490, 2700, 2800, 2920]
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
@@ -429,6 +430,7 @@ def extract_whole_band():
             'att1': att01,
             'att2': att02,
             'att3': att03,
+            'cleaned': 'no',
             'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
             'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
@@ -460,9 +462,11 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
         # l = file_name0.find('test')
         measure_kind = 'test'
     if file_name0.find('sun') != -1:
-        measure_kind = 'Sun'
+        measure_kind = 'sun'
     if file_name0.find('moon') != -1:
-        measure_kind = 'Moon'
+        measure_kind = 'moon'
+    if file_name0.find('crab') != -1:
+        measure_kind = 'crab'
     if file_name0.find('calibration') != -1:
         measure_kind = 'calibration'
 
@@ -924,10 +928,11 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-            ('polarisation ' + polar)]
+            ('polarisation ' + head['polar']),
+            ('stat cleaning = ' + head['cleaned'])]
 path_to_fig()
-fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), line_legend_time)
-fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), line_legend_freq)
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 n_start_flame = int(t_start_flame // (delta_t * kt))
 n_stop_flame = int(t_stop_flame // (delta_t * kt))
 
