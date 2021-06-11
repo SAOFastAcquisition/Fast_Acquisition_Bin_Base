@@ -4,7 +4,7 @@ import sys
 import os
 import pickle
 import matplotlib.pyplot as plt
-from pandas._libs import json
+import json as jsn
 from Supporting_func.stocks_coefficients import initial_scan_cut
 from pathlib import Path
 from Supporting_func.stocks_coefficients import path_to_data
@@ -143,7 +143,7 @@ def func_frame_centers():
 
 if __name__ == '__main__':
 
-    current_data_file = '2021-03-27_02+28'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2021-03-27_07+00'  # Имя файла с исходными текущими данными без расширения
     current_data_dir = '2021_03_27sun'  # Папка с текущими данными
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 

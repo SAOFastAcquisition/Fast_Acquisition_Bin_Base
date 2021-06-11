@@ -19,12 +19,6 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     file_name0 = str(file_name0_path)
     size_sp1 = spectr1.shape
 
-    az = file_name0[-3:]
-    att1 = str(head['att1'])
-    att2 = str(head['att2'])
-    att3 = str(head['att3'])
-    date = head['date'][:-1]
-
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
             if spectr1[i, j] < 100:
@@ -32,15 +26,9 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     freq_line_sp1 = size_sp1[0]
 
-    # title0 = file_name0[-19:-2]
-    # title1 = '  '+title0[0:4]+'.'+title0[4:6]+'.'+title0[6:8] +\
-    #          ' time='+title0[9:11]+':'+title0[11:13]+' azimuth='+title0[14:17]
-    title0 = file_name0[-22:-2]
-    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-             ' mode='+title0[9:13]+' attenuation='+title0[14:16]+' azimuth='+title0[17:20]
     fig, ax = plt.subplots(1, figsize=(12, 6))
 
-    line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
+    line_color = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
 
     # Show the major grid lines with dark grey lines
     plt.grid(b=True, which='major', color='#666666', linestyle='-')
@@ -49,51 +37,19 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     plt.minorticks_on()
     plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
 
+    title1, title2, title02 = title_func(file_name0, head)
+
     y_max = np.nanmax(spectr1)
     y_min = np.nanmin(spectr1)
     x_min = argument.min()
     x_max = argument.max()
 
-    if not file_name0.find('sun') == -1:
-        title2 = 'Sun intensity'
-        title02 = 'Sun spectrum '
-        title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
-    # elif not file_name0.find('crab') == -1:
-    #     title2 = 'Crab intensity'
-    # elif not file_name0.find('calibration') == -1:
-    #     title2 = 'Calibration'
-    #     title0 = file_name0[-23:-2]
-    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-    #              ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
-
-    # elif not (file_name0.find('Calibrate') == -1):
-    #     if not (file_name0.find('Ant1') == -1):
-    #         title2 = 'Calibration Left_Pol'
-    #     if not (file_name0.find('Ant2') == -1):
-    #             title2 = 'Calibration Right_Pol'
-    #     if not (file_name0.find('pol2') == -1):
-    #         title2 = 'Calibration L&R Pol' # 20201224_Ant1_HotL_3
-    #     title0 = file_name0[-20:-2]
-    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-    #              ' mode=' + title0[9:13] + ' source=' + title0[14:18]
-    #
-    # elif not (file_name0.find('test') == -1):
-    #     title2 = 'Interference Test'
-    #     title0 = file_name0[-24:-2]
-    #     title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-    #              ' channel att=' + title0[15:18] + ' source dBm=' + title0[19:22]
-    #     pass
-    # else:
-    #     title2 = []
-
-    # if head['measure_kind'] == 'sun':
-    #     title1 = 'Sun intensity ' + date + ' ' + az + '/n' + 'att1=' + att1
 
     if flag:
-        ax.set_xlabel('Freq, MHz', fontsize=20)
+        ax.set_xlabel('Freq, MHz', fontsize=18)
         ax.set_yscale('log')
         ax.set_ylabel('Power Spectrum', fontsize=20)
-        ax.set_title(title02 + title1, fontsize=24)
+        ax.set_title(title02 + title1, fontsize=18)
         y1 = y_min * 2
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
@@ -101,25 +57,24 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
-        ax.set_xlabel('Time, sec', fontsize=20)
+        ax.set_xlabel('Time, sec', fontsize=18)
         if burn == 1:
             ax.set_yticks([0, 1])
             ax.set_ylim(0, 4)
-        ax.set_ylabel('Intensity', fontsize=20)
-        ax.set_title(title2+' scan'+title1, fontsize=24)
+        ax.set_ylabel('Intensity', fontsize=18)
+        ax.set_title(title2 + ' scan ' + title1, fontsize=20)
         y1 = y_max - 3 * (y_max - y_min) / 10
         y2 = y_max - 4 * (y_max - y_min) / 10
         y3 = y_max - (y_max - y_min) / 10
         y4 = y_max - (y_max - y_min) / 5
 
-    plt.text(x_min, y1, inform[0], fontsize=16)
-    plt.text(x_min, y2, inform[1], fontsize=16)
-    plt.text(x_min, y3, inform[2], fontsize=16)
-    plt.text(x_min, y4, inform[3], fontsize=16)
-
+    plt.text(x_min, y1, inform[0], fontsize=16)  # Разрешение по частоте
+    plt.text(x_min, y2, inform[1], fontsize=16)  # Разрешение по времени
+    plt.text(x_min, y3, inform[2], fontsize=16)  # Информация о поляризации
+    plt.text(x_min, y4, inform[3], fontsize=16)  # Информация о статистической чистке сканов
     m = 0
     for i in range(freq_line_sp1):
-        ax.plot(argument, spectr1[i, :], color=line_colore[m], label=line_legend[i])
+        ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
 
     # Управление шрифтом легенды
@@ -135,14 +90,65 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     fig.savefig(file_name0 + '\\' + add_pass1)
 
 
+def title_func(file_name0, head):
+    az = file_name0[-3:]
+    att1 = str(head['att1'])
+    att2 = str(head['att2'])
+    att3 = str(head['att3'])
+    date = head['date'][:-1]
+
+    title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+    if not file_name0.find('sun') == -1:
+        title2 = 'Sun intensity'
+        title02 = 'Sun spectrum '
+        if file_name0[-2:] == 'BB':
+            az = file_name0[-6:-3]
+            title2 = 'Calibration'
+            title02 = 'Calibration spectrum '
+            title1 = date + ', az = ' + az + ', Black Body/Sky, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    elif not file_name0.find('crab') == -1:
+        title2 = 'Crab intensity'
+        title02 = 'Crab spectrum '
+
+    elif not file_name0.find('calibration') == -1:
+        title2 = 'Calibration'
+        title02 = 'Calibration spectrum '
+        title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    elif not (file_name0.find('test') == -1):
+        kind = file_name0[-2:]
+        title2 = 'Test'
+        title02 = 'Test spectrum'
+        if kind == 'VG':
+            power_vg = 0
+            title1 = date + ', Vector Gen' + ', P = ' + power_vg + 'dBm, ' \
+                'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'NG':
+            t_noise = 6300
+            title1 = date + ', Noise Gen, ' + 'T = ' + str(t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'ML':
+            title1 = date + ', Matched Load' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'SC':
+            title1 = date + ', Short Cut' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        else:
+            title1 = date + ', ' + ' , Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    else:
+        title2 = 'Scan'
+        title02 = 'Spectrum'
+
+    return title1, title2, title02
+
+
 def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask):
     file_name0 = str(file_name0path)
     size_sp1 = spectr1.shape
     freq_line_sp1 = size_sp1[0]
 
     title0 = file_name0[-19:-2]
-    title1 = '  '+title0[0:4]+'.'+title0[4:6]+'.'+title0[6:8] +\
-             ' time='+title0[9:11]+':'+title0[11:13]+' azimuth='+title0[14:17]
+    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+             ' time=' + title0[9:11] + ':' + title0[11:13] + ' azimuth=' + title0[14:17]
 
     fig, axes = plt.subplots(3, 4, figsize=(12, 6))
 
@@ -158,8 +164,8 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask):
                  ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
         pass
     else:
-        title2 = [ ]
-    fig.suptitle(title2+' scan'+title1, y=1.0, fontsize=24)
+        title2 = []
+    fig.suptitle(title2 + ' scan' + title1, y=1.0, fontsize=24)
 
     for i_freq in range(freq_line_sp1):
         axes[i_freq // 4, i_freq % 4].plot(argument, spectr1[i_freq, :])
@@ -193,7 +199,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask):
     fig.savefig(Path(file_name0, add_pass1))
 
 
-def path_to_pic(file_path,  flag, format='png'):
+def path_to_pic(file_path, flag, format='png'):
     if flag == 1:
         add_pass0 = 'spectrum_00'
     elif flag == 2:
@@ -209,12 +215,12 @@ def path_to_pic(file_path,  flag, format='png'):
         pass
     else:
         while os.path.isfile(Path(file_path, add_pass1)):
-            num = int(add_pass0[l-2:l]) + 1
+            num = int(add_pass0[l - 2:l]) + 1
             num_str = str(num)
             if num >= 10:
                 add_pass0 = add_pass0[:l - 2] + num_str
             else:
-                add_pass0 = add_pass0[:l-2] + '0' + num_str
+                add_pass0 = add_pass0[:l - 2] + '0' + num_str
             add_pass1 = add_pass0 + '.' + format
 
     return add_pass1

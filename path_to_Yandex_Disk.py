@@ -2,18 +2,23 @@ import os
 from pathlib import *
 
 
+class CustomError(Exception):
+    pass
+
+
 def path_to_YaDisk():
-
-    head_path1 = 'D:\\YandexDisk'               # HP end Lenovo
+    head_path1 = 'D:\\YandexDisk'  # HP end Lenovo
     head_path2 = 'E:\\YandexDisk-svit-commerc'  # Dell
-    head_path3 = 'C:\\Users\\PC\\YandexDisk'    # Stationary machine
-
-    if os.path.isdir(head_path1):
-        path = head_path1
-    elif os.path.isdir(head_path2):
-        path = head_path2
-    elif os.path.isdir(head_path3):
-        path = head_path3
+    head_path3 = 'C:\\Users\\PC\\YandexDisk'  # Stationary machine
+    try:
+        if os.path.isdir(head_path1):
+            path = head_path1
+        elif os.path.isdir(head_path2):
+            path = head_path2
+        elif os.path.isdir(head_path3):
+            path = head_path3
+    except:
+        raise CustomError('Head path not found')
 
     return path
 
@@ -25,5 +30,3 @@ if __name__ == '__main__':
 
     print(current_dir)
     print(home_dir)
-
-

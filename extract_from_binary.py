@@ -22,16 +22,14 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-03-27_02+28'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_03_27sun'          # Папка с текущими данными
+current_data_file = '2021-04-15_18_NG'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_04_15test'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'    # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 folder_align_path = Path(head_path, 'Alignment')
 date = current_data_file[0:11]
-if not str(Path(file_path_data, current_data_file)).find('left') == -1:
-    calibration_file_name = '20201215_left_03_cNG_' + str(q)
 
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
@@ -45,14 +43,12 @@ delta_t = 8.1925e-3
 delta_f = 7.8125
 num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
 if num_of_polar == 1:
-    q = int(file_name0[-1])
-    N_Nyq = q
+    N_Nyq = int(current_data_file[-1])
+
 band_size_init = 'whole'
 # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
 # polar = 'both'        Принамает значения поляризаций: 'both', 'left', 'right'
-robust_filter = 'n'
-param_robust_filter = 1.1
-align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
@@ -504,7 +500,6 @@ def save_spectrum(spectrum_extr, head):
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
     jsn.dump(head, open(Path(file_path_data, current_data_file + '_head.txt'), "w"))
-    # np.savetxt(file_name0 + '_head.bin', head)
 
     return spectrum_whole, n_aver, measure_kind, band_size, polar
 
@@ -928,8 +923,8 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-            ('polarisation ' + head['polar']),
-            ('stat cleaning = ' + head['cleaned'])]
+            ('polarisation: ' + head['polar']),
+            ('stat cleaning: ' + head['cleaned'])]
 path_to_fig()
 fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)

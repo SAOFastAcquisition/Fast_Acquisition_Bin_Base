@@ -4,6 +4,8 @@ import sys
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
+from pathlib import Path
+from Supporting_func.stocks_coefficients import path_to_data
 
 
 def noise_kp(spectrum_noise_out, diff='n'):
@@ -92,15 +94,17 @@ def align_visualization(coeff_set):
     pass
 
 
-# Путь к исходным данным
-folder_path = r'F:\Fast_Acquisition\2021\Results\2021_04_15test'
-file_name = r'\2021-04-15_14'
-file_path = folder_path + file_name
+# ******************** Путь к исходным данным *********************
+current_data_file = '2021-04-15_14'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_04_15test'  # Папка с текущими данными
+align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+
+file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
 #                   ***********************************
 # Путь к файлу хранения коэффициентов (он один для всех калибровок АЧХ каналов)
-folder_align_path = r'F:\Fast_Acquisition\Alignment'
-align_file_name = r'\Align_coeff.bin'
+folder_align_path = Path(head_path, 'Alignment')
 
 visualization_set = [0, 1, 2]
 
@@ -109,18 +113,18 @@ columns_names = ['date', 'att1', 'att2', 'att3',
                  'spectrum_left1', 'polar', 'spectrum_left2', 'spectrum_right1',
                  'spectrum_right2',
                  'max_left1', 'max_left2', 'max_right1', 'max_right2', 'flag_align']
-if not os.path.isfile(folder_align_path + align_file_name):
+if not os.path.isfile(Path(folder_align_path, align_file_name)):
     calibration_frame = pd.DataFrame(columns=columns_names)
 else:
-    with open(folder_align_path + align_file_name, 'rb') as inp:
+    with open(Path(folder_align_path, align_file_name), 'rb') as inp:
         calibration_frame = pickle.load(inp)
 # ************************************************************************************
 
 align_visualization(visualization_set)
 
 # Загрузка исходных данных ('_spectrum.npy' - сами данные, _head.bin - вспомогательные)
-spectrum = np.load(file_path + '_spectrum.npy', allow_pickle=True)
-with open(file_path + '_head.bin', 'rb') as inp:
+spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
     head = pickle.load(inp)
 n_aver = head['n_aver']
 aver_param = 2 ** (6 - n_aver)
@@ -131,7 +135,7 @@ s_max_band = np.empty(4)
 s_max_band[:] = np.nan
 i = 0
 
-# Расчет выравнивающих коэффициентов поотдельности для каждой поляризации и полосы частот 1-2 или 2-3 ГГц
+# Расчет выравнивающих коэффициентов по отдельности для каждой поляризации и полосы частот 1-2 или 2-3 ГГц
 flag_align = 0  # Выравнивания по всему диапазону еще нет
 for s in spectrum:
     if i % 2:
@@ -167,7 +171,7 @@ plt.show()
 
 # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
 # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
-calibrate_row = {'date': file_name[1:11], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
+calibrate_row = {'date': current_data_file[:11], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                  'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                  'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
                  'max_left1': s_max_band[0], 'max_left2': s_max_band[1],
@@ -206,10 +210,10 @@ if len(idx):
 else:
     calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
 
-with open(folder_align_path + align_file_name, 'wb') as out:
+with open(Path(folder_align_path, align_file_name), 'wb') as out:
     pickle.dump(calibration_frame, out)
 
-with open(folder_align_path + align_file_name, 'rb') as inp:
+with open(Path(folder_align_path, align_file_name), 'rb') as inp:
     calibration_frame_inp = pickle.load(inp)
 
 pass
