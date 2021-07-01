@@ -64,6 +64,60 @@ def freqtime_compare(freq=201, suptitle='', l=1):
     # plt.show()
 
 
+def comb_filter(x_in, d):
+    sample_length = np.size(x_in)
+    y = np.zeros(sample_length)
+    for n in range(sample_length):
+        if n == 0:
+            y[n] = x_in[n]
+        elif n < d:
+            y[n] = x_in[n] + y[n - 1]
+        else:
+            y[n] = x_in[n] - x_in[n - d] + y[n - 1]
+
+    return y / d
+
+
+def interpolate_sequence(x_in, r):
+    input_length = np.size(x_in)
+    y = np.zeros(input_length * r)
+    for n in range(input_length):
+        y[n * r] = x_in[n]
+    return y
+
+
+def decimate_sequence(x_in, d):
+    input_length = np.size(x_in)
+    y = np.zeros(input_length // d)
+    for n in range(int(input_length // d)):
+        y[n] = x_in[n * d]
+    return y
+
+
+def random_signal(n):
+    primary_sig = np.random.sample(n) - 0.5
+    return primary_sig
+
+
+m = 2 ** 20
+signal_sin = [0.1 * (np.sin(2 * np.pi * 0.3 * i) + 0.75 * np.sin(2 * np.pi * 0.17 * i)) for i in range(m)]
+signal_rand = random_signal(m) + signal_sin
+sig_mean = np.mean(signal_rand)
+sig_var = np.var(signal_rand)
+signal_rand = comb_filter(signal_rand, 7)
+# r = 4
+# signal_rand = interpolate_sequence(signal_rand, r)
+# signal_rand = comb_filter(signal_rand, 7)
+d = 4
+signal_rand = decimate_sequence(signal_rand, d)
+signal_rand_sample = np.reshape(signal_rand, (-1, 256))    # Разбиваем на реализации длиной 1024 отсчетов
+spectrum_signal_rand = fft(signal_rand_sample, 1024)
+spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
+
+axes = plt.subplots()
+plt.plot(spectrum_signal_av)
+plt.show()
+
 freqtime_compare(freq=121 * 1, l=1, suptitle='NumAverage = 1')
 
 l_avg = 15

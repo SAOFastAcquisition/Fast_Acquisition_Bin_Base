@@ -122,7 +122,7 @@ def title_func(file_name0, head):
         title02 = 'Test spectrum'
         if kind == 'VG':
             power_vg = 0
-            title1 = date + ', Vector Gen' + ', P = ' + power_vg + 'dBm, ' \
+            title1 = date + ', Vector Gen' + ', P = ' + str(power_vg) + 'dBm, ' \
                 'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'NG':
             t_noise = 6300

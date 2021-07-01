@@ -22,9 +22,9 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-04-15_18_NG'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_04_15test'          # Папка с текущими данными
-align_file_name = 'Align_coeff.bin'    # Имя файла с текущими коэффициентами выравнивания АЧХ
+current_data_file = '2021-06-28_19-28'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28sun'          # Папка с текущими данными
+align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
@@ -34,7 +34,7 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 1  # Установка разрешения по частоте
-kt = 1  # Установка разрешения по времени
+kt = 4  # Установка разрешения по времени
 N_Nyq = 2  # Номер зоны Найквиста
 shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -43,11 +43,13 @@ delta_t = 8.1925e-3
 delta_f = 7.8125
 num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
 if num_of_polar == 1:
-    N_Nyq = int(current_data_file[-1])
-
+    q = int(current_data_file[-1])
+    N_Nyq = q
 band_size_init = 'whole'
 # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
 # polar = 'both'        Принамает значения поляризаций: 'both', 'left', 'right'
+robust_filter = 'n'
+param_robust_filter = 1.1
 align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
 
 noise_calibr = 'n'
@@ -63,10 +65,9 @@ if N_Nyq == 3:
 elif band_size_init == 'whole':
     n1 = 1
     n2 = 1
-    # freq_spect_mask = [2100, 2300, 2490, 2550, 2700, 2730, 2750, 2800, 2920]
+    # freq_spect_mask = [2100, 2265, 2460, 2550, 2700, 2735, 2750, 2800, 2920]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
-    # freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
-    freq_spect_mask = [1050, 1380, 1500, 1600, 1950, 2100, 2490, 2700, 2800, 2920]
+    freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
 else:
     freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750]
 
@@ -420,13 +421,13 @@ def extract_whole_band():
             'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
             # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
             'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
+            'cleaned': 'no',
             'n_aver': n_aver,
             'shift': shift,
             'kurtosis': bound_left,
             'att1': att01,
             'att2': att02,
             'att3': att03,
-            'cleaned': 'no',
             'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
             'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
@@ -458,11 +459,9 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
         # l = file_name0.find('test')
         measure_kind = 'test'
     if file_name0.find('sun') != -1:
-        measure_kind = 'sun'
+        measure_kind = 'Sun'
     if file_name0.find('moon') != -1:
-        measure_kind = 'moon'
-    if file_name0.find('crab') != -1:
-        measure_kind = 'crab'
+        measure_kind = 'Moon'
     if file_name0.find('calibration') != -1:
         measure_kind = 'calibration'
 
@@ -500,6 +499,7 @@ def save_spectrum(spectrum_extr, head):
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
     jsn.dump(head, open(Path(file_path_data, current_data_file + '_head.txt'), "w"))
+    # np.savetxt(file_name0 + '_head.bin', head)
 
     return spectrum_whole, n_aver, measure_kind, band_size, polar
 
@@ -923,8 +923,7 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-            ('polarisation: ' + head['polar']),
-            ('stat cleaning: ' + head['cleaned'])]
+            ('polarisation ' + polar), 'align' + align]
 path_to_fig()
 fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
