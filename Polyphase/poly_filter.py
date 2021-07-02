@@ -99,7 +99,7 @@ def random_signal(n):
     return primary_sig
 
 
-m = 2 ** 20
+m = 2 ** 16
 signal_sin = [0.1 * (np.sin(2 * np.pi * 0.3 * i) + 0.75 * np.sin(2 * np.pi * 0.17 * i)) for i in range(m)]
 signal_rand = random_signal(m) + signal_sin
 sig_mean = np.mean(signal_rand)
@@ -110,7 +110,7 @@ signal_rand = comb_filter(signal_rand, 7)
 # signal_rand = comb_filter(signal_rand, 7)
 d = 4
 signal_rand = decimate_sequence(signal_rand, d)
-signal_rand_sample = np.reshape(signal_rand, (-1, 256))    # Разбиваем на реализации длиной 1024 отсчетов
+signal_rand_sample = np.reshape(signal_rand, (1024, -1))    # Разбиваем на реализации длиной 1024 отсчетов
 spectrum_signal_rand = fft(signal_rand_sample, 1024)
 spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
 
