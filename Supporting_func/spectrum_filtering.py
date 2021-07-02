@@ -54,7 +54,7 @@ h = filter_coeff(1024, 256, 128)
 # signal_rand = low_freq_filter(signal_rand, h)
 
 
-signal_rand_sample = np.reshape(signal_rand, (1024, -1))    # Разбиваем на реализации длиной 1024 отсчетов
+signal_rand_sample = np.reshape(signal_rand, (-1, 1024))    # Разбиваем на реализации длиной 1024 отсчетов
 spectrum_signal_rand = fft(signal_rand_sample, 1024)
 spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
 
