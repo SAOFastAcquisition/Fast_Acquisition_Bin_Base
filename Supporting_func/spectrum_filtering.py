@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from numpy import fft
 from scipy.signal.windows import kaiser, flattop
 import filters as ftr
+from scipy.fftpack import fft, fftshift
 
 
 def low_freq_filter(x, h):
@@ -50,11 +51,11 @@ signal_rand = random_signal(m) + signal_sin
 sig_mean = np.mean(signal_rand)
 sig_var = np.var(signal_rand)
 
-h = filter_coeff(1024, 256, 128)
-# signal_rand = low_freq_filter(signal_rand, h)
+h = filter_coeff(1024, 256, 512)
+signal_rand = low_freq_filter(signal_rand, h)
 
 
-signal_rand_sample = np.reshape(signal_rand, (-1, 1024))    # Разбиваем на реализации длиной 1024 отсчетов
+signal_rand_sample = np.reshape(signal_rand, (1024, -1))    # Разбиваем на реализации длиной 1024 отсчетов
 spectrum_signal_rand = fft(signal_rand_sample, 1024)
 spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
 
