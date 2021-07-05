@@ -1,9 +1,12 @@
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from numpy import fft
 from scipy.signal.windows import kaiser, flattop
 import filters as ftr
+from pathlib import Path
 from scipy.fftpack import fft, fftshift
+from Supporting_func.stocks_coefficients import path_to_data
 
 
 def low_freq_filter(x, h):
@@ -44,21 +47,52 @@ def random_signal(n):
     return primary_sig
 
 
-
-m = 2 ** 16
-signal_sin = [0.1 * (np.sin(2 * np.pi * 0.3 * i) + 0.75 * np.sin(2 * np.pi * 0.17 * i)) for i in range(m)]
-signal_rand = random_signal(m) + signal_sin
-sig_mean = np.mean(signal_rand)
-sig_var = np.var(signal_rand)
-
-h = filter_coeff(1024, 256, 512)
-signal_rand = low_freq_filter(signal_rand, h)
+def model_signal():
+    m = 2 ** 16
+    signal_sin = [0.1 * (np.sin(2 * np.pi * 0.2 * i) + 1.2 * np.sin(2 * np.pi * 0.29 * i)) for i in range(m)]
+    signal_rand = random_signal(m) + signal_sin
+    sig_mean = np.mean(signal_rand)
+    sig_var = np.var(signal_rand)
+    return signal_rand
 
 
-signal_rand_sample = np.reshape(signal_rand, (1024, -1))    # Разбиваем на реализации длиной 1024 отсчетов
-spectrum_signal_rand = fft(signal_rand_sample, 1024)
-spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
+model = 'n'
+current_data_file = '2021-06-28_19-28'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28sun'          # Папка с текущими данными
+current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
+
+file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+spectrum_signal_av1 = np.average(spectrum[2], 0)
+axes = plt.subplots()
+
+
+if model == 'y':
+    signal_rand = model_signal()
+    h = filter_coeff(1024, 64, 900)
+    fft_h = abs(fft(h, 1024) ** 2)
+    signal_rand = low_freq_filter(signal_rand, h)
+    signal_rand_sample = np.reshape(signal_rand, (-1, 1024))  # Разбиваем на реализации длиной 1024 отсчетов
+    spectrum_signal_rand = fft(signal_rand_sample, 1024, axis=1)
+    spectrum_signal = np.abs(spectrum_signal_rand ** 2)
+    spectrum_signal_av = np.average(spectrum_signal, 0)
+else:
+    for i in range(np.size(spectrum)):
+        l = np.shape(spectrum[i])
+        if np.size(l) == 2 and l[1] > 4:
+            h = filter_coeff(l[1], 64, int(l[1]//4))
+            fft_h = abs(fft(h, l[1]) ** 2)
+            spectrum[i] = low_freq_filter(spectrum[i], h)
+            pass
+    spectrum_signal_av = np.average(spectrum[2], 0)
+
+
+
 
 axes = plt.subplots()
 plt.plot(spectrum_signal_av)
+plt.plot(spectrum_signal_av1)
+plt.plot(fft_h)
 plt.show()
+
+# np.save(Path(file_path_data, current_data_file + '_1spectrum'), spectrum_signal)
