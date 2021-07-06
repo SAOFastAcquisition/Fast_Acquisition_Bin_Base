@@ -13,8 +13,7 @@ def low_freq_filter(x, h):
     n_input = len(x)
     n_filter = len(h)
     # n - Длина входной последовательности
-    # l_interpol - коэффициент интерполяции
-    # h - отклик фильтра НЧ для удаления лишних изображений
+    # h - отклик фильтра НЧ
 
     y = [0] * n_input  # Выходная последовательность после интерполяции и НЧ фильтрации
     for n in range(0, n_input):
@@ -63,9 +62,10 @@ current_catalog = r'2021\Results'           # Текущий каталог (з�
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
-spectrum_signal_av1 = np.average(spectrum[2], 0)
-axes = plt.subplots()
-
+spectrum_loc = spectrum[2]
+spectrum_trace_control = spectrum_loc[10]
+# spectrum_signal_av1 = np.average(spectrum[2], 0)
+spectrum_signal_av1 = spectrum_trace_control
 
 if model == 'y':
     signal_rand = model_signal()
@@ -80,18 +80,32 @@ else:
     for i in range(np.size(spectrum)):
         l = np.shape(spectrum[i])
         if np.size(l) == 2 and l[1] > 4:
-            h = filter_coeff(l[1], 64, int(l[1]//4))
+            h = filter_coeff(l[1], 64, int(l[1]//64))
             fft_h = abs(fft(h, l[1]) ** 2)
-            spectrum[i] = low_freq_filter(spectrum[i], h)
-            pass
-    spectrum_signal_av = np.average(spectrum[2], 0)
-
-
+            spectrum_loc = spectrum[i]
+            for j in range(l[0]):
+                spectrum_line = spectrum_loc[j]
+                spectrum_line = np.abs(low_freq_filter(spectrum_line, h))
+                spectrum_loc[j] = spectrum_line
+                pass
+            spectrum[i] = spectrum_loc
+    spectrum_loc = spectrum[2]
+    spectrum_trace = spectrum_loc[10]
+    spectrum_signal_av = spectrum_trace
+    # spectrum_signal_av = np.average(spectrum[2], 0)
 
 
 axes = plt.subplots()
 plt.plot(spectrum_signal_av)
 plt.plot(spectrum_signal_av1)
+plt.show()
+
+signal1 = fft(spectrum_signal_av, 512)
+signal2 = fft(spectrum_signal_av1, 512)
+
+axes = plt.subplots()
+plt.plot(signal1)
+plt.plot(signal2)
 plt.plot(fft_h)
 plt.show()
 

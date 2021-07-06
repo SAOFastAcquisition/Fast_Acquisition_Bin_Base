@@ -143,8 +143,8 @@ def func_frame_centers():
 
 if __name__ == '__main__':
 
-    current_data_file = '2021-06-28_19-28'  # Имя файла с исходными текущими данными без расширения
-    current_data_dir = '2021_06_28sun'  # Папка с текущими данными
+    current_data_file = '2021-06-27_19-28'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_06_27sun'  # Папка с текущими данными
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
@@ -152,8 +152,12 @@ if __name__ == '__main__':
     spectrum_input = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
-    if head['cleaned'] == 'yes':
-        raise CustomError('***** Data is cleaned *****')
+    try:
+        if head['cleaned'] == 'yes':
+            raise CustomError('***** Data is cleaned *****')
+    except KeyError:
+        head['cleaned'] = 'no'
+
     n_aver = int(head['n_aver'])
     freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
     spectrum_out = [[], [], [], []]
