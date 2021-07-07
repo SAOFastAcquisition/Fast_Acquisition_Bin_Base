@@ -22,7 +22,7 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-27_19-28'      # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-06-27_08+12'      # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_06_27sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
@@ -35,7 +35,7 @@ date = current_data_file[0:11]
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
 kt = 4  # Установка разрешения по времени
-N_Nyq = 2  # Номер зоны Найквиста
+N_Nyq = 2   # Номер зоны Найквиста
 shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
 
@@ -81,9 +81,7 @@ att_dict = {s: 10 ** (s / 10) for s in att_val}
 pass
 
 
-# 173, 173.6, 173.8, 174.38
-# t_cal = [0, 14, 17, 31]         # Для скана "20200318-1353_-24-3"
-# t_cal = [0, 13, 17, 35]
+
 
 
 def extract():
@@ -537,50 +535,6 @@ def convert_to_matrix(S_total, counter, n_aver):
     return s_ar
 
 
-def spectr_construction(Spectr, kf, kt):
-    ''' Функция формирует спектр принятого сигнала с требуемым разрешением по частоте и времени. Максимальное
-    разрешение отсчетов по времени 8192 мкс и по частоте 7,8125 МГц. Путем суммирования и усреднерия по kt*kf
-    отсчетам разрешение по частоте и по времени в исходном спектре Spectr уменьшается в kf и kt раз,
-    соответственно. Преобразованный спектр возвращается как S1.
-    '''
-
-    N_col1 = N_col // kf
-    N_row1 = N_row // kt
-    S1 = np.zeros((N_row1, N_col1))
-
-    for i in range(N_row1):
-        for j in range(N_col1):
-            try:
-                S1[i, j] = np.sum(Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf])
-                N_mesh = (Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf] > 10).sum()
-                if N_mesh == 0:
-                    S1[i, j] = 2
-                else:
-                    S1[i, j] = S1[i, j] / N_mesh
-                if S1[i, j] == 0:
-                    S1[i, j] = 2
-                # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
-                #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                if robust_filter == 'y':
-                    a = param_robust_filter
-                    if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                        S1[i, j] = np.sum(S1[i - 1, j])
-                    if (i > 3) & (S1[i, j] > a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                        # print(S1[i - 3:i+1, j])
-                        S1[i, j] = np.sum(S1[i - 1, j])
-                        # print(S1[i, j])
-                        pass
-
-            except IndexError as allert_message:
-                print(allert_message, 'ind i = ', i, 'ind j = ', j)
-                pass
-            except ValueError as value_message:
-                print(value_message, 'ind i = ', i, 'ind j = ', j)
-                pass
-
-    return S1  # // kt // kf
-
-
 def line_legend(freq_mask):
     N_col_leg = len(freq_mask)
     N_row_leg = len(time_spect_mask)
@@ -691,62 +645,6 @@ def pic_title():
     else:
         title2 = []
     return title1, title2
-
-
-def calibration(t_cal, spectrum):
-    size_spectrum = spectrum.shape
-    level_matrix = np.ones((size_spectrum[0], 2))
-    cal_level = np.zeros(size_spectrum[0])
-    n_cal = np.zeros(4)
-    for i in range(4):
-        n_cal[i] = int(t_cal[i] // (delta_t * kt))
-    for sp_row in range(size_spectrum[0]):
-        level_matrix[sp_row, 0] = np.average(spectrum[sp_row, int(n_cal[0]):int(n_cal[1])])
-        level_matrix[sp_row, 1] = np.average(spectrum[sp_row, int(n_cal[2]):int(n_cal[3])])
-        cal_level[sp_row] = np.abs(level_matrix[sp_row, 0] - level_matrix[sp_row, 1])
-    max_cal_level = np.max(cal_level)
-    cal_level = cal_level / max_cal_level
-
-    for sp_row in range(size_spectrum[0]):
-        spectrum[sp_row, :] = (spectrum[sp_row, :] - np.min(level_matrix[sp_row, :])) / cal_level[sp_row]
-    return spectrum
-
-
-def self_calibration1():
-    """ Принимает среднее значение спектра за первые 5 - 10 сек наблюдения, пока не идет Солнце, при максимальном
-    разрешении по частоте kf = 1
-
-    :return:
-    """
-    file_calibr = 'self_calibr.txt'  # Файл, в который записываются спектры наблюдений в отсутствие Солнца
-    if kt <= 500 and kf > 1:
-        return
-
-    ind_observation_id = file_name0.rfind('\\') + 1  # Индекс, с которого вычленяется идентификатор записи
-    # наблюдения из ее полного пути
-    observation_id = file_name0[ind_observation_id:]  # Идентификатор записи наблюдения, использованной
-    # для учета АЧХ тракта
-    file_observation_names = file_name0[0:ind_observation_id - 1] + '\\observ_name.txt'  # Файл, в который
-    # записываются идентификаторы записей наблюдений, используемых для учета АЧХ тракта
-    file_observ_name = open(file_observation_names, 'a+')
-    file_observ_name.seek(0)
-    observation_list = file_observ_name.read()
-    if not observation_list.count(observation_id):
-        # if not os.path.isfile(file_observation_names):
-        if not os.path.isfile(file_calibr):
-            np.savetxt(file_calibr, spectr_freq[0, :])
-        else:
-            self_calibr = np.loadtxt(file_calibr)
-            try:
-                self_calibr1 = np.vstack((self_calibr, spectr_freq[0, :]))
-            except ValueError:
-                print('Function self_calibration not append new data')
-                file_observ_name.close()
-                return
-            np.savetxt(file_calibr, self_calibr1)
-            file_observ_name.write(observation_id + '\n')
-    file_observ_name.close()
-    return
 
 
 def path_to_fig():

@@ -143,8 +143,8 @@ def func_frame_centers():
 
 if __name__ == '__main__':
 
-    current_data_file = '2021-06-27_19-28'  # Имя файла с исходными текущими данными без расширения
-    current_data_dir = '2021_06_27sun'  # Папка с текущими данными
+    current_data_file = '2021-06-28_15-22'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_06_28sun'  # Папка с текущими данными
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)

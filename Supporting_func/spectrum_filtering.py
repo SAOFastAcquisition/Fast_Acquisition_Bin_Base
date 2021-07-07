@@ -3,6 +3,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from numpy import fft
 from scipy.signal.windows import kaiser, flattop
+import cv2
 import filters as ftr
 from pathlib import Path
 from scipy.fftpack import fft, fftshift
@@ -10,6 +11,8 @@ from Supporting_func.stocks_coefficients import path_to_data
 
 
 def low_freq_filter(x, h):
+    """ФНЧ с импульсной характеристикой h. Входная последовательность - x"""
+
     n_input = len(x)
     n_filter = len(h)
     # n - Длина входной последовательности
@@ -28,6 +31,8 @@ def low_freq_filter(x, h):
 
 
 def filter_coeff(length_fft, filters_order, band_pass):
+    """ Отдает укороченную импульсную характеристику h_short согласно заданному порядку КИХ фильтра"""
+
     #   length_fft - длина БПФ
     #   filters_order - Порядок фильтра
     #   band_pass - полоса фильтра в отсчетах
@@ -35,7 +40,6 @@ def filter_coeff(length_fft, filters_order, band_pass):
     n_filter = len(h)
     h_short = h[n_filter // 2 - filters_order // 2:n_filter // 2 + filters_order // 2]  # Выбор количества значений
     # отклика, соответствующего порядку фильтра
-    # y_int_wind = interpolate_filter(4, x_wind, h_short)
     # w_inter = [0.54 - 0.46 * np.cos(2 * np.pi * i / (n - 1)) for i in range(0, n * l_interpol)] # Окно Хэминга
     # w_inter = flattop(n)  # from scipy максимально плоское окно (применяется при полифазной обработке)
     return h_short
@@ -55,10 +59,27 @@ def model_signal():
     return signal_rand
 
 
+def image_filter(img_src):
+    # read image
+    # img_src = cv2.imread('sample.jpg')
+    # prepare the 5x5 shaped filter
+    kernel = np.array([[1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1],
+                       [1, 1, 1, 1, 1]])
+    kernel = kernel / sum(kernel)  # filter the source image
+    img_rst = cv2.filter2D(img_src, -1, kernel)
+    # save result image
+    cv2.imwrite('result.jpg', img_rst)
+    return img_rst
+    # Источник: https://tonais.ru/library/filtratsiya-izobrazheniy-s-ispolzovaniem-svertki-opencv-v-python
+
+
 model = 'n'
-current_data_file = '2021-06-28_19-28'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_28sun'          # Папка с текущими данными
-current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
+current_data_file = '2021-06-28_19-28'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28sun'  # Папка с текущими данными
+current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
@@ -69,7 +90,7 @@ spectrum_signal_av1 = spectrum_trace_control
 
 if model == 'y':
     signal_rand = model_signal()
-    h = filter_coeff(1024, 64, 900)
+    h = filter_coeff(1024, 8, 900)
     fft_h = abs(fft(h, 1024) ** 2)
     signal_rand = low_freq_filter(signal_rand, h)
     signal_rand_sample = np.reshape(signal_rand, (-1, 1024))  # Разбиваем на реализации длиной 1024 отсчетов
@@ -80,7 +101,7 @@ else:
     for i in range(np.size(spectrum)):
         l = np.shape(spectrum[i])
         if np.size(l) == 2 and l[1] > 4:
-            h = filter_coeff(l[1], 64, int(l[1]//64))
+            h = filter_coeff(l[1], 64, int(l[1] // 4))
             fft_h = abs(fft(h, l[1]) ** 2)
             spectrum_loc = spectrum[i]
             for j in range(l[0]):
@@ -93,7 +114,6 @@ else:
     spectrum_trace = spectrum_loc[10]
     spectrum_signal_av = spectrum_trace
     # spectrum_signal_av = np.average(spectrum[2], 0)
-
 
 axes = plt.subplots()
 plt.plot(spectrum_signal_av)
