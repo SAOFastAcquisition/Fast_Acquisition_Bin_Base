@@ -22,8 +22,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-27_08+12'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_27sun'          # Папка с текущими данными
+current_data_file = '2021-06-28_20-30'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
 

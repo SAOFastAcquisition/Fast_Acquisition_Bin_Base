@@ -185,3 +185,60 @@ def self_calibration1():
 # t_cal = [0, 13, 17, 35]
 
 
+def image_filter(img_src):
+    import cv2
+    # read image
+    # img_src = cv2.imread('sample.jpg')
+    # prepare the 5x5 shaped filter
+    # kernel = np.array([[1, 1, 1, 1, 1],
+    #                    [1, 1, 1, 1, 1],
+    #                    [1, 1, 1, 1, 1],
+    #                    [1, 1, 1, 1, 1],
+    #                    [1, 1, 1, 1, 1]])
+    kernel = np.array([[1, 1, 1, 1],
+                       [1, 1, 1, 1],
+                       [1, 1, 1, 1],
+                       [1, 1, 1, 1]])
+    kernel = kernel / sum(kernel)  # filter the source image
+    img_rst = cv2.filter2D(img_src, -1, kernel)
+    # save result image
+    # cv2.imwrite('result.jpg', img_rst)
+    return img_rst
+    # Источник: https://tonais.ru/library/filtratsiya-izobrazheniy-s-ispolzovaniem-svertki-opencv-v-python
+
+
+def low_freq_filter(x, h):
+    """ФНЧ с импульсной характеристикой h. Входная последовательность - x"""
+
+    n_input = len(x)
+    n_filter = len(h)
+    # n - Длина входной последовательности
+    # h - отклик фильтра НЧ
+
+    y = [0] * n_input  # Выходная последовательность после интерполяции и НЧ фильтрации
+    for n in range(0, n_input):
+        for k in range(0, n_filter):
+            try:
+                y[n] += x[n - k - 1] * h[k]
+            except IndexError:
+                y[n] += 0
+                print('ind n = ', n, 'ind k = ', k)
+                pass
+    return y
+
+
+def filter_coeff(length_fft, filters_order, band_pass):
+    """ Отдает укороченную импульсную характеристику h_short согласно заданному порядку КИХ фильтра"""
+    import filters as ftr
+    #   length_fft - длина БПФ
+    #   filters_order - Порядок фильтра
+    #   band_pass - полоса фильтра в отсчетах
+    h, fft_h = ftr.synt_filter(length_fft, filters_order, band_pass)  # Отклик прямоугольного модельного фильтра
+    n_filter = len(h)
+    h_short = h[n_filter // 2 - filters_order // 2:n_filter // 2 + filters_order // 2]  # Выбор количества значений
+    # отклика, соответствующего порядку фильтра
+    # w_inter = [0.54 - 0.46 * np.cos(2 * np.pi * i / (n - 1)) for i in range(0, n * l_interpol)] # Окно Хэминга
+    # w_inter = flattop(n)  # from scipy максимально плоское окно (применяется при полифазной обработке)
+    return h_short
+
+

@@ -1,48 +1,12 @@
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 from numpy import fft
 from scipy.signal.windows import kaiser, flattop
-import cv2
-import filters as ftr
+from scipy import signal
+
 from pathlib import Path
 from scipy.fftpack import fft, fftshift
 from Supporting_func.stocks_coefficients import path_to_data
-
-
-def low_freq_filter(x, h):
-    """ФНЧ с импульсной характеристикой h. Входная последовательность - x"""
-
-    n_input = len(x)
-    n_filter = len(h)
-    # n - Длина входной последовательности
-    # h - отклик фильтра НЧ
-
-    y = [0] * n_input  # Выходная последовательность после интерполяции и НЧ фильтрации
-    for n in range(0, n_input):
-        for k in range(0, n_filter):
-            try:
-                y[n] += x[n - k - 1] * h[k]
-            except IndexError:
-                y[n] += 0
-                print('ind n = ', n, 'ind k = ', k)
-                pass
-    return y
-
-
-def filter_coeff(length_fft, filters_order, band_pass):
-    """ Отдает укороченную импульсную характеристику h_short согласно заданному порядку КИХ фильтра"""
-
-    #   length_fft - длина БПФ
-    #   filters_order - Порядок фильтра
-    #   band_pass - полоса фильтра в отсчетах
-    h, fft_h = ftr.synt_filter(length_fft, filters_order, band_pass)  # Отклик прямоугольного модельного фильтра
-    n_filter = len(h)
-    h_short = h[n_filter // 2 - filters_order // 2:n_filter // 2 + filters_order // 2]  # Выбор количества значений
-    # отклика, соответствующего порядку фильтра
-    # w_inter = [0.54 - 0.46 * np.cos(2 * np.pi * i / (n - 1)) for i in range(0, n * l_interpol)] # Окно Хэминга
-    # w_inter = flattop(n)  # from scipy максимально плоское окно (применяется при полифазной обработке)
-    return h_short
 
 
 def random_signal(n):
@@ -59,34 +23,33 @@ def model_signal():
     return signal_rand
 
 
-def image_filter(img_src):
-    # read image
-    # img_src = cv2.imread('sample.jpg')
-    # prepare the 5x5 shaped filter
-    kernel = np.array([[1, 1, 1, 1, 1],
-                       [1, 1, 1, 1, 1],
-                       [1, 1, 1, 1, 1],
-                       [1, 1, 1, 1, 1],
-                       [1, 1, 1, 1, 1]])
-    kernel = kernel / sum(kernel)  # filter the source image
-    img_rst = cv2.filter2D(img_src, -1, kernel)
-    # save result image
-    cv2.imwrite('result.jpg', img_rst)
-    return img_rst
-    # Источник: https://tonais.ru/library/filtratsiya-izobrazheniy-s-ispolzovaniem-svertki-opencv-v-python
+def kernel_cell(n, m):
+    """ Функция отдает двумерное сверточное ядро размером (m x n) на основании максимально плоского фильтра"""
+    w_inter_freq = np.array(flattop(n))
+    w_inter_time = np.array(flattop(m))
+    kernel_in = np.ones((m, n), dtype=np.float)
+    for i in range(m):
+        kernel_in[i] = w_inter_freq
+    for i in range(n):
+        kernel_in[:, i] = kernel_in[:, i] * w_inter_time
+    kernel_in = kernel_in / np.sum(kernel_in)
+    return kernel_in
 
 
 model = 'n'
-current_data_file = '2021-06-28_19-28'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_28sun'  # Папка с текущими данными
-current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+n = 32  # Фильтрация по частоте (постоянная фильтра примерно 2*n/3 отсчетов)
+m = 1   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
+current_data_file = '2021-06-28_20-30'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28sun'      # Папка с текущими данными
+current_catalog = r'2021\Results'       # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
 spectrum_loc = spectrum[2]
 spectrum_trace_control = spectrum_loc[10]
-# spectrum_signal_av1 = np.average(spectrum[2], 0)
 spectrum_signal_av1 = spectrum_trace_control
+
+kernel = kernel_cell(n, m)
 
 if model == 'y':
     signal_rand = model_signal()
@@ -98,22 +61,18 @@ if model == 'y':
     spectrum_signal = np.abs(spectrum_signal_rand ** 2)
     spectrum_signal_av = np.average(spectrum_signal, 0)
 else:
-    for i in range(np.size(spectrum)):
+    for i in range(np.size(spectrum)-1):
         l = np.shape(spectrum[i])
         if np.size(l) == 2 and l[1] > 4:
-            h = filter_coeff(l[1], 64, int(l[1] // 4))
-            fft_h = abs(fft(h, l[1]) ** 2)
-            spectrum_loc = spectrum[i]
-            for j in range(l[0]):
-                spectrum_line = spectrum_loc[j]
-                spectrum_line = np.abs(low_freq_filter(spectrum_line, h))
-                spectrum_loc[j] = spectrum_line
-                pass
-            spectrum[i] = spectrum_loc
+            blurred = signal.fftconvolve(spectrum[i], kernel, mode='same')
+            spectrum[i] = blurred
     spectrum_loc = spectrum[2]
     spectrum_trace = spectrum_loc[10]
     spectrum_signal_av = spectrum_trace
-    # spectrum_signal_av = np.average(spectrum[2], 0)
+
+# kernel = np.outer(signal.gaussian(70, 8), signal.gaussian(70, 8))
+l = np.shape(spectrum[3])
+fft_h = abs(fft(kernel, l[1]) ** 2)
 
 axes = plt.subplots()
 plt.plot(spectrum_signal_av)
@@ -126,7 +85,7 @@ signal2 = fft(spectrum_signal_av1, 512)
 axes = plt.subplots()
 plt.plot(signal1)
 plt.plot(signal2)
-plt.plot(fft_h)
+plt.plot(fft_h[0] * 1e15)
 plt.show()
 
-# np.save(Path(file_path_data, current_data_file + '_1spectrum'), spectrum_signal)
+np.save(Path(file_path_data, current_data_file + '_1spectrum'), spectrum)
