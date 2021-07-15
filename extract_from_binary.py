@@ -22,7 +22,7 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-28_20-30'      # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-06-28_14-20'      # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_06_28sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
@@ -400,13 +400,15 @@ def extract_whole_band():
         # Приведение длины записи к величине кратной количеству частот
         if n_right1 > 1:
             spectrum_right_1 = cut_spectrum(spectrum_right_1, n_aver)
-            spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
+            # spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
+            spectrum_right_1 = parts_to_numpy(spectrum_right_1, n_right1)
         if n_left1 > 1:
             spectrum_left_1 = cut_spectrum(spectrum_left_1, n_aver)
             spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
         if n_right2 > 1:
             spectrum_right_2 = cut_spectrum(spectrum_right_2, n_aver)
-            spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
+            # spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
+            spectrum_right_2 = parts_to_numpy(spectrum_right_2, n_right2)
         if n_left2 > 1:
             spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
             spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
@@ -432,6 +434,26 @@ def extract_whole_band():
             'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
             'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
+
+
+def parts_to_numpy(list_arr, len_list):
+    n = int(len_list // 1e5)
+    k = int(len_list % 1e5)
+    numpy_arr = []
+    for i in range(n + 1):
+        if i == n:
+            auxiliary = list_arr[int(n * 1e4):int(n * 1e4 + k)]
+            auxiliary = np.array(auxiliary, dtype='int32')
+        else:
+            auxiliary = list_arr[int(n * 1e4):int((n + 1) * 1e4)]
+            auxiliary = np.array(auxiliary, dtype='int32')
+        l = np.size(numpy_arr)
+        if l:
+            numpy_arr = np.vstack([numpy_arr, auxiliary])
+        else:
+            numpy_arr = auxiliary
+
+    return numpy_arr
 
 
 def status_func(n_left1, n_left2, n_right1, n_right2):

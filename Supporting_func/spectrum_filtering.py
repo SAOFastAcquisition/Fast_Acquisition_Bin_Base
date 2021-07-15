@@ -36,56 +36,81 @@ def kernel_cell(n, m):
     return kernel_in
 
 
-model = 'n'
-n = 32  # Фильтрация по частоте (постоянная фильтра примерно 2*n/3 отсчетов)
-m = 1   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
-current_data_file = '2021-06-28_20-30'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_28sun'      # Папка с текущими данными
-current_catalog = r'2021\Results'       # Текущий каталог (за определенный период, здесь - год)
+def some_visualisation():
+    spectrum_loc1 = spectrum[2]
+    spectrum_trace = spectrum_loc1[10]
+    l = np.shape(spectrum[2])
+    # Частотная характеристика ядра свертки по оси частот в отсчетах
+    fft_h = abs(fft(kernel, l[1]) ** 2)
+    shape_kernel = np.shape(kernel)
+    n_control = int(shape_kernel[0] // 2)
+    axes = plt.subplots()
+    plt.plot(spectrum_trace_control)
+    plt.plot(spectrum_trace)
+    plt.show()
 
-file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
-spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
-spectrum_loc = spectrum[2]
-spectrum_trace_control = spectrum_loc[10]
-spectrum_signal_av1 = spectrum_trace_control
+    signal1 = np.abs(fft(spectrum_trace, l[1]) ** 2)
+    signal2 = np.abs(fft(spectrum_trace_control, l[1]) ** 2)
 
-kernel = kernel_cell(n, m)
+    axes = plt.subplots()
+    plt.plot(signal1)
+    plt.plot(signal2)
+    plt.plot(fft_h[n_control])
+    plt.show()
 
-if model == 'y':
-    signal_rand = model_signal()
-    h = filter_coeff(1024, 8, 900)
-    fft_h = abs(fft(h, 1024) ** 2)
-    signal_rand = low_freq_filter(signal_rand, h)
-    signal_rand_sample = np.reshape(signal_rand, (-1, 1024))  # Разбиваем на реализации длиной 1024 отсчетов
-    spectrum_signal_rand = fft(signal_rand_sample, 1024, axis=1)
-    spectrum_signal = np.abs(spectrum_signal_rand ** 2)
-    spectrum_signal_av = np.average(spectrum_signal, 0)
-else:
+
+if __name__ == '__main__':
+    """ Программа принимает двумерную спектрограмму (спектры, развернутые во времени) (*.num) и фильтрует ее по частоте 
+    и времени, сворачивая с задаваемым двумерным ядром. Результат записывается в виде файла *.num с '_kernel_spectrum' 
+    в имени. 
+    """
+    model = 'y'
+    visualization = 'y'
+    n = 32  # Фильтрация по частоте (постоянная фильтра примерно 2*n/3 отсчетов)
+    m = 8   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
+    current_data_file = '2021-06-28_06+00'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_06_28sun'      # Папка с текущими данными
+    current_catalog = r'2021\Results'       # Текущий каталог (за определенный период, здесь - год)
+
+    if model == 'y':
+        signal_rand = model_signal()
+        scan_loc = np.reshape(signal_rand, (-1, 1024))  # Разбиваем на реализации длиной 1024 отсчетов
+        spectrum_loc = np.abs(fft(scan_loc, 1024, axis=1) ** 2)
+        spectrum = np.array([np.nan, np.nan, spectrum_loc, np.nan])
+    else:
+        file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+        spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+    spectrum_loc = spectrum[2]
+    spectrum_trace_control = spectrum_loc[10]
+
+
+    kernel = kernel_cell(n, m)
+    # spectrum_signal_rand = fft(signal_rand_sample, 1024, axis=1)
+
     for i in range(np.size(spectrum)-1):
         l = np.shape(spectrum[i])
         if np.size(l) == 2 and l[1] > 4:
-            blurred = signal.fftconvolve(spectrum[i], kernel, mode='same')
-            spectrum[i] = blurred
-    spectrum_loc = spectrum[2]
-    spectrum_trace = spectrum_loc[10]
-    spectrum_signal_av = spectrum_trace
+            """Разбиение файла данных на части по времени для избежания проблем с памятью 
+            вызываемой функции свертки signal.fftconvolve()"""
+            m = l[0] // 3000
+            k = l[0] % 3000
+            auxiliary = spectrum[i]
+            for j in range(m+1):
+                if j == m:
+                    auxiliary_part = auxiliary[j * 3000:j * 3000 + k, :]
+                    # Сворачиваем с ядром и превращеем в 'int32' для экономии памяти
+                    blurred = signal.fftconvolve(auxiliary_part, kernel, mode='same').astype('int32')
+                    auxiliary[j * 3000:j * 3000 + k, :] = blurred
+                else:
+                    auxiliary_part = auxiliary[j * 3000:(j+1)*3000, :]
+                    blurred = signal.fftconvolve(auxiliary_part, kernel, mode='same').astype('int32')
+                    auxiliary[j * 3000:(j+1)*3000, :] = blurred
+                pass
+            spectrum[i] = auxiliary
 
-# kernel = np.outer(signal.gaussian(70, 8), signal.gaussian(70, 8))
-l = np.shape(spectrum[3])
-fft_h = abs(fft(kernel, l[1]) ** 2)
+    # kernel = np.outer(signal.gaussian(70, 8), signal.gaussian(70, 8))
 
-axes = plt.subplots()
-plt.plot(spectrum_signal_av)
-plt.plot(spectrum_signal_av1)
-plt.show()
+    if visualization == 'y':
+        some_visualisation()
 
-signal1 = fft(spectrum_signal_av, 512)
-signal2 = fft(spectrum_signal_av1, 512)
-
-axes = plt.subplots()
-plt.plot(signal1)
-plt.plot(signal2)
-plt.plot(fft_h[0] * 1e15)
-plt.show()
-
-np.save(Path(file_path_data, current_data_file + '_1spectrum'), spectrum)
+    # np.save(Path(file_path_data, current_data_file + '_kernel_spectrum'), spectrum)
