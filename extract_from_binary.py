@@ -442,10 +442,10 @@ def parts_to_numpy(list_arr, len_list):
     numpy_arr = []
     for i in range(n + 1):
         if i == n:
-            auxiliary = list_arr[int(n * 1e4):int(n * 1e4 + k)]
+            auxiliary = list_arr[int(i * 1e5):int(i * 1e5 + k)]
             auxiliary = np.array(auxiliary, dtype='int32')
         else:
-            auxiliary = list_arr[int(n * 1e4):int((n + 1) * 1e4)]
+            auxiliary = list_arr[int(i * 1e5):int((i + 1) * 1e5)]
             auxiliary = np.array(auxiliary, dtype='int32')
         l = np.size(numpy_arr)
         if l:
@@ -500,6 +500,8 @@ def save_spectrum(spectrum_extr, head):
     band_size = head['band_size']
     polar = head['polar']
     measure_kind = head['measure_kind']
+    print(f'len_spectrum1 = {len(spectrum1)}, len_spectrum2 ={len(spectrum2)}, len_spectrum3 ={len(spectrum3)}, '
+          f'len_spectrum4 ={len(spectrum4)}')
     if len(spectrum1) > 1:
         spectrum1_low = convert_to_matrix(spectrum1, spectrum1[-1][0] + 1, n_aver)
         pass
@@ -543,7 +545,7 @@ def convert_to_matrix(S_total, counter, n_aver):
     строки которой - спектры с разрешением 7.8125/(2**(6-n_aver)) МГц, а столбцы - зависимость значения
     спектра на фиксированной частоте от времени. Разрешение по времени - 8192 мкс. Вместо пропущенных пакетов
     вставляет значение 2"""
-
+    len_time = np.shape(S_total)[0]
     S = [[int(2)] * 128 for i in range(counter)]
     # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
@@ -551,10 +553,29 @@ def convert_to_matrix(S_total, counter, n_aver):
     aver_param_loc = 2 ** (6 - n_aver)
     n = 128 * aver_param_loc
     print(len(S))
-    k = int(len(S) // aver_param_loc)
-    s_agreed = S[0: k * 8]
-    s_ar = np.reshape(s_agreed, (-1, n))
-    return s_ar
+    k = int(len(S) // n)
+    print(f' n = {n}, k = {k}')
+    parts = int(k // 100)
+    rest = int(k % 100)
+    s_agreed = []
+
+    for i in range(parts +1):
+        if i == parts:
+            s_auxiliary = np.array(S[int(i * 100 * n): int((i * 100 + rest) * n)])
+            s_ar = np.reshape(s_auxiliary, (-1, n))
+        else:
+            s_auxiliary = np.array(S[int(i * 100 * n): int((i + 1) * 100 * n)])
+            s_ar = np.reshape(s_auxiliary, (-1, n))
+        l = np.size(s_agreed)
+        if l:
+            s_agreed = np.vstack([s_agreed, s_ar])
+        else:
+            s_agreed = s_ar
+
+    # s_agreed = np.array(S[0: k * n])
+    print(f'len_s_agreed = {len(s_agreed)}, shape = {np.shape(s_agreed)}')
+    # s_ar = np.reshape(s_agreed, (-1, n))
+    return s_agreed
 
 
 def line_legend(freq_mask):
