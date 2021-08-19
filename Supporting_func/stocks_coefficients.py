@@ -111,10 +111,13 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     Определяет путь к папке текущих данных на конкретной машине и к корню каталога. """
     head_path1 = Path(r'F:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'D:\Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
+    head_path3 = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')  # Путь к каталогу данных для ноута ВМ
     if head_path1.is_dir():
         head_path_out = head_path1
     elif head_path2.is_dir():
         head_path_out = head_path2
+    elif head_path3.is_dir():
+        head_path_out = head_path3
     else:
         raise CustomError('Path to data is not found!')
 

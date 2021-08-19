@@ -17,7 +17,7 @@ from Supporting_func.stocks_coefficients import path_to_data
 current_dir = Path.cwd()
 home_dir = Path.home()
 
-from Supporting_func.afc_alignment1 import align_func1
+# from Supporting_func.afc_alignment1 import align_func1
 
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
