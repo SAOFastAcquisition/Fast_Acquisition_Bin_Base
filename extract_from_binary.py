@@ -34,7 +34,7 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 4  # Установка разрешения по времени
+kt = 16  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -47,7 +47,7 @@ if num_of_polar == 1:
     N_Nyq = q
 band_size_init = 'whole'
 # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
-# polar = 'both'        Принамает значения поляризаций: 'both', 'left', 'right'
+# polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
@@ -868,8 +868,6 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
 path_to_fig()
 fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
-n_start_flame = int(t_start_flame // (delta_t * kt))
-n_stop_flame = int(t_stop_flame // (delta_t * kt))
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
