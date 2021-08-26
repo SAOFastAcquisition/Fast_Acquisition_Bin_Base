@@ -7,8 +7,6 @@ import json as jsn
 # import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
-from pandas._libs import json
-from pathlib import Path
 from Supporting_func import Fig_plot as fp
 # from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_spectrum
@@ -22,10 +20,10 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-28_14-20'      # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-06-28_07-04'      # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_06_28sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
-current_catalog = r'2021\Results'           # Текущий каталог (за определенный период, здесь - год)
+current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 folder_align_path = Path(head_path, 'Alignment')
@@ -50,7 +48,7 @@ band_size_init = 'whole'
 # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ 'y' / 'n'
+align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
