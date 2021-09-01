@@ -110,7 +110,7 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     """ Функция принимает текущий каталог данных (за год или период) и папку текущих данных (за выбранный день).
     Определяет путь к папке текущих данных на конкретной машине и к корню каталога. """
     head_path1 = Path(r'F:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
-    head_path2 = Path(r'D:\Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
+    head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')  # Путь к каталогу данных для ноута ВМ
     head_path4 = Path(r'I:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
     if head_path1.is_dir():
