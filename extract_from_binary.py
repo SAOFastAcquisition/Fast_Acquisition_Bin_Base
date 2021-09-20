@@ -20,7 +20,7 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-09-16_14bit_pm20'      # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-09-16_14bit_pm01'      # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_09_16test'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
@@ -406,7 +406,7 @@ def extract_whole_band():
             spectrum_right_2 = parts_to_numpy(spectrum_right_2, n_right2)
         if n_left2 > 1:
             spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
-            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
+            spectrum_left_2 = np.array(spectrum_left_2, dtype=np.int32)
     finally:
         f_in.close()
         pass
@@ -661,7 +661,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq * (2 ** (shift - 10)), s_time * (2 ** (shift - 10))
+    return s_freq * (2 ** shift), s_time * (2 ** shift)
 
 
 def pic_title():
