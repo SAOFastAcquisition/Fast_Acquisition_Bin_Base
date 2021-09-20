@@ -21,7 +21,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
-            if spectr1[i, j] < 100:
+            if spectr1[i, j] < 2:
                 spectr1[i, j] = 'NaN'
 
     freq_line_sp1 = size_sp1[0]
