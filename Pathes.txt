@@ -1,0 +1,1 @@
+E:\Python_Projects\Fast_Acquisition_Bin_Base\venv\Lib\site-packages\qt5_applications\Qt\bin - путь к QtDesigner
