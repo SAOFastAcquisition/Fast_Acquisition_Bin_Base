@@ -20,8 +20,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-09-16_14bit_pm01'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_09_16test'          # Папка с текущими данными
+current_data_file = '2021-06-28_04+12'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_28crab'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -31,8 +31,8 @@ date = current_data_file[0:11]
 
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 4  # Установка разрешения по частоте
-kt = 16  # Установка разрешения по времени
+kf = 16  # Установка разрешения по частоте
+kt = 240  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -48,7 +48,7 @@ band_size_init = 'whole'
 # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
+align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
@@ -65,9 +65,10 @@ elif band_size_init == 'whole':
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
     # freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
     # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
-    freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    # freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    freq_spect_mask = [2550]
 else:
-    freq_spect_mask = [1050, 1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
 
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
 
@@ -865,7 +866,7 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-            ('polarisation ' + polar), 'align' + align]
+            ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
 fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
