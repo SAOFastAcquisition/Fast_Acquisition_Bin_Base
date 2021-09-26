@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.font_manager as font_manager
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, ScalarFormatter
 import pylab
 import os
 from pathlib import Path
@@ -81,7 +81,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     font = font_manager.FontProperties(family='Comic Sans MS',
                                        weight='bold',
                                        style='normal', size=16)
-    # ax.legend(prop=font)
+    ax.legend(prop=font)
     ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
 
     plt.show()
@@ -141,53 +141,56 @@ def title_func(file_name0, head):
     return title1, title2, title02
 
 
-def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask):
+def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n_row_pic=2, n_col_pic=3):
+    """ Функция строит многооконный рисунок, принимает нумпай-массив в качестве значений (первый индекс массива -
+    число графиков-окон), аргумент, информацию о свойствах графиков (разрешение по времени и частоте, поляризация), путь
+    к файлу данных, характеристики файла данных head, список параметра freq_mask, каждому значению из которого
+    соответствует свой график-окно. Максимальное количество окон задается n_row_pic, n_col_pic, и по умолчанию -
+     2 * 3 = 6.
+     Выдает рисунок как объект Figure matplotlib и сохраняет его в формате png в папку одноименную с file_name0path в
+     той же директории, где находится файл данных"""
+
     file_name0 = str(file_name0path)
     size_sp1 = spectr1.shape
     freq_line_sp1 = size_sp1[0]
 
-    title0 = file_name0[-19:-2]
-    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-             ' time=' + title0[9:11] + ':' + title0[11:13] + ' azimuth=' + title0[14:17]
+    title1, title2, title02 = title_func(file_name0, head)
 
-    fig, axes = plt.subplots(3, 4, figsize=(12, 6))
+    fig, axes = plt.subplots(n_row_pic, n_col_pic, figsize=(12, 6))
 
     line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
-    if not file_name0.find('sun') == -1:
-        title2 = 'Sun intensity'
-    elif not file_name0.find('crab') == -1:
-        title2 = 'Crab intensity'
-    elif not file_name0.find('calibr') == -1:
-        title2 = 'Calibration'
-        title0 = file_name0[-23:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' channel att=' + title0[14:17] + ' source att=' + title0[18:21]
-        pass
-    else:
-        title2 = []
+
     fig.suptitle(title2 + ' scan' + title1, y=1.0, fontsize=24)
 
-    for i_freq in range(freq_line_sp1):
-        axes[i_freq // 4, i_freq % 4].plot(argument, spectr1[i_freq, :])
+    # Устновление формата отображения меток по оси 0у - при порядке выше 4 он выносится на верх оси
+    sf = ScalarFormatter()
+    sf.set_powerlimits((-4, 4))
 
-        axes[i_freq // 4, i_freq % 4].set_title(str(freq_mask[i_freq]) + ' MHz')
+    for i_freq in range(freq_line_sp1):
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument, spectr1[i_freq, :])
+
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz')
         # Show the major grid lines with dark grey lines
-        axes[i_freq // 4, i_freq % 4].grid(b=True, which='major', color='#666666', linestyle='-')
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='major', color='#666666', linestyle='-')
         # Show the minor grid lines with very faint and almost transparent grey lines
-        axes[i_freq // 4, i_freq % 4].minorticks_on()
-        axes[i_freq // 4, i_freq % 4].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].minorticks_on()
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
         # axes[i_phantom // 3, i_phantom % 3].set_yticks([0, 1])
         # axes[i_phantom // 3, i_phantom % 3].set_ylim(0, 4)
         # axes[i_phantom // 3, i_phantom % 3].set_xlabel('t, sec', fontsize=10)
-        axes[i_freq // 4, i_freq % 4].xaxis.set_label_coords(1.05, -0.025)
 
-        xticks = axes[i_freq // 4, i_freq % 4].get_xticks().tolist()
+        xticks = axes[i_freq // n_col_pic, i_freq % n_col_pic].get_xticks().tolist()
         xticks[-2:] = ''
-        axes[i_freq // 4, i_freq % 4].set_xticklabels(xticks)
-        axes[i_freq // 4, i_freq % 4].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].set_xticklabels(xticks)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].yaxis.set_major_formatter(sf)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_label_coords(1.05, -0.025)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
                                                xycoords='axes fraction', fontsize=10)
 
-    axes[0, 2].legend(loc=10, bbox_to_anchor=(1.2, 0.5))
+    # axes[n_row_pic, 0].text(0, 0.5, 'time resolution', fontsize=15)
+    fig.text(0, 0, 'time resolution', fontsize=24)
+    plt.figtext(0, -10, 'time')
+    # axes[0, 2].legend(loc=10, bbox_to_anchor=(1.2, 0.5))
     plt.subplots_adjust(hspace=0.4)
     plt.show()
 
