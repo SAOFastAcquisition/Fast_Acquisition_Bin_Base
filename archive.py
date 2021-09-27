@@ -242,3 +242,26 @@ def filter_coeff(length_fft, filters_order, band_pass):
     return h_short
 
 
+def pic_title():
+    title0 = file_name0[-19:-2]
+    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+             ' time=' + title0[9:11] + ':' + title0[11:13] + ' azimuth=' + title0[14:17]
+    if not file_name0.find('sun') == -1:
+        title2 = 'Sun intensity'
+    elif not file_name0.find('crab') == -1:
+        title2 = 'Crab intensity'
+    elif not file_name0.find('calibr') == -1:
+        title2 = 'Calibration'
+        title0 = file_name0[-23:-2]
+        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+                 ' chanell att=' + title0[14:17] + ' source att=' + title0[18:21]
+    elif not file_name0.find('test') == -1:
+        title0 = file_name0[-24:-2]
+        title2 = 'Test interference'
+        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
+                 ' chanell att=' + title0[15:18] + ' source att=' + title0[19:22]
+        pass
+    else:
+        title2 = []
+    return title1, title2
+

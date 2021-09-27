@@ -4,24 +4,20 @@ import sys
 import pandas as pd
 import pickle
 import json as jsn
-# import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
 from Supporting_func import Fig_plot as fp
-# from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_spectrum
 from Supporting_func.stocks_coefficients import path_to_data
 
 current_dir = Path.cwd()
 home_dir = Path.home()
 
-# from Supporting_func.afc_alignment1 import align_func1
-
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-25_16-28b'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_25sun'          # Папка с текущими данными
+current_data_file = '2021-06-27_00+28'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_27sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -61,9 +57,9 @@ elif band_size_init == 'whole':
     n1 = 2
     n2 = 8
     freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
+    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
-    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
     # freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
     # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
@@ -664,30 +660,6 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         i += 1
     s_time = s_time.transpose()
     return s_freq * (2 ** shift), s_time * (2 ** shift)
-
-
-def pic_title():
-    title0 = file_name0[-19:-2]
-    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-             ' time=' + title0[9:11] + ':' + title0[11:13] + ' azimuth=' + title0[14:17]
-    if not file_name0.find('sun') == -1:
-        title2 = 'Sun intensity'
-    elif not file_name0.find('crab') == -1:
-        title2 = 'Crab intensity'
-    elif not file_name0.find('calibr') == -1:
-        title2 = 'Calibration'
-        title0 = file_name0[-23:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' chanell att=' + title0[14:17] + ' source att=' + title0[18:21]
-    elif not file_name0.find('test') == -1:
-        title0 = file_name0[-24:-2]
-        title2 = 'Test interference'
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' chanell att=' + title0[15:18] + ' source att=' + title0[19:22]
-        pass
-    else:
-        title2 = []
-    return title1, title2
 
 
 def path_to_fig():

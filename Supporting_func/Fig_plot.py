@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.font_manager as font_manager
-from matplotlib.ticker import MaxNLocator, ScalarFormatter, FormatStrFormatter
+from matplotlib.ticker import MaxNLocator, ScalarFormatter, FixedLocator
 import pylab
 import os
 from pathlib import Path
@@ -43,7 +43,6 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     y_min = np.nanmin(spectr1)
     x_min = argument.min()
     x_max = argument.max()
-
 
     if flag:
         ax.set_xlabel('Freq, MHz', fontsize=18)
@@ -142,7 +141,7 @@ def title_func(file_name0, head):
 
 
 def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n_row_pic=2, n_col_pic=3):
-    """ Функция строит многооконный рисунок, принимает нумпай-массив в качестве значений (первый индекс массива -
+    """ Функция строит многооконный рисунок, принимает numpy-массив в качестве значений (первый индекс массива -
     число графиков-окон), аргумент, информацию о свойствах графиков (разрешение по времени и частоте, поляризация), путь
     к файлу данных, характеристики файла данных head, список параметра freq_mask, каждому значению из которого
     соответствует свой график-окно. Максимальное количество окон задается n_row_pic, n_col_pic, и по умолчанию -
@@ -158,14 +157,10 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
 
     fig, axes = plt.subplots(n_row_pic, n_col_pic, figsize=(12, 6))
 
-    line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
+    # line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen',
+    # 'magenta', 'dodgerblue']
 
     fig.suptitle(title2 + ' scan' + title1, y=1.0, fontsize=24)
-
-    # Устновление формата отображения меток по оси 0у - при порядке выше 4 он выносится на верх оси
-    sf = ScalarFormatter()
-    sf.set_powerlimits((-4, 4))
-    # sf = FormatStrFormatter('%.2f')
 
     for i_freq in range(freq_line_sp1):
         axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument, spectr1[i_freq, :])
@@ -182,8 +177,13 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
 
         xticks = axes[i_freq // n_col_pic, i_freq % n_col_pic].get_xticks().tolist()
         xticks[-2:] = ''
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].set_xticklabels(xticks)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_major_locator(FixedLocator(xticks))
+        # Установление формата отображения меток по оси 0у - при порядке выше 4 он выносится на верх оси
+        sf = ScalarFormatter()
+        sf.set_powerlimits((-4, 4))
         axes[i_freq // n_col_pic, i_freq % n_col_pic].yaxis.set_major_formatter(sf)
+        # *************************************************************************
+
         axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_label_coords(1.05, -0.025)
         axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
                                                xycoords='axes fraction', fontsize=10)
