@@ -9,33 +9,39 @@ current_data_file = '2021-06-28_07-04'      # Имя файла с исходн�
 current_data_dir = '2021_06_28sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
-year = '2021'
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 # file_name = Path(file_path_data, current_data_file + '.npy')
 
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
-spectrum1 = np.array(spectrum[2])
-hdulist = fits.PrimaryHDU(spectrum1)
+spectrum1 = np.array(spectrum[3])
+f_spectrum = fits.PrimaryHDU(spectrum1)
 pass
-print(hdulist)
+print(f_spectrum)
+f_spectrum.update('NAXIS1', 512, "frequency axis")
 # hdulist.info()
-hdu = hdulist[2]
-print(repr(hdu.header))
-print(list(hdu.header.keys()))
-a = hdu.header
-b = hdu.data
-print(hdu.data)
-m = hdu.data.shape
-print(m)
-plt.imshow(hdu.data[:,:], origin='lower')
+
+print(repr(f_spectrum.header))
+print(list(f_spectrum.header.keys()))
+a = f_spectrum.header
+b = f_spectrum.data
+print(f_spectrum.data)
+m = f_spectrum.data.shape
+print(f'shape of f_spectrum.data is: {m}')
+plt.imshow(f_spectrum.data[:, :], origin='lower')
 plt.show()
 
-hdul = fits.HDUList()
-hdul.append(fits.PrimaryHDU())
-
-for img in spectrum:
-    hdul.append(fits.ImageHDU(data=img))
-output_fits = Path(head_path, 'fits_archive', year, 'Sun_'+year, current_data_dir, current_data_file + '.fits')
-hdul.writeto('output.fits')
-
+head = {'date': date,
+        'measure_kind': measure_kind,    # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+        'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
+        # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
+        'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
+        'cleaned': 'no',
+        'n_aver': n_aver,
+        'shift': shift,
+        'kurtosis': bound_left,
+        'att1': att01,
+        'att2': att02,
+        'att3': att03,
+        'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
+        'align_coeff_pos': 5}

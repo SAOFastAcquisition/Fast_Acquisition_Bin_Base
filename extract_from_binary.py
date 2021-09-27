@@ -20,8 +20,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-28_07-04'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_28sun'          # Папка с текущими данными
+current_data_file = '2021-06-25_16-28b'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_25sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -32,9 +32,9 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 16  # Установка разрешения по времени
+kt = 60  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
-shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
+shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
 
 delta_t = 8.1925e-3
@@ -58,16 +58,18 @@ if N_Nyq == 3:
     freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
     # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
 elif band_size_init == 'whole':
-    n1 = 1
-    n2 = 1
-    # freq_spect_mask = [2100, 2265, 2460, 2550, 2700, 2735, 2750, 2800, 2920]
+    n1 = 2
+    n2 = 8
+    freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
     # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
-    # freq_spect_mask = [1050, 1171, 1380, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
+    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
-    freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    # freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
+    # freq_spect_mask = [1220, 1540, 1980, 2060, 2500, 2780] # for Crab '2021-06-28_04+12'
 else:
-    freq_spect_mask = [1050, 1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+    freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
 
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
 
@@ -406,7 +408,7 @@ def extract_whole_band():
             spectrum_right_2 = parts_to_numpy(spectrum_right_2, n_right2)
         if n_left2 > 1:
             spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
-            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
+            spectrum_left_2 = np.array(spectrum_left_2, dtype=np.int32)
     finally:
         f_in.close()
         pass
@@ -432,6 +434,9 @@ def extract_whole_band():
 
 
 def parts_to_numpy(list_arr, len_list):
+    """ Функция превращает список в массив numpy.
+    Разбивает файл на меньшие части и обрабатывает их поотдельности. По ходу завершинея обработки частей
+    происходит объединение обработанных частей."""
     n = int(len_list // 1e5)
     k = int(len_list % 1e5)
     numpy_arr = []
@@ -658,7 +663,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq * (2 ** (shift - 10)), s_time * (2 ** (shift - 10))
+    return s_freq * (2 ** shift), s_time * (2 ** shift)
 
 
 def pic_title():
@@ -862,15 +867,22 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-            ('polarisation ' + polar), 'align' + align]
+            ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
-fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
-fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+# fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+
+# *********************************************************
+# ***            Многооконный вывод данных             ****
+# *********************************************************
+n_row = 3   # Количество окон по вериткали
+n_col = 3   # Количество окон по горизонтали
+fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
+                  freq_spect_mask, head, n_row, n_col)
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
 # *********************************************************
-
 # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
 if graph_3d_perm == 'y' or contour_2d_perm == 'y':
     spectr_extr1 = spectr_construction(spectr_extr, kf, kt)
