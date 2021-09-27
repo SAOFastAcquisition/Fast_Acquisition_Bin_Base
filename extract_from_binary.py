@@ -16,8 +16,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-27_00+28'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_27sun'          # Папка с текущими данными
+current_data_file = '2021-06-25_16-28b'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_25sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -28,7 +28,7 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 60  # Установка разрешения по времени
+kt = 8  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -820,7 +820,7 @@ if noise_calibr == 'y':
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-
+time_spect_mask = [1, 2, 7, 8, 9, 17, 18]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 
@@ -841,16 +841,16 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
-# fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
-# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 
 # *********************************************************
 # ***            Многооконный вывод данных             ****
 # *********************************************************
 n_row = 3   # Количество окон по вериткали
 n_col = 3   # Количество окон по горизонтали
-fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
-                  freq_spect_mask, head, n_row, n_col)
+# fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
+#                   freq_spect_mask, head, n_row, n_col)
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****

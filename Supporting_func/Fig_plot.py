@@ -86,7 +86,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     plt.show()
 
     add_pass1 = path_to_pic(file_name0 + '\\', flag)
-    fig.savefig(file_name0 + '\\' + add_pass1)
+    fig.savefig(Path(file_name0, add_pass1))
 
 
 def title_func(file_name0, head):
