@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.font_manager as font_manager
-from matplotlib.ticker import MaxNLocator, ScalarFormatter
+from matplotlib.ticker import MaxNLocator, ScalarFormatter, FormatStrFormatter
 import pylab
 import os
 from pathlib import Path
@@ -101,8 +101,8 @@ def title_func(file_name0, head):
     if not file_name0.find('sun') == -1:
         title2 = 'Sun intensity'
         title02 = 'Sun spectrum '
-        if file_name0[-2:] == 'BB':
-            az = file_name0[-6:-3]
+        if file_name0[-1:] == 'b':
+            az = file_name0[-4:-1]
             title2 = 'Calibration'
             title02 = 'Calibration spectrum '
             title1 = date + ', az = ' + az + ', Black Body/Sky, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
@@ -165,6 +165,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
     # Устновление формата отображения меток по оси 0у - при порядке выше 4 он выносится на верх оси
     sf = ScalarFormatter()
     sf.set_powerlimits((-4, 4))
+    # sf = FormatStrFormatter('%.2f')
 
     for i_freq in range(freq_line_sp1):
         axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument, spectr1[i_freq, :])
@@ -187,9 +188,11 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
         axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
                                                xycoords='axes fraction', fontsize=10)
 
-    # axes[n_row_pic, 0].text(0, 0.5, 'time resolution', fontsize=15)
-    fig.text(0, 0, 'time resolution', fontsize=24)
-    plt.figtext(0, -10, 'time')
+    axes[-1, -1].axis('off')
+    fig.text(0.68, 0.25, inform[2], fontsize=14)
+    fig.text(0.68, 0.2, inform[0], fontsize=14)
+    fig.text(0.68, 0.15, inform[1], fontsize=14)
+    # plt.figtext(0.11, 0.25, 'time')
     # axes[0, 2].legend(loc=10, bbox_to_anchor=(1.2, 0.5))
     plt.subplots_adjust(hspace=0.4)
     plt.show()

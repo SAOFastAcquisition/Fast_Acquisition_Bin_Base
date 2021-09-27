@@ -20,8 +20,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-27_08+12'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_27sun'          # Папка с текущими данными
+current_data_file = '2021-06-25_16-28b'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_25sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -60,10 +60,10 @@ if N_Nyq == 3:
 elif band_size_init == 'whole':
     n1 = 2
     n2 = 8
-    freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2960]
+    freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
     # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
-    # freq_spect_mask = [1000, 1080, 1220, 1340, 1420, 1580, 1700, 1920, 1980]
+    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
     # freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
     # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
