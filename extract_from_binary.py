@@ -4,18 +4,14 @@ import sys
 import pandas as pd
 import pickle
 import json as jsn
-# import matplotlib.pyplot as plt
 from datetime import datetime
 from pathlib import Path
 from Supporting_func import Fig_plot as fp
-# from Supporting_func import stat_cleaning
 from Supporting_func.afc_alignment import align_spectrum
 from Supporting_func.stocks_coefficients import path_to_data
 
 current_dir = Path.cwd()
 home_dir = Path.home()
-
-# from Supporting_func.afc_alignment1 import align_func1
 
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
@@ -32,7 +28,7 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 10  # Установка разрешения по времени
+kt = 8  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -61,9 +57,9 @@ elif band_size_init == 'whole':
     n1 = 2
     n2 = 8
     freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
+    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
-    # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
     # freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
     # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
@@ -666,30 +662,6 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     return s_freq * (2 ** shift), s_time * (2 ** shift)
 
 
-def pic_title():
-    title0 = file_name0[-19:-2]
-    title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-             ' time=' + title0[9:11] + ':' + title0[11:13] + ' azimuth=' + title0[14:17]
-    if not file_name0.find('sun') == -1:
-        title2 = 'Sun intensity'
-    elif not file_name0.find('crab') == -1:
-        title2 = 'Crab intensity'
-    elif not file_name0.find('calibr') == -1:
-        title2 = 'Calibration'
-        title0 = file_name0[-23:-2]
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' chanell att=' + title0[14:17] + ' source att=' + title0[18:21]
-    elif not file_name0.find('test') == -1:
-        title0 = file_name0[-24:-2]
-        title2 = 'Test interference'
-        title1 = '  ' + title0[0:4] + '.' + title0[4:6] + '.' + title0[6:8] + \
-                 ' chanell att=' + title0[15:18] + ' source att=' + title0[19:22]
-        pass
-    else:
-        title2 = []
-    return title1, title2
-
-
 def path_to_fig():
     """ Создает директорию для рисунков обрабатываемого наблюдения, если она до этого не была создана,
     название директории  совпадает с названием исходного файла данных наблюдения
@@ -848,7 +820,7 @@ if noise_calibr == 'y':
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-
+time_spect_mask = [1, 2, 7, 8, 9, 17, 18]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 
@@ -869,7 +841,7 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
-# fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 
 # *********************************************************
