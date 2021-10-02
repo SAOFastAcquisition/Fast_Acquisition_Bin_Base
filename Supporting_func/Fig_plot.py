@@ -44,7 +44,6 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     x_min = argument.min()
     x_max = argument.max()
 
-
     if flag:
         ax.set_xlabel('Freq, MHz', fontsize=18)
         ax.set_yscale('log')
@@ -77,6 +76,11 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
 
+    if True:
+        set_rect = 6.5, 11.5, 0.49e6, 0.55e6
+        axins = insert_pic(ax, argument, spectr1[1, :], line_color[1], line_legend[1], set_rect)
+        ax.indicate_inset_zoom(axins, edgecolor="black")
+
     # Управление шрифтом легенды
     font = font_manager.FontProperties(family='Comic Sans MS',
                                        weight='bold',
@@ -88,6 +92,24 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     add_pass1 = path_to_pic(file_name0 + '\\', flag)
     fig.savefig(file_name0 + '\\' + add_pass1)
+
+
+def insert_pic(ax, argument, ordinate, line_color, line_legend, set_rect):
+    sf = ScalarFormatter()
+    sf.set_powerlimits((-4, 4))
+    axins = ax.inset_axes([0.5, 0.05, 0.35, 0.35])
+    axins.plot(argument, ordinate, color=line_color, label=line_legend)
+    axins.minorticks_on()
+    axins.grid(b=True, which='major', color='#666666', linestyle='-')
+    axins.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+    # sub region of the original image
+    x1, x2, y1, y2 = set_rect
+    axins.set_xlim(x1, x2)
+    axins.set_ylim(y1, y2)
+    axins.set_xticklabels('')
+    axins.yaxis.set_major_formatter(sf)
+    # axins.set_yticklabels('')
+    return axins
 
 
 def title_func(file_name0, head):

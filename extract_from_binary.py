@@ -32,7 +32,7 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 kf = 4  # Установка разрешения по частоте
-kt = 60  # Установка разрешения по времени
+kt = 10  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -870,15 +870,15 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
 # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
-# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 
 # *********************************************************
 # ***            Многооконный вывод данных             ****
 # *********************************************************
 n_row = 3   # Количество окон по вериткали
 n_col = 3   # Количество окон по горизонтали
-fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
-                  freq_spect_mask, head, n_row, n_col)
+# fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
+#                   freq_spect_mask, head, n_row, n_col)
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
