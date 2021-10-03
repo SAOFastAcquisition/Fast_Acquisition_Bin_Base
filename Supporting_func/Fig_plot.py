@@ -77,8 +77,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         m += 1
 
     if True:
-        set_rect = 6.5, 11.5, 0.49e6, 0.55e6
-        axins = insert_pic(ax, argument, spectr1[1, :], line_color[1], line_legend[1], set_rect)
+        set_zoom = 6.5, 11.5, 1.425e6, 1.5e6
+        axins = insert_zoom(ax, argument, spectr1[6, :], line_color[6], line_legend[6], set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
     # Управление шрифтом легенды
@@ -94,16 +94,21 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     fig.savefig(Path(file_name0, add_pass1))
 
 
-def insert_pic(ax, argument, ordinate, line_color, line_legend, set_rect):
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.05, 0.35, 0.35]):
+    """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
+    родительского рисунка, тот же массив
+    аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
+    нижнего угла вставки и ее размеры set_pos (относительно левого нижнего угла родителя в долях размера родительского рисунка),
+    границы выделенной области set_zoom. Возвращает объект-рисунок для размещения на родительском рисунке."""
     sf = ScalarFormatter()
     sf.set_powerlimits((-4, 4))
-    axins = ax.inset_axes([0.5, 0.05, 0.35, 0.35])
+    axins = ax.inset_axes(set_pos)
     axins.plot(argument, ordinate, color=line_color, label=line_legend)
     axins.minorticks_on()
     axins.grid(b=True, which='major', color='#666666', linestyle='-')
     axins.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
     # sub region of the original image
-    x1, x2, y1, y2 = set_rect
+    x1, x2, y1, y2 = set_zoom
     axins.set_xlim(x1, x2)
     axins.set_ylim(y1, y2)
     axins.set_xticklabels('')
