@@ -16,8 +16,8 @@ home_dir = Path.home()
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 start = datetime.now()
 
-current_data_file = '2021-06-25_16-28b'      # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_06_25sun'          # Папка с текущими данными
+current_data_file = '2021-06-27_08+12'      # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_06_27sun'          # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
@@ -27,8 +27,8 @@ date = current_data_file[0:11]
 
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
-kf = 4  # Установка разрешения по частоте
-kt = 8  # Установка разрешения по времени
+kf = 1  # Установка разрешения по частоте
+kt = 32  # Установка разрешения по времени
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
@@ -56,7 +56,8 @@ if N_Nyq == 3:
 elif band_size_init == 'whole':
     n1 = 2
     n2 = 8
-    freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
+    # freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
+    freq_spect_mask = [2900, 2910, 2918, 2925, 2950, 2958, 2966, 2975, 2980]
     # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
     # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
     # freq_spect_mask = [1000 * n1 + 100 * n2 + 20 * i for i in range(10)]
@@ -820,7 +821,7 @@ if noise_calibr == 'y':
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
 time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-time_spect_mask = [1, 2, 7, 8, 9, 17, 18]
+time_spect_mask = [226, 228, 230, 232, 235, 237, 239, 241, 243]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 
@@ -841,7 +842,7 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
-# fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
 fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 
 # *********************************************************
