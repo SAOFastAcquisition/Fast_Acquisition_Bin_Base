@@ -1,4 +1,4 @@
-from Window_D import Ui_MainWindow
+from Interface.Window_D import Ui_MainWindow
 import sys
 from PyQt5 import QtWidgets
 import os
@@ -11,12 +11,12 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # и т.д. в файле design.py
         super().__init__()
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
-        self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию browse_folder
+        self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
         self.freq_res = 1
         self.time_res = 4
 
-    def set_atr(self, name, value):
+    def __set_attr(self, name, value):
         self.__dict__[name] = value
         # print(self.__dict__[name])
         pass
@@ -24,8 +24,8 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def set_parameter_handler(self):
         res_time = self.lne_time_resolution.text()
         res_frequency = self.lne_frequency_resolution.text()
-        self.set_atr('freq_res', res_frequency)
-        self.set_atr('time_res', res_time)
+        self.__set_attr('freq_res', res_frequency)
+        self.__set_attr('time_res', res_time)
 
 
 def main():
