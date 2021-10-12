@@ -9,13 +9,13 @@ from pathlib import Path
 from Supporting_func import Fig_plot as fp
 from Supporting_func.afc_alignment import align_spectrum
 from Supporting_func.stocks_coefficients import path_to_data
-from Interface.window_interface import main
-# from Interface.Window_D import Ui_MainWindow
+from Interface.window_interface import call_wind
 
 current_dir = Path.cwd()
 home_dir = Path.home()
 
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
+sys.path.insert(0, Path(current_dir, 'Interface'))
 start = datetime.now()
 
 current_data_file = '2021-06-27_10+04'      # Имя файла с исходными текущими данными без расширения
@@ -32,7 +32,7 @@ date = current_data_file[0:11]
 
 kf = 1  # Установка разрешения по частоте
 kt = 32  # Установка разрешения по времени
-kt, kf = main()
+kt, kf = call_wind()
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
