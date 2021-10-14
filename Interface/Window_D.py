@@ -10,6 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -20,40 +21,45 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.tabWidget.setFont(font)
+        self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        self.tabWidget.setMovable(True)
         self.tabWidget.setObjectName("tabWidget")
-        self.tab = QtWidgets.QWidget()
-        self.tab.setObjectName("tab")
-        self.lbl_frequency_resolution = QtWidgets.QLabel(self.tab)
+        self.tab_parameters = QtWidgets.QWidget()
+        self.tab_parameters.setObjectName("tab_parameters")
+        self.lbl_frequency_resolution = QtWidgets.QLabel(self.tab_parameters)
         self.lbl_frequency_resolution.setGeometry(QtCore.QRect(30, 40, 181, 21))
         self.lbl_frequency_resolution.setStyleSheet("background-color: rgb(233, 185, 110);\n"
 "font: 14pt \"Ubuntu\";\n"
 "border-color: rgb(0, 0, 0);")
         self.lbl_frequency_resolution.setObjectName("lbl_frequency_resolution")
-        self.lne_frequency_resolution = QtWidgets.QLineEdit(self.tab)
+        self.lne_frequency_resolution = QtWidgets.QLineEdit(self.tab_parameters)
         self.lne_frequency_resolution.setGeometry(QtCore.QRect(230, 40, 141, 21))
         self.lne_frequency_resolution.setStyleSheet("background-color: rgb(255, 255, 255);\n"
 "border-color: rgb(0, 0, 0);")
         self.lne_frequency_resolution.setObjectName("lne_frequency_resolution")
-        self.lne_time_resolution = QtWidgets.QLineEdit(self.tab)
+        self.lne_time_resolution = QtWidgets.QLineEdit(self.tab_parameters)
         self.lne_time_resolution.setGeometry(QtCore.QRect(230, 70, 141, 25))
         self.lne_time_resolution.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.lne_time_resolution.setObjectName("lne_time_resolution")
-        self.lbl_frequency_unit = QtWidgets.QLabel(self.tab)
+        self.lbl_frequency_unit = QtWidgets.QLabel(self.tab_parameters)
         self.lbl_frequency_unit.setGeometry(QtCore.QRect(380, 40, 67, 21))
         self.lbl_frequency_unit.setStyleSheet("background-color: rgb(233, 185, 110);\n"
 "font: 14pt \"Ubuntu\";")
         self.lbl_frequency_unit.setObjectName("lbl_frequency_unit")
-        self.lbl_time_unit = QtWidgets.QLabel(self.tab)
+        self.lbl_time_unit = QtWidgets.QLabel(self.tab_parameters)
         self.lbl_time_unit.setGeometry(QtCore.QRect(380, 70, 67, 21))
         self.lbl_time_unit.setStyleSheet("background-color: rgb(233, 185, 110);")
         self.lbl_time_unit.setObjectName("lbl_time_unit")
-        self.lbl_time_resolution = QtWidgets.QLabel(self.tab)
+        self.lbl_time_resolution = QtWidgets.QLabel(self.tab_parameters)
         self.lbl_time_resolution.setGeometry(QtCore.QRect(30, 70, 181, 21))
         self.lbl_time_resolution.setStyleSheet("background-color: rgb(233, 185, 110);\n"
 "font: 14pt \"Ubuntu\";\n"
 "border-color: rgb(0, 0, 0);")
         self.lbl_time_resolution.setObjectName("lbl_time_resolution")
-        self.btn_set_parameters = QtWidgets.QPushButton(self.tab)
+        self.btn_set_parameters = QtWidgets.QPushButton(self.tab_parameters)
         self.btn_set_parameters.setGeometry(QtCore.QRect(210, 120, 141, 31))
         self.btn_set_parameters.setStyleSheet("background-color: rgb(169, 191, 64);\n"
 "font: 14pt \"Ubuntu\";\n"
@@ -62,14 +68,14 @@ class Ui_MainWindow(object):
         self.btn_set_parameters.setDefault(False)
         self.btn_set_parameters.setFlat(False)
         self.btn_set_parameters.setObjectName("btn_set_parameters")
-        self.tabWidget.addTab(self.tab, "")
-        self.tab_2 = QtWidgets.QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.tabWidget.addTab(self.tab_2, "")
+        self.tabWidget.addTab(self.tab_parameters, "")
+        self.tab_choice_input = QtWidgets.QWidget()
+        self.tab_choice_input.setObjectName("tab_choice_input")
+        self.tabWidget.addTab(self.tab_choice_input, "")
         self.verticalLayout.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 612, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 612, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -77,6 +83,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -87,7 +94,5 @@ class Ui_MainWindow(object):
         self.lbl_time_unit.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:14pt;\">ms</span></p></body></html>"))
         self.lbl_time_resolution.setText(_translate("MainWindow", "Time resolution"))
         self.btn_set_parameters.setText(_translate("MainWindow", "Set parameters"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Tab 1"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
-
-
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_parameters), _translate("MainWindow", "Processing parameters"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_choice_input), _translate("MainWindow", "Input data"))

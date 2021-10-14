@@ -9,7 +9,7 @@ from pathlib import Path
 from Supporting_func import Fig_plot as fp
 from Supporting_func.afc_alignment import align_spectrum
 from Supporting_func.stocks_coefficients import path_to_data
-from Interface.window_interface import main
+from Interface import main
 
 current_dir = Path.cwd()
 home_dir = Path.home()

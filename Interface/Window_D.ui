@@ -20,9 +20,23 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTabWidget" name="tabWidget">
-      <widget class="QWidget" name="tab">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="tab_parameters">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>Processing parameters</string>
        </attribute>
        <widget class="QLabel" name="lbl_frequency_resolution">
         <property name="geometry">
@@ -148,9 +162,9 @@ alternate-background-color: rgba(166, 64, 191, 28);</string>
         </property>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="tab_choice_input">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>Input data</string>
        </attribute>
       </widget>
      </widget>
@@ -163,7 +177,7 @@ alternate-background-color: rgba(166, 64, 191, 28);</string>
      <x>0</x>
      <y>0</y>
      <width>612</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>
