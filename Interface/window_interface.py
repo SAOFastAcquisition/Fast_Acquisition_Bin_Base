@@ -2,28 +2,51 @@ from Interface.Window_D import Ui_MainWindow
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
+from parameters import param_dict
 import os
+
 __all__ = ['main', 'ExampleApp']
+
 
 class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
-    def __init__(self):
+    def __init__(self, param_dict_str):
         # Это здесь нужно для доступа к переменным, методам
         # и т.д. в файле design.py
         super().__init__()
         self.setupUi(self)  # Это нужно для инициализации нашего дизайна
+
         # Начальные установки
-        self.freq_res = 1
-        self.time_res = 4
-        self.lne_frequency_resolution.setText(str(self.freq_res))
-        self.lne_time_resolution.setText(str(self.time_res))
+        self.freq_res = param_dict_str['freq_res']
+        self.time_res = param_dict_str['time_res']
+        self.frequency_mask = []
+        self.time_mask = []
+        self.file_name = ' '
+        self.file_folder = ' '
+        self.lne_frequency_resolution.setText(self.freq_res)
+        self.lne_time_resolution.setText(self.time_res)
 
         # self.btn = QPushButton('Attention!', self)
+        # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
+        # словаря param_dict_str по ключу 'freq_mask'.
+        self.tableWidget_freq_patterns.setColumnWidth(0, 450)
+        freq_mask = param_dict_str['freq_mask']
+        k = 0
+        for unit in freq_mask:
+            item_freq = self.tableWidget_freq_patterns.item(k, 0)
+            item_freq.setText(unit)
+            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
+            self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
+            k += 1
 
+        self.tableWidget_time_patterns.setColumnWidth(0, 450)
+        # for i in range(10):
+        #     self.tableWidget_time_patterns.setColumnWidth(int(i), 70)
 
+        # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
+        self.btn_find_file.clicked.connect(self.find_processing_file)
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
-
 
     def __set_attr(self, name, value):
         self.__dict__[name] = value
@@ -31,13 +54,15 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def set_parameter_handler(self):
+
+        # Обработка выбранных на закладке параметров разрешения
         res_time = self.lne_time_resolution.text()
         res_frequency = self.lne_frequency_resolution.text()
         if int(res_time) < 8:
             message_box_time = QMessageBox.information(self, 'Time resolution verification',
-                                                    'Your resolution too small or negative! '
-                                                    'Set the resolution greater then 8')
-            # message_box_time.move(self, 200, 400)
+                                                       'Your resolution too small or negative! '
+                                                       'Set the resolution greater then 8')
+            message_box_time.move(self, 200, 400)
         else:
             self.__set_attr('time_res', res_time)
         if int(res_frequency) < 1:
@@ -47,18 +72,78 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.__set_attr('freq_res', res_frequency)
 
+        # Работа с QTableWidget для выбора или редактирования масок по частоте и времени.
+        # Маска По частоте
+        n = self.tableWidget_freq_patterns.rowCount()
+        for i in range(n):
+            item_freq = self.tableWidget_freq_patterns.item(i, 0)
+            a_freq = item_freq.checkState()
+            print(a_freq, item_freq)
+            count_choose = 0
+            if a_freq == 2:
+                count_choose += 1
+                if count_choose > 1:
+                    print("Wrong choose frequency mask!!!")
+                elif count_choose == 0:
+                    pass
+                else:
+                    freq_mask_choose_str = item_freq.text()
+                    self.__set_attr('frequency_mask', freq_mask_choose_str)
+        # Маска По времени
+        item_time = self.tableWidget_time_patterns.item(0, 0)
+        a_time = item_time.checkState()
+        print(a_time, item_time)
+
+    def find_processing_file(self):
+        """ Функция обработчик принимает клик кнопкой и возвращает в виде аттрибутов объекта класса название
+        файла для обработки и папки в котором он лежит"""
+        path_to_folder = 'I:/Fast_Acquisition/2021'  # Исходная папка поиска файла для обработки
+        # Результат поиска
+        res = QFileDialog.getOpenFileNames(self, 'Open file', path_to_folder, 'BinaryFile (*.bin);;NumpyFile (*.npy)')
+        res_part = res[0][0].split('/')
+
+        file_name = res_part[-1][:-4]
+        file_folder = res_part[-2]
+        # print(file_folder, file_name)
+
+        initial_text = self.lne_file_name.text()
+        full_text = initial_text + res_part[-1]
+
+        self.lne_file_name.setText(full_text)
+        self.__set_attr('file_name', file_name)
+        self.__set_attr('file_folder', file_folder)
+
+        pass
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
-    window = ExampleApp()  # Создаём объект класса ExampleApp
+    param_dict_str = param_dict_to_str(param_dict())
+    window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
     window.show()  # Показываем окно
     app.exec_()  # и запускаем приложение
-    return int(window.time_res), int(window.freq_res)
+    print(window.frequency_mask, type(window.frequency_mask))
+    return int(window.time_res), int(window.freq_res), window.file_name, window.file_folder
+
+
+def param_dict_to_str(dict):
+    freq_mask = dict['freq_mask']
+    counter = 0
+    freq_mask_str = []
+    for unit in freq_mask:
+        unit_str = str(unit)
+        unit_str = unit_str[1: -1]
+        freq_mask_str.append(unit_str)
+
+    dict_str = {'freq_res': str(dict['freq_resolution']),
+                'time_res': str(dict['time_resolution']),
+                'freq_mask': freq_mask_str}
+    return dict_str
 
 
 if __name__ == '__main__':
-    time_res, frequency_res = main()
-    print(time_res, frequency_res)
+    time_res, frequency_res, file_name, file_folder = main()
+    print(time_res, frequency_res, file_name, file_folder)
 
 # # объект приложения
 # app = QApplication(sys.argv)

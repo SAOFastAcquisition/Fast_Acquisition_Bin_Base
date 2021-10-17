@@ -6,9 +6,8 @@ import pickle
 import json as jsn
 from datetime import datetime
 from pathlib import Path
-from Supporting_func import Fig_plot as fp
-from Supporting_func.afc_alignment import align_spectrum
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
+# from Supporting_func import align_spectrum, path_to_data
 from Interface import main
 
 current_dir = Path.cwd()
