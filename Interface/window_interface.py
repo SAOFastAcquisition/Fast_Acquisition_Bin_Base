@@ -1,8 +1,9 @@
 from Interface.Window_D import Ui_MainWindow
 import sys
+from pathlib import Path
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from parameters import param_dict
+from Interface.parameters import param_dict
 import os
 
 __all__ = ['main', 'ExampleApp']
@@ -23,6 +24,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.time_mask = []
         self.file_name = ' '
         self.file_folder = ' '
+        self.catalog = param_dict_str['path_to_catalog']
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
 
@@ -75,20 +77,24 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Работа с QTableWidget для выбора или редактирования масок по частоте и времени.
         # Маска По частоте
         n = self.tableWidget_freq_patterns.rowCount()
+        count_choose = 0
         for i in range(n):
             item_freq = self.tableWidget_freq_patterns.item(i, 0)
             a_freq = item_freq.checkState()
             print(a_freq, item_freq)
-            count_choose = 0
+
             if a_freq == 2:
                 count_choose += 1
                 if count_choose > 1:
                     print("Wrong choose frequency mask!!!")
-                elif count_choose == 0:
-                    pass
                 else:
                     freq_mask_choose_str = item_freq.text()
                     self.__set_attr('frequency_mask', freq_mask_choose_str)
+        if count_choose == 0:
+            print('Choose frequency pattern')
+            message_box_freq = QMessageBox.critical(self, 'Frequency pattern verification',
+                                                    'Choose frequency pattern! '
+                                                    'Set the frequency pattern!')
         # Маска По времени
         item_time = self.tableWidget_time_patterns.item(0, 0)
         a_time = item_time.checkState()
@@ -97,7 +103,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def find_processing_file(self):
         """ Функция обработчик принимает клик кнопкой и возвращает в виде аттрибутов объекта класса название
         файла для обработки и папки в котором он лежит"""
-        path_to_folder = 'I:/Fast_Acquisition/2021'  # Исходная папка поиска файла для обработки
+        path_to_folder = self.catalog  # Исходная папка поиска файла для обработки
         # Результат поиска
         res = QFileDialog.getOpenFileNames(self, 'Open file', path_to_folder, 'BinaryFile (*.bin);;NumpyFile (*.npy)')
         res_part = res[0][0].split('/')
@@ -110,6 +116,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         full_text = initial_text + res_part[-1]
 
         self.lne_file_name.setText(full_text)
+        self.lne_oserv_file.setText(res_part[-1])
         self.__set_attr('file_name', file_name)
         self.__set_attr('file_folder', file_folder)
 
@@ -122,8 +129,16 @@ def main():
     window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
     window.show()  # Показываем окно
     app.exec_()  # и запускаем приложение
-    print(window.frequency_mask, type(window.frequency_mask))
-    return int(window.time_res), int(window.freq_res), window.file_name, window.file_folder
+    freq_mask_num = list_str_to_num(window.frequency_mask)
+
+    # print(window.frequency_mask, type(window.frequency_mask))
+    parameters_dict = {'freq_res': int(window.freq_res),
+                       'time_res': int(window.time_res),
+                       'freq_mask': freq_mask_num,
+                       'time_mask': [],
+                       'file_name': window.file_name,
+                       'file_folder': window.file_folder}
+    return parameters_dict
 
 
 def param_dict_to_str(dict):
@@ -132,18 +147,36 @@ def param_dict_to_str(dict):
     freq_mask_str = []
     for unit in freq_mask:
         unit_str = str(unit)
-        unit_str = unit_str[1: -1]
+        unit_str = unit_str[1:-1]  # s1=s.replace("$", "")
         freq_mask_str.append(unit_str)
 
     dict_str = {'freq_res': str(dict['freq_resolution']),
                 'time_res': str(dict['time_resolution']),
-                'freq_mask': freq_mask_str}
+                'freq_mask': freq_mask_str,
+                'path_to_catalog': dict['path_to_catalog']}
     return dict_str
 
 
+def list_str_to_num(list_str):
+    list_num = []
+    print(list_str)
+    list_str = list_str.split(', ')
+    for un in list_str:
+        un_num = int(un)
+        list_num.append(un_num)
+    return list_num
+
+
 if __name__ == '__main__':
-    time_res, frequency_res, file_name, file_folder = main()
-    print(time_res, frequency_res, file_name, file_folder)
+    parameter = main()
+    time_res = parameter['time_res']
+    freq_res = parameter['freq_res']
+    file_name = parameter['file_name']
+    file_folder = parameter['file_folder']
+    freq_mask = parameter['freq_mask']
+    time_mask = parameter['time_mask']
+    print(f'time_res = {time_res}, freq_res = {freq_res}, file_name = {file_name}, file_folder= {file_folder},'
+          f' freq_mask = {freq_mask}, time_mask = {time_mask}')
 
 # # объект приложения
 # app = QApplication(sys.argv)
