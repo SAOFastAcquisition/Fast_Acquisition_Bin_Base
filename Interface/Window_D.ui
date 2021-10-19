@@ -19,7 +19,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabWidget_1">
       <property name="font">
        <font>
         <pointsize>12</pointsize>
@@ -41,7 +41,7 @@
         </font>
        </property>
        <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
+        <enum>Qt::LeftToRight</enum>
        </property>
        <attribute name="title">
         <string>Processing parameters</string>
@@ -215,8 +215,8 @@ background-color: rgb(255, 250, 183);</string>
        <widget class="QPushButton" name="btn_set_parameters">
         <property name="geometry">
          <rect>
-          <x>290</x>
-          <y>640</y>
+          <x>300</x>
+          <y>770</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -462,6 +462,23 @@ alternate-background-color: rgba(166, 64, 191, 28);</string>
          </property>
         </widget>
        </widget>
+       <widget class="QCheckBox" name="cbx_save_current_parameters">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>650</y>
+          <width>201</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+background-color: rgb(170, 170, 0);</string>
+        </property>
+        <property name="text">
+         <string>Save current parameters</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_choice_input">
        <attribute name="title">
@@ -471,7 +488,7 @@ alternate-background-color: rgba(166, 64, 191, 28);</string>
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>40</y>
+          <y>90</y>
           <width>231</width>
           <height>31</height>
          </rect>
@@ -487,8 +504,8 @@ background-color: rgb(183, 255, 191);</string>
        <widget class="QLineEdit" name="lne_file_name">
         <property name="geometry">
          <rect>
-          <x>270</x>
-          <y>40</y>
+          <x>260</x>
+          <y>90</y>
           <width>311</width>
           <height>31</height>
          </rect>
@@ -500,6 +517,23 @@ background-color: rgb(225, 255, 225);</string>
         </property>
         <property name="text">
          <string>Result:</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_load_setup">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>20</y>
+          <width>161</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font: 12pt &quot;MS Shell Dlg 2&quot;;
+background-color: rgb(170, 170, 0);</string>
+        </property>
+        <property name="text">
+         <string>Load the last set-up</string>
         </property>
        </widget>
       </widget>

@@ -3,7 +3,9 @@ import sys
 from pathlib import Path
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
 from Interface.parameters import param_dict
+import json as jsn
 import os
 
 __all__ = ['main', 'ExampleApp']
@@ -47,12 +49,35 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
+        self.cbx_save_current_parameters.stateChanged.connect(self.set_initial_setup)
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
 
     def __set_attr(self, name, value):
         self.__dict__[name] = value
         # print(self.__dict__[name])
+        pass
+
+    def set_initial_setup(self, state):
+        if state == Qt.Checked:
+            print(state, type(state))
+            # file = open('custom_parameters.txt', 'a')
+            parameter_dict = {'freq_res': self.freq_res,
+                              'time_res': self.time_res,
+                              'freq_mask': self.frequency_mask,
+                              'time_mask': self.time_mask,
+                              'file_name': self.file_name,
+                              'file_folder': self.file_folder,
+                              'path_to_catalog': self.catalog}
+            # file.write(parameter_dict)
+            jsn.dump(parameter_dict, open('custom_parameters.txt', "a"))
+            jsn.dump('\n', open('custom_parameters.txt', "a"))
+            # file.close()
+            with open('custom_parameters.txt', 'r') as fp:
+            # Чтение файла 'data.json' и преобразование
+            # данных JSON в объект Python
+                data = jsn.load(fp)
+
         pass
 
     def set_parameter_handler(self):
