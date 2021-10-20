@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from Interface.parameters import param_dict
+import pickle
 import json as jsn
 import os
 
@@ -49,7 +50,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
-        self.cbx_save_current_parameters.stateChanged.connect(self.set_initial_setup)
+        self.cbx_save_current_parameters.stateChanged.connect(self.save_latest_setup)
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
 
@@ -59,6 +60,10 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def set_initial_setup(self, state):
+
+        pass
+
+    def save_latest_setup(self, state):
         if state == Qt.Checked:
             print(state, type(state))
             # file = open('custom_parameters.txt', 'a')
@@ -69,16 +74,22 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               'file_name': self.file_name,
                               'file_folder': self.file_folder,
                               'path_to_catalog': self.catalog}
-            # file.write(parameter_dict)
-            jsn.dump(parameter_dict, open('custom_parameters.txt', "a"))
-            jsn.dump('\n', open('custom_parameters.txt', "a"))
-            # file.close()
-            with open('custom_parameters.txt', 'r') as fp:
-            # Чтение файла 'data.json' и преобразование
-            # данных JSON в объект Python
-                data = jsn.load(fp)
-
+            self.__save_parameters(parameter_dict)
         pass
+
+    def __save_parameters(self, data):
+        import pickle
+        if not (os.path.isfile('save_param.bin')):
+            head = []
+            with open('save_param.bin', 'wb') as out:
+                pickle.dump(head, out)
+
+        with open('save_param.bin', 'rb') as inp:
+            head = pickle.load(inp)
+            head.append(data)
+            print(head)
+        with open('save_param.bin', 'wb') as out:
+            pickle.dump(head, out)
 
     def set_parameter_handler(self):
 
