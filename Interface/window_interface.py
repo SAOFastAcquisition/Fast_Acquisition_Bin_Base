@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from Interface.parameters import param_dict
 import pickle
-import json as jsn
 import os
 
 __all__ = ['main', 'ExampleApp']
@@ -74,7 +73,18 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               'file_name': self.file_name,
                               'file_folder': self.file_folder,
                               'path_to_catalog': self.catalog}
-            self.__save_parameters(parameter_dict)
+            if not (os.path.isfile('save_param.bin')):
+                head = []
+                with open('save_param.bin', 'wb') as out:
+                    pickle.dump(head, out)
+
+            with open('save_param.bin', 'rb') as inp:
+                head = pickle.load(inp)
+                head.append(parameter_dict)
+                print(head)
+            with open('save_param.bin', 'wb') as out:
+                pickle.dump(head, out)
+
         pass
 
     def __save_parameters(self, data):
@@ -183,7 +193,7 @@ def param_dict_to_str(dict):
     freq_mask_str = []
     for unit in freq_mask:
         unit_str = str(unit)
-        unit_str = unit_str[1:-1]  # s1=s.replace("$", "")
+        unit_str = unit_str[1:-1]  # s1=s.replace([[|]], "")
         freq_mask_str.append(unit_str)
 
     dict_str = {'freq_res': str(dict['freq_resolution']),
