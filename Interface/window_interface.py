@@ -29,6 +29,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.catalog = param_dict_str['path_to_catalog']
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
+        self.gB_pattrens.adjustSize()
 
         # self.btn = QPushButton('Attention!', self)
         # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
@@ -44,12 +45,15 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             k += 1
 
         self.tableWidget_time_patterns.setColumnWidth(0, 450)
+        self.btn_load_setup.adjustSize()
         # for i in range(10):
         #     self.tableWidget_time_patterns.setColumnWidth(int(i), 70)
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
+        self.cbx_save_current_parameters.adjustSize()
         self.cbx_save_current_parameters.stateChanged.connect(self.save_latest_setup)
+        self.btn_set_parameters.adjustSize()
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
 
