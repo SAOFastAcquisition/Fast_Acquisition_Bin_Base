@@ -23,13 +23,17 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.freq_res = param_dict_str['freq_res']
         self.time_res = param_dict_str['time_res']
         self.frequency_mask = []
+        self.index_freq_mask = None
         self.time_mask = []
+        self.index_time_mask = None
         self.file_name = ' '
         self.file_folder = ' '
         self.catalog = param_dict_str['path_to_catalog']
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
         self.gB_pattrens.adjustSize()
+
+        self.btn_load_setup.clicked.connect(self.set_initial_setup)
 
         # self.btn = QPushButton('Attention!', self)
         # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
@@ -46,8 +50,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.tableWidget_time_patterns.setColumnWidth(0, 450)
         self.btn_load_setup.adjustSize()
-        # for i in range(10):
-        #     self.tableWidget_time_patterns.setColumnWidth(int(i), 70)
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
@@ -62,7 +64,17 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # print(self.__dict__[name])
         pass
 
-    def set_initial_setup(self, state):
+    def set_initial_setup(self):
+        with open('save_param.bin', 'rb') as inp:
+            param_set = pickle.load(inp)[-1]
+
+        self.__set_attr('index_freq_mask', param_set['ind_freq_checkbox'])
+        self.__set_attr('index_time_mask', param_set['ind_time_mask'])
+        self.__set_attr('freq_res', param_set['freq_res'])
+        self.__set_attr('time_res', param_set['time_res'])
+        self.__set_attr('file_name', param_set['file_name'])
+        self.__set_attr('file_folder', param_set['file_folder'])
+        self.__set_attr('path_to_catalog', param_set['path_to_catalog'])
 
         pass
 
@@ -76,25 +88,16 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               'time_mask': self.time_mask,
                               'file_name': self.file_name,
                               'file_folder': self.file_folder,
-                              'path_to_catalog': self.catalog}
-            if not (os.path.isfile('save_param.bin')):
-                head = []
-                with open('save_param.bin', 'wb') as out:
-                    pickle.dump(head, out)
-
-            with open('save_param.bin', 'rb') as inp:
-                head = pickle.load(inp)
-                head.append(parameter_dict)
-                print(head)
-            with open('save_param.bin', 'wb') as out:
-                pickle.dump(head, out)
-
+                              'path_to_catalog': self.catalog,
+                              'ind_freq_checkbox': self.index_freq_mask,
+                              'ind_time_checkbox': self.index_time_mask}
+            self.__save_parameters(parameter_dict)
         pass
 
     def __save_parameters(self, data):
         import pickle
         if not (os.path.isfile('save_param.bin')):
-            head = []
+            head = [None]
             with open('save_param.bin', 'wb') as out:
                 pickle.dump(head, out)
 
@@ -134,6 +137,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             print(a_freq, item_freq)
 
             if a_freq == 2:
+                self.__set_attr(index_freq_mask, i)
                 count_choose += 1
                 if count_choose > 1:
                     print("Wrong choose frequency mask!!!")
@@ -177,6 +181,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
     param_dict_str = param_dict_to_str(param_dict())
     window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
+    # if window.btn_load_setup.clicked.connect()
     window.show()  # Показываем окно
     app.exec_()  # и запускаем приложение
     freq_mask_num = list_str_to_num(window.frequency_mask)
