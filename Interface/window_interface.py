@@ -49,8 +49,10 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
-        self.cbx_save_current_parameters.stateChanged.connect(self.save_latest_setup)
+
+        #
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
+        # self.cbx_save_current_parameters.stateChanged.connect(self.save_latest_setup)
         # при нажатии кнопки
 
     def __set_attr(self, name, value):
@@ -62,7 +64,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         pass
 
-    def save_latest_setup(self, state):
+    def __save_latest_setup(self, state):
         if state == Qt.Checked:
             print(state, type(state))
             # file = open('custom_parameters.txt', 'a')
@@ -73,24 +75,13 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                               'file_name': self.file_name,
                               'file_folder': self.file_folder,
                               'path_to_catalog': self.catalog}
-            if not (os.path.isfile('save_param.bin')):
-                head = []
-                with open('save_param.bin', 'wb') as out:
-                    pickle.dump(head, out)
-
-            with open('save_param.bin', 'rb') as inp:
-                head = pickle.load(inp)
-                head.append(parameter_dict)
-                print(head)
-            with open('save_param.bin', 'wb') as out:
-                pickle.dump(head, out)
-
+            self.__save_parameters(parameter_dict)
         pass
 
     def __save_parameters(self, data):
         import pickle
         if not (os.path.isfile('save_param.bin')):
-            head = []
+            head = [None]
             with open('save_param.bin', 'wb') as out:
                 pickle.dump(head, out)
 
@@ -144,6 +135,10 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Маска По времени
         item_time = self.tableWidget_time_patterns.item(0, 0)
         a_time = item_time.checkState()
+
+        # Обработка состояния чекбокса "Запомнить примененные параметры" - "Save current parameters"
+        state_save = self.cbx_save_current_parameters.checkState()   # stateChanged.
+        self.__save_latest_setup(state_save)
         print(a_time, item_time)
 
     def find_processing_file(self):
