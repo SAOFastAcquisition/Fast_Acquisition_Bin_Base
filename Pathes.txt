@@ -1,1 +1,2 @@
 E:\Python_Projects\Fast_Acquisition_Bin_Base\venv\Lib\site-packages\qt5_applications\Qt\bin - путь к QtDesigner
+E:\Python_Projects\Fast_Acquisition_Bin_Base\venv_39\Scripts\pyuic5.exe путь к pyuic5.exe для PyUic5
