@@ -5,6 +5,7 @@
 import pickle
 from window_interface import main
 import os
+
 if not (os.path.isfile('c_param.bin')):
     with open('c_param.bin', 'wb') as out:
         pickle.dump([], out)
@@ -16,10 +17,17 @@ parameter_dict = {'freq_resolution': 1,
                   'time_mask': [],
                   'path_to_catalog': 'hernya'}
 
-
 with open('c_param.bin', 'rb') as inp:
     head = pickle.load(inp)
     head.append(parameter_dict)
     print(head)
 with open('c_param.bin', 'wb') as out:
     pickle.dump(head, out)
+
+
+def param_dict_to_str(dict):
+    return list(map(lambda x: str(x)[1:-1], dict['freq_mask']))
+
+
+mask_str = param_dict_to_str(parameter_dict)
+print(mask_str)

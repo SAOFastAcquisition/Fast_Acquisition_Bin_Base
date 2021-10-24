@@ -41,14 +41,32 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tableWidget_freq_patterns.setColumnWidth(0, 450)
         freq_mask = param_dict_str['freq_mask']
         k = 0
+        if self.index_freq_mask is not None:
+            i = self.index_freq_mask
+            freq_mask[i] = self.frequency_mask
+            # self.tableWidget_freq_patterns                 # setCheckState(i, 0, 2)
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)
             item_freq.setText(unit)
+
             # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
             k += 1
 
         self.tableWidget_time_patterns.setColumnWidth(0, 450)
+        time_mask = param_dict_str['time_mask']
+        k = 0
+        if self.index_time_mask is not None:
+            i = self.index_time_mask
+            time_mask[i] = self.time_mask
+            self.tableWidget_time_patterns.setCheckState(i, 0, 2)
+        for unit in time_mask:
+            item_time = self.tableWidget_time_patterns.item(k, 0)
+            item_time.setText(unit)
+            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
+            self.tableWidget_time_patterns.setItem(k, 0, item_time)
+            k += 1
+
         self.btn_load_setup.adjustSize()
 
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
@@ -69,7 +87,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             param_set = pickle.load(inp)[-1]
 
         self.__set_attr('index_freq_mask', param_set['ind_freq_checkbox'])
-        self.__set_attr('index_time_mask', param_set['ind_time_mask'])
+        self.__set_attr('index_time_mask', param_set['ind_time_checkbox'])
         self.__set_attr('freq_res', param_set['freq_res'])
         self.__set_attr('time_res', param_set['time_res'])
         self.__set_attr('file_name', param_set['file_name'])
@@ -137,7 +155,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             print(a_freq, item_freq)
 
             if a_freq == 2:
-                self.__set_attr(index_freq_mask, i)
+                self.__set_attr('index_freq_mask', i)
                 count_choose += 1
                 if count_choose > 1:
                     print("Wrong choose frequency mask!!!")
@@ -151,8 +169,27 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                                     'Set the frequency pattern!')
         # Маска По времени
         item_time = self.tableWidget_time_patterns.item(0, 0)
-        a_time = item_time.checkState()
-        print(a_time, item_time)
+        n = self.tableWidget_time_patterns.rowCount()
+        count_choose = 0
+        for i in range(n):
+            item_time = self.tableWidget_time_patterns.item(i, 0)
+            a_time = item_time.checkState()
+            print(a_time, item_time)
+
+            if a_time == 2:
+                self.__set_attr('index_time_mask', i)
+                count_choose += 1
+                if count_choose > 1:
+                    print("Wrong choose frequency mask!!!")
+                else:
+                    time_mask_choose_str = item_time.text()
+                    self.__set_attr('frequency_mask', time_mask_choose_str)
+        if count_choose == 0:
+            print('Choose time pattern')
+            message_box_time = QMessageBox.critical(self, 'Time pattern verification',
+                                                    'Choose time pattern! '
+                                                    'Set the time pattern!')
+        pass
 
     def find_processing_file(self):
         """ Функция обработчик принимает клик кнопкой и возвращает в виде аттрибутов объекта класса название
@@ -185,29 +222,32 @@ def main():
     window.show()  # Показываем окно
     app.exec_()  # и запускаем приложение
     freq_mask_num = list_str_to_num(window.frequency_mask)
+    time_mask_num = list_str_to_num(window.time_mask)
 
     # print(window.frequency_mask, type(window.frequency_mask))
     parameters_dict = {'freq_res': int(window.freq_res),
                        'time_res': int(window.time_res),
                        'freq_mask': freq_mask_num,
-                       'time_mask': [],
+                       'time_mask': time_mask_num,
                        'file_name': window.file_name,
                        'file_folder': window.file_folder}
     return parameters_dict
 
 
-def param_dict_to_str(dict):
-    freq_mask = dict['freq_mask']
-    counter = 0
-    freq_mask_str = []
-    for unit in freq_mask:
-        unit_str = str(unit)
-        unit_str = unit_str[1:-1]  # s1=s.replace([[|]], "")
-        freq_mask_str.append(unit_str)
+def num_to_str(b):
+    """ Принимает двумерный массив типа list, возвращает одномерный массив строк типа list """
+    return list(map(lambda x: str(x)[1:-1], b))
 
+
+def param_dict_to_str(dict):
+    """ Принимает словарь с разноформатными параметрами обработки данных, возвращает словарь с параметрами
+    преобразованными в строковый формат"""
+    freq_mask_str = num_to_str(dict['freq_mask'])
+    time_mask_str = num_to_str(dict['time_mask'])
     dict_str = {'freq_res': str(dict['freq_resolution']),
                 'time_res': str(dict['time_resolution']),
                 'freq_mask': freq_mask_str,
+                'time_mask': time_mask_str,
                 'path_to_catalog': dict['path_to_catalog']}
     return dict_str
 
