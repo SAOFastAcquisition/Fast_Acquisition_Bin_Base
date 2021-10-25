@@ -32,6 +32,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
         self.gB_pattrens.adjustSize()
+        self.param_dict = param_dict_str
         print(f'path to catalog: {self.catalog}')
         self.btn_load_setup.clicked.connect(self.set_initial_setup)
 
@@ -42,14 +43,9 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         freq_mask = param_dict_str['freq_mask']
         k = 0
         print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
-        if self.index_freq_mask is not None:
-            i = self.index_freq_mask
-            freq_mask[i] = self.frequency_mask
-            # self.tableWidget_freq_patterns                 # setCheckState(i, 0, 2)
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)
             item_freq.setText(unit)
-
             # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
             k += 1
@@ -57,10 +53,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tableWidget_time_patterns.setColumnWidth(0, 450)
         time_mask = param_dict_str['time_mask']
         k = 0
-        if self.index_time_mask is not None:
-            i = self.index_time_mask
-            time_mask[i] = self.time_mask
-            self.tableWidget_time_patterns.setCheckState(i, 0, 2)
         for unit in time_mask:
             item_time = self.tableWidget_time_patterns.item(k, 0)
             item_time.setText(unit)
@@ -84,42 +76,55 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def set_initial_setup(self):
+        init_dict = self.param_dict
         with open('save_param.bin', 'rb') as inp:
             param_set = pickle.load(inp)[-1]
         print(f'param_set = {param_set}')
         self.__set_attr('index_freq_mask', param_set['ind_freq_checkbox'])
         self.__set_attr('index_time_mask', param_set['ind_time_checkbox'])
+        self.__set_attr('frequency_mask', param_set['freq_mask'])
+        self.__set_attr('time_mask', param_set['time_mask'])
         self.__set_attr('freq_res', param_set['freq_res'])
         self.__set_attr('time_res', param_set['time_res'])
         self.__set_attr('file_name', param_set['file_name'])
         self.__set_attr('file_folder', param_set['file_folder'])
         self.__set_attr('path_to_catalog', param_set['path_to_catalog'])
-        a = param_set['file_folder']
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
-        self.catalog = str(Path(param_set['path_to_catalog'], param_set['file_folder']))
-        print(f'path to catalog: {self.catalog}, file folder: {a}')
+        self.__set_attr('catalog', str(Path(param_set['path_to_catalog'], param_set['file_folder'])))
 
+        self.lne_oserv_file.setText(self.lne_oserv_file.text() + self.file_name)
+        self.lne_file_name.setText(self.lne_file_name.text() + self.file_name)
+
+        a = param_set['file_folder']
+        print(f'path to catalog: {self.catalog}, file folder: {a}')
         print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
+        freq_mask = init_dict['freq_mask']
         if self.index_freq_mask is not None:
             i = self.index_freq_mask
-            freq_mask[i] = self.frequency_mask
+            try:
+                freq_mask[i] = self.frequency_mask
+            except IndexError:
+                freq_mask.append(self.frequency_mask)
+
             # self.tableWidget_freq_patterns                 # setCheckState(i, 0, 2)
+        k = 0
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)
             item_freq.setText(unit)
-
             # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
             k += 1
 
-        self.tableWidget_time_patterns.setColumnWidth(0, 450)
-        time_mask = param_set['time_mask']
+        time_mask = init_dict['time_mask']
         k = 0
         if self.index_time_mask is not None:
             i = self.index_time_mask
-            time_mask[i] = self.time_mask
-            self.tableWidget_time_patterns.setCheckState(i, 0, 2)
+            try:
+                time_mask[i] = self.time_mask
+            except IndexError:
+                time_mask.append(self.time_mask)
+            # self.tableWidget_time_patterns.setCheckState(i, 0, 2)
         for unit in time_mask:
             item_time = self.tableWidget_time_patterns.item(k, 0)
             item_time.setText(unit)
@@ -235,17 +240,12 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         file_name = res_part[-1][:-4]
         file_folder = res_part[-2]
-        print(f'file_folder: {file_folder}, file_name: {file_name}')
-
-        initial_text = self.lne_file_name.text()
-        initial_text1 = self.lne_oserv_file.text()
-        full_text = initial_text + res_part[-1]
-        full_text1 = initial_text1 + res_part[-1]
-
-        self.lne_file_name.setText(full_text)
-        self.lne_oserv_file.setText(full_text1)
         self.__set_attr('file_name', file_name)
         self.__set_attr('file_folder', file_folder)
+        print(f'file_folder: {file_folder}, file_name: {file_name}')
+        self.lne_oserv_file.setText(self.lne_oserv_file.text() + self.file_name)
+        self.lne_file_name.setText(self.lne_file_name.text() + self.file_name)
+
         print(f'file_folder: {self.file_folder}, file_name: {self.file_name}')
         pass
 
