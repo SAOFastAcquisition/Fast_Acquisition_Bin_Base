@@ -32,7 +32,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lne_frequency_resolution.setText(self.freq_res)
         self.lne_time_resolution.setText(self.time_res)
         self.gB_pattrens.adjustSize()
-
+        print(f'path to catalog: {self.catalog}')
         self.btn_load_setup.clicked.connect(self.set_initial_setup)
 
         # self.btn = QPushButton('Attention!', self)
@@ -41,6 +41,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tableWidget_freq_patterns.setColumnWidth(0, 450)
         freq_mask = param_dict_str['freq_mask']
         k = 0
+        print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
         if self.index_freq_mask is not None:
             i = self.index_freq_mask
             freq_mask[i] = self.frequency_mask
@@ -72,7 +73,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
         self.cbx_save_current_parameters.adjustSize()
-        self.cbx_save_current_parameters.stateChanged.connect(self.save_latest_setup)
+
         self.btn_set_parameters.adjustSize()
         self.btn_set_parameters.clicked.connect(self.set_parameter_handler)  # Выполнить функцию set_parameter_handler
         # при нажатии кнопки
@@ -85,7 +86,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def set_initial_setup(self):
         with open('save_param.bin', 'rb') as inp:
             param_set = pickle.load(inp)[-1]
-
+        print(f'param_set = {param_set}')
         self.__set_attr('index_freq_mask', param_set['ind_freq_checkbox'])
         self.__set_attr('index_time_mask', param_set['ind_time_checkbox'])
         self.__set_attr('freq_res', param_set['freq_res'])
@@ -93,12 +94,44 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.__set_attr('file_name', param_set['file_name'])
         self.__set_attr('file_folder', param_set['file_folder'])
         self.__set_attr('path_to_catalog', param_set['path_to_catalog'])
+        a = param_set['file_folder']
+        self.lne_frequency_resolution.setText(self.freq_res)
+        self.lne_time_resolution.setText(self.time_res)
+        self.catalog = str(Path(param_set['path_to_catalog'], param_set['file_folder']))
+        print(f'path to catalog: {self.catalog}, file folder: {a}')
 
+        print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
+        if self.index_freq_mask is not None:
+            i = self.index_freq_mask
+            freq_mask[i] = self.frequency_mask
+            # self.tableWidget_freq_patterns                 # setCheckState(i, 0, 2)
+        for unit in freq_mask:
+            item_freq = self.tableWidget_freq_patterns.item(k, 0)
+            item_freq.setText(unit)
+
+            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
+            self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
+            k += 1
+
+        self.tableWidget_time_patterns.setColumnWidth(0, 450)
+        time_mask = param_set['time_mask']
+        k = 0
+        if self.index_time_mask is not None:
+            i = self.index_time_mask
+            time_mask[i] = self.time_mask
+            self.tableWidget_time_patterns.setCheckState(i, 0, 2)
+        for unit in time_mask:
+            item_time = self.tableWidget_time_patterns.item(k, 0)
+            item_time.setText(unit)
+            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
+            self.tableWidget_time_patterns.setItem(k, 0, item_time)
+            k += 1
         pass
 
-    def save_latest_setup(self, state):
+    def __save_latest_setup(self, state):
         if state == Qt.Checked:
             print(state, type(state))
+            print(f'Save_latest - file_folder: {self.file_folder}, file_name: {self.file_name}')
             # file = open('custom_parameters.txt', 'a')
             parameter_dict = {'freq_res': self.freq_res,
                               'time_res': self.time_res,
@@ -168,7 +201,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                                     'Choose frequency pattern! '
                                                     'Set the frequency pattern!')
         # Маска По времени
-        item_time = self.tableWidget_time_patterns.item(0, 0)
         n = self.tableWidget_time_patterns.rowCount()
         count_choose = 0
         for i in range(n):
@@ -183,12 +215,14 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     print("Wrong choose frequency mask!!!")
                 else:
                     time_mask_choose_str = item_time.text()
-                    self.__set_attr('frequency_mask', time_mask_choose_str)
+                    self.__set_attr('time_mask', time_mask_choose_str)
         if count_choose == 0:
             print('Choose time pattern')
             message_box_time = QMessageBox.critical(self, 'Time pattern verification',
                                                     'Choose time pattern! '
                                                     'Set the time pattern!')
+            # Сохранение текущих настроек
+        self.__save_latest_setup(self.cbx_save_current_parameters.checkState())
         pass
 
     def find_processing_file(self):
@@ -201,16 +235,18 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
         file_name = res_part[-1][:-4]
         file_folder = res_part[-2]
-        # print(file_folder, file_name)
+        print(f'file_folder: {file_folder}, file_name: {file_name}')
 
         initial_text = self.lne_file_name.text()
+        initial_text1 = self.lne_oserv_file.text()
         full_text = initial_text + res_part[-1]
+        full_text1 = initial_text1 + res_part[-1]
 
         self.lne_file_name.setText(full_text)
-        self.lne_oserv_file.setText(res_part[-1])
+        self.lne_oserv_file.setText(full_text1)
         self.__set_attr('file_name', file_name)
         self.__set_attr('file_folder', file_folder)
-
+        print(f'file_folder: {self.file_folder}, file_name: {self.file_name}')
         pass
 
 
@@ -248,18 +284,13 @@ def param_dict_to_str(dict):
                 'time_res': str(dict['time_resolution']),
                 'freq_mask': freq_mask_str,
                 'time_mask': time_mask_str,
+                # 'file_folder': dict['file_folder'],
                 'path_to_catalog': dict['path_to_catalog']}
     return dict_str
 
 
 def list_str_to_num(list_str):
-    list_num = []
-    print(list_str)
-    list_str = list_str.split(', ')
-    for un in list_str:
-        un_num = int(un)
-        list_num.append(un_num)
-    return list_num
+    return list(map(lambda x: int(x), list_str.split(', ')))
 
 
 if __name__ == '__main__':

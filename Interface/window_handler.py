@@ -17,12 +17,12 @@ parameter_dict = {'freq_resolution': 1,
                   'time_mask': [],
                   'path_to_catalog': 'hernya'}
 
-with open('c_param.bin', 'rb') as inp:
-    head = pickle.load(inp)
-    head.append(parameter_dict)
-    print(head)
-with open('c_param.bin', 'wb') as out:
-    pickle.dump(head, out)
+# with open('c_param.bin', 'rb') as inp:
+#     head = pickle.load(inp)
+#     head.append(parameter_dict)
+#     print(head)
+# with open('c_param.bin', 'wb') as out:
+#     pickle.dump(head, out)
 
 
 def param_dict_to_str(dict):
@@ -31,3 +31,7 @@ def param_dict_to_str(dict):
 
 mask_str = param_dict_to_str(parameter_dict)
 print(mask_str)
+with open('save_param.bin', 'rb') as inp:
+    head = pickle.load(inp)
+
+print(head[-1])
