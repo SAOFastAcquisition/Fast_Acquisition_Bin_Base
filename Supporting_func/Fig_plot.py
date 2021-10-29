@@ -4,6 +4,8 @@ import matplotlib.font_manager as font_manager
 from matplotlib.ticker import MaxNLocator, ScalarFormatter, FixedLocator
 import pylab
 import os
+import PyQt5
+from PyQt5 import QtWidgets
 from pathlib import Path
 
 # from IPython.display import set_matplotlib_formats
@@ -13,6 +15,13 @@ from pathlib import Path
     разных пар. В программу передается легенда и название осей. 
     Программа создает сетку, надписывает оси, дает легенду.
 '''
+
+
+class Dialog():
+    def __init__(self):
+        super.__init__()
+        pass
+
 
 
 def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_legend=[2] * 20):
@@ -90,8 +99,10 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     plt.show()
 
-    add_pass1 = path_to_pic(file_name0 + '\\', flag)
-    fig.savefig(Path(file_name0, add_pass1))
+    flag_save = 'yes'
+    if flag_save == 'yes':
+        add_pass1 = path_to_pic(file_name0 + '\\', flag)
+        fig.savefig(Path(file_name0, add_pass1))
 
 
 def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.05, 0.35, 0.35]):

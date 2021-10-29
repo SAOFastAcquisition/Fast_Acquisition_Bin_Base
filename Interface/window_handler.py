@@ -1,10 +1,38 @@
 # from Window_D import Ui_MainWindow
-# import sys
-# from PyQt5 import QtWidgets
-# import os
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import *
 import pickle
 from window_interface import main
 import os
+import sys
+
+
+class Dialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.control_picture = None
+        if self.question(self, 'Picture control', 'Save the picture?') == QMessageBox.Yes:
+            val = 'yes'
+        else:
+            val = 'no'
+        self.__setattr('control_picture', val)
+        pass
+
+    def __setattr(self, key, value):
+        self.__dict__[key] = value
+
+
+
+def exec_app():
+    app = QApplication(sys.argv)
+    dialog_win = Dialog()
+
+    dialog_win.show()
+    app.exec()
+    # print(f'control Picture = {dialog_win.control_picture}')
+    return dialog_win.control_picture
+
+
 
 if not (os.path.isfile('c_param.bin')):
     with open('c_param.bin', 'wb') as out:
@@ -35,3 +63,5 @@ with open('save_param.bin', 'rb') as inp:
     head = pickle.load(inp)
 
 print(head[-1])
+flag = exec_app()
+print(f'flag = {flag}')
