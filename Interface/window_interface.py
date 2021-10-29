@@ -11,6 +11,15 @@ import os
 __all__ = ['main', 'ExampleApp']
 
 
+class PermitAPP(QtWidgets.QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+
+        self.window = QtWidgets.QMainWindow()
+        self.window.btn1
+
+
 class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self, param_dict_str):
@@ -34,7 +43,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gB_pattrens.adjustSize()
         self.param_dict = param_dict_str
         print(f'path to catalog: {self.catalog}')
-        self.btn_load_setup.clicked.connect(self.set_initial_setup)
 
         # self.btn = QPushButton('Attention!', self)
         # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
@@ -61,7 +69,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             k += 1
 
         self.btn_load_setup.adjustSize()
-
+        self.btn_load_setup.clicked.connect(self.set_initial_setup)
         # Кнопки поиска/выбора файла для обработки и передачи управления обработчику выбора параметров
         self.btn_find_file.clicked.connect(self.find_processing_file)
         self.cbx_save_current_parameters.adjustSize()
@@ -151,7 +159,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def __save_parameters(self, data):
-        import pickle
         if not (os.path.isfile('save_param.bin')):
             head = [None]
             with open('save_param.bin', 'wb') as out:
@@ -256,6 +263,7 @@ def main():
     window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
     # if window.btn_load_setup.clicked.connect()
     window.show()  # Показываем окно
+    # save_parameters(window)
     app.exec_()  # и запускаем приложение
     freq_mask_num = list_str_to_num(window.frequency_mask)
     time_mask_num = list_str_to_num(window.time_mask)
@@ -291,6 +299,20 @@ def param_dict_to_str(dict):
 
 def list_str_to_num(list_str):
     return list(map(lambda x: int(x), list_str.split(', ')))
+
+
+# def save_parameters(data):
+#     if not (os.path.isfile('save_object.bin')):
+#         head = [None]
+#         with open('save_object.bin', 'wb') as out:
+#             pickle.dump(head, out)
+#
+#     with open('save_object.bin', 'rb') as inp:
+#         head = pickle.load(inp)
+#         head.append(data)
+#         print(head)
+#     with open('save_object.bin', 'wb') as out:
+#         pickle.dump(head, out)
 
 
 if __name__ == '__main__':

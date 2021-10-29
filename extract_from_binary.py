@@ -32,7 +32,7 @@ date = current_data_file[0:11]
 # ****** Блок исходных параметров для обработки *******
 
 kf = parameters['freq_res']  # Установка разрешения по частоте
-kt = parameters['time_res']  # Установка разрешения по времени
+kt = parameters['time_res'] // 8  # Установка разрешения по времени
 
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
@@ -461,15 +461,15 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
     # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
     if (n_left1 > 1 and n_left2 > 1) or (n_right1 > 1 and n_right2 > 1):
         band_size = 'whole'
-    if (n_left1 > 1 or n_right1 > 1) and (n_left2 == 0 and n_right2 == 0):
+    if (n_left1 > 1 or n_right1 > 1) and (n_left2 <= 1 and n_right2 <= 1):
         band_size = 'half_low'
-    if (n_left2 > 1 or n_right2 > 1) and (n_left1 == 0 and n_right1 == 0):
+    if (n_left2 > 1 or n_right2 > 1) and (n_left1 <= 1 and n_right1 <= 1):
         band_size = 'half_upper'
 
     # polar Принамает значения поляризаций: 'both', 'left', 'right'
-    if (n_left1 > 1 or n_left2 > 1) and (n_right1 == 0 or n_right2 == 0):
+    if (n_left1 > 1 or n_left2 > 1) and (n_right1 <= 1 or n_right2 <= 1):
         polar = 'left'
-    if (n_left1 == 0 or n_left2 == 0) and (n_right1 > 1 or n_right2 > 1):
+    if (n_left1 <= 1 or n_left2 <= 1) and (n_right1 > 1 or n_right2 > 1):
         polar = 'right'
     if (n_left1 > 1 or n_left2 > 1) and (n_right1 > 1 or n_right2 > 1):
         polar = 'both'
