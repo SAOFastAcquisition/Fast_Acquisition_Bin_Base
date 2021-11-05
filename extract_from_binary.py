@@ -9,6 +9,7 @@ from pathlib import Path
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Interface import main
+from Interface.window_handler import exec_app
 
 current_dir = Path.cwd()
 home_dir = Path.home()
@@ -845,15 +846,16 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
 # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
-fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
-
+# fp.save_fig(fp.fig_plot)
+# fp.save_fig(fp.fig_plot)(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # *********************************************************
 # ***            Многооконный вывод данных             ****
 # *********************************************************
-n_row = 3   # Количество окон по вериткали
-n_col = 3   # Количество окон по горизонтали
-# fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
-#                   freq_spect_mask, head, n_row, n_col)
+# n_row = 2   # Количество окон по вертикали
+# n_col = 3   # Количество окон по горизонтали
+fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
+                  freq_spect_mask, head)
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
@@ -880,5 +882,7 @@ if contour_2d_perm == 'y':
 #     graph_3d(freq, timeS[n_start_flame:n_stop_flame], spectr_extr1[n_start_flame:n_stop_flame, :], 0)
 # fp.fig_multi_axes(spectr_time[:10, n_start_flame:n_stop_flame], timeS[n_start_flame:n_stop_flame],
 #                   info_txt, file_name0, freq_spect_mask[:10])
+
+
 stop = datetime.now()
 print('\n Total time = ', stop - start)

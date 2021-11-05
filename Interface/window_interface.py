@@ -11,15 +11,6 @@ import os
 __all__ = ['main', 'ExampleApp']
 
 
-class PermitAPP(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.window = QtWidgets.QMainWindow()
-        self.window.btn1
-
-
 class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self, param_dict_str):
@@ -261,10 +252,9 @@ def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
     param_dict_str = param_dict_to_str(param_dict())
     window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
-    # if window.btn_load_setup.clicked.connect()
     window.show()  # Показываем окно
-    # save_parameters(window)
     app.exec_()  # и запускаем приложение
+
     freq_mask_num = list_str_to_num(window.frequency_mask)
     time_mask_num = list_str_to_num(window.time_mask)
 
@@ -299,20 +289,6 @@ def param_dict_to_str(dict):
 
 def list_str_to_num(list_str):
     return list(map(lambda x: int(x), list_str.split(', ')))
-
-
-# def save_parameters(data):
-#     if not (os.path.isfile('save_object.bin')):
-#         head = [None]
-#         with open('save_object.bin', 'wb') as out:
-#             pickle.dump(head, out)
-#
-#     with open('save_object.bin', 'rb') as inp:
-#         head = pickle.load(inp)
-#         head.append(data)
-#         print(head)
-#     with open('save_object.bin', 'wb') as out:
-#         pickle.dump(head, out)
 
 
 if __name__ == '__main__':
