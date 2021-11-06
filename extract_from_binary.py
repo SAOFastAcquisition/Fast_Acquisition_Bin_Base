@@ -32,8 +32,9 @@ date = current_data_file[0:11]
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******
 
-kf = parameters['freq_res']  # Установка разрешения по частоте
-kt = parameters['time_res'] // 8  # Установка разрешения по времени
+
+freq_res = parameters['freq_res']  # Установка разрешения по частоте в МГц
+kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
 N_Nyq = 2   # Номер зоны Найквиста
 shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
@@ -53,7 +54,7 @@ param_robust_filter = 1.1
 align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
-graph_3d_perm = 'n'
+graph_3d_perm = 'y'
 contour_2d_perm = 'n'
 
 if N_Nyq == 3:
@@ -666,6 +667,50 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     return s_freq * (2 ** shift), s_time * (2 ** shift)
 
 
+def spectr_construction(Spectr, kf, kt):
+    ''' Функция формирует спектр принятого сигнала с требуемым разрешением по частоте и времени. Максимальное
+    разрешение отсчетов по времени 8192 мкс и по частоте 7,8125 МГц. Путем суммирования и усреднерия по kt*kf
+    отсчетам разрешение по частоте и по времени в исходном спектре Spectr уменьшается в kf и kt раз,
+    соответственно. Преобразованный спектр возвращается как S1. Для трехмерного изображения
+    '''
+
+    N_col1 = N_col // kf
+    N_row1 = N_row // kt
+    S1 = np.zeros((N_row1, N_col1))
+
+    for i in range(N_row1):
+        for j in range(N_col1):
+            try:
+                S1[i, j] = np.sum(Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf])
+                N_mesh = (Spectr[i * kt: (i + 1) * kt, j * kf: (j + 1) * kf] > 10).sum()
+                if N_mesh == 0:
+                    S1[i, j] = 2
+                else:
+                    S1[i, j] = S1[i, j] / N_mesh
+                if S1[i, j] == 0:
+                    S1[i, j] = 2
+                # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
+                #     S1[i, j] = np.sum(S1[i, j-3:j])//3
+                if robust_filter == 'y':
+                    a = param_robust_filter
+                    if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
+                        S1[i, j] = np.sum(S1[i - 1, j])
+                    if (i > 3) & (S1[i, j] > a * np.sum(S1[i - 3:i - 1, j]) // 2):
+                        # print(S1[i - 3:i+1, j])
+                        S1[i, j] = np.sum(S1[i - 1, j])
+                        # print(S1[i, j])
+                        pass
+
+            except IndexError as allert_message:
+                print(allert_message, 'ind i = ', i, 'ind j = ', j)
+                pass
+            except ValueError as value_message:
+                print(value_message, 'ind i = ', i, 'ind j = ', j)
+                pass
+
+    return S1  # // kt // kf
+
+
 def path_to_fig():
     """ Создает директорию для рисунков обрабатываемого наблюдения, если она до этого не была создана,
     название директории  совпадает с названием исходного файла данных наблюдения
@@ -786,6 +831,8 @@ def unite_spectrum(spec):
 spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
     preparing_data()
 aver_param = 2 ** (6 - n_aver)
+kf = int(freq_res / delta_f * aver_param)   # Установка разрешения по частоте в единицах максимального разрешения для
+# данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
 with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
     head = pickle.load(inp)
 
@@ -814,8 +861,8 @@ if len(ser_ind) == 2:
 else:
     spectrum_extr = united_spectrum[0]
 
-if noise_calibr == 'y':
-    spectr_time = calibration(t_cal, spectr_time)
+# if noise_calibr == 'y':
+#     spectr_time = calibration(t_cal, spectr_time)
 
 # # ***********************************************
 # # ***        Графический вывод данных        ****
@@ -845,24 +892,24 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
 path_to_fig()
-# fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
-# fp.save_fig(fp.fig_plot)
-# fp.save_fig(fp.fig_plot)(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+
+if parameters['output_picture_mode'] == 'yes':
+    fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+    fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # *********************************************************
 # ***            Многооконный вывод данных             ****
 # *********************************************************
-# n_row = 2   # Количество окон по вертикали
-# n_col = 3   # Количество окон по горизонтали
-fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
-                  freq_spect_mask, head)
+if parameters['output_picture_mode'] == 'no':
+    fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(file_path_data, current_data_file),
+                      freq_spect_mask, head)
 
 # *********************************************************
 # ***        Вывод данных двумерный и трехмерный       ****
 # *********************************************************
 # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
 if graph_3d_perm == 'y' or contour_2d_perm == 'y':
-    spectr_extr1 = spectr_construction(spectr_extr, kf, kt)
+    spectr_extr1 = spectr_construction(spectrum_extr, kf, kt)
 # Информация о временном и частотном резрешениях
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
@@ -870,9 +917,9 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
 path_to_fig()
 
 if graph_3d_perm == 'y':
-    graph_3d(freq, timeS, spectr_extr1, 0)
+    fp.graph_3d(freq, timeS, spectr_extr1, 0, current_data_file, head)
 if contour_2d_perm == 'y':
-    graph_contour_2d(freq, timeS, spectr_extr1, 0)
+    fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
 
 # if align == 'y':
 #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)

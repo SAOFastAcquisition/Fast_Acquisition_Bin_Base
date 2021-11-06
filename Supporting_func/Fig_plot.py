@@ -372,24 +372,24 @@ def graph_3d(*args):
     from matplotlib import cm
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(1, 1, 1, projection='3d')
-    xval, yval, z, s = args
+    xval, yval, z, s, file_name, head = args
     x, y = np.meshgrid(xval, yval)
     ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
-    title1, title2 = pic_title()
+    title1, title2, title3 = title_func(file_name, head)
     ax.set_title(title2 + ' ' + title1, fontsize=20)
-    ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
-    ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
+    # ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
+    # ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
     ax.set_xlabel('Frequency, MHz', fontsize=16)
     ax.set_ylabel('Time, s', fontsize=16)
     plt.tick_params(axis='both', which='major', labelsize=14)
     # cmap = plt.get_cmap('jet')
     if s:
         surf = ax.plot_surface(x, y, z, rstride=2, cstride=2, cmap=cm.plasma)
-        plt.savefig(file_name0 + '_wK' + '.png', format='png', dpi=100)
+        plt.savefig(file_name + '_wK' + '.png', format='png', dpi=100)
         return
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
-    add_path0 = fp.path_to_pic(file_name0 + '\\', 3)
-    plt.savefig(file_name0 + '\\' + add_path0, format='png', dpi=100)
+    add_path0 = path_to_pic(file_name + '\\', 3)
+    # plt.savefig(file_name + '\\' + add_path0, format='png', dpi=100)
     plt.show()
     return
 
