@@ -1,13 +1,13 @@
-import matplotlib.pyplot as plt
+import os
+import sys
+from pathlib import Path
+import pylab
 import numpy as np
+import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from matplotlib.ticker import MaxNLocator, ScalarFormatter, FixedLocator
-import pylab
-import os
-import PyQt5
-from PyQt5 import QtWidgets
-from pathlib import Path
-
+from tkinter import *
+from tkinter import messagebox as mb
 # from IPython.display import set_matplotlib_formats
 # set_matplotlib_formats('svg')
 
@@ -17,13 +17,39 @@ from pathlib import Path
 '''
 
 
-class Dialog():
-    def __init__(self):
-        super.__init__()
-        pass
+def save_fig(func):
+    """ Функция-декоратор для сохранения в одноименную с файлом данных папку рисунков временных сканов и спектров
+    в выделенные моменты времени."""
+    def wrapper(*args):
+        figure, file_name, flag = func(*args)
+        add_pass1 = path_to_pic(file_name + '\\', flag)
+        path = Path(file_name, add_pass1)
+        figure.savefig(path)
+        del figure
+        flag_save = save_question()
+        if flag_save == 'no':
+            if os.path.isfile(path):
+                os.remove(path)
+                print('Picture is not saved')
+            else:
+                print('File not found')
+        else:
+            print('Picture is saved')
+        return
+    return wrapper
 
 
+def save_question():
+    root = Tk()
+    answer = mb.askquestion(
+        title="Save control",
+        message="Save picture?")
+    root.mainloop()
+    del root
+    return answer
 
+
+@save_fig
 def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_legend=[2] * 20):
     file_name0 = str(file_name0_path)
     size_sp1 = spectr1.shape
@@ -98,11 +124,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
 
     plt.show()
-
-    flag_save = 'yes'
-    if flag_save == 'yes':
-        add_pass1 = path_to_pic(file_name0 + '\\', flag)
-        fig.savefig(Path(file_name0, add_pass1))
+    # print(f'type fig: {type(fig)}')
+    return fig, file_name0, flag
 
 
 def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.05, 0.35, 0.35]):
@@ -179,7 +202,8 @@ def title_func(file_name0, head):
     return title1, title2, title02
 
 
-def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n_row_pic=2, n_col_pic=3):
+@save_fig
+def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
     """ Функция строит многооконный рисунок, принимает numpy-массив в качестве значений (первый индекс массива -
     число графиков-окон), аргумент, информацию о свойствах графиков (разрешение по времени и частоте, поляризация), путь
     к файлу данных, характеристики файла данных head, список параметра freq_mask, каждому значению из которого
@@ -191,6 +215,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
     file_name0 = str(file_name0path)
     size_sp1 = spectr1.shape
     freq_line_sp1 = size_sp1[0]
+    n_col_pic, n_row_pic = config_fig_multi_axes(freq_line_sp1)
 
     title1, title2, title02 = title_func(file_name0, head)
 
@@ -202,7 +227,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
     fig.suptitle(title2 + ' scan' + title1, y=1.0, fontsize=24)
 
     for i_freq in range(freq_line_sp1):
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument, spectr1[i_freq, :])
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2])
 
         axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz')
         # Show the major grid lines with dark grey lines
@@ -240,8 +265,35 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head, n
     font = font_manager.FontProperties(family='Comic Sans MS',
                                        weight='bold',
                                        style='normal', size=16)
-    add_pass1 = path_to_pic(file_name0, 0)
-    fig.savefig(Path(file_name0, add_pass1))
+    # add_pass1 = path_to_pic(file_name0, 0)
+    # fig.savefig(Path(file_name0, add_pass1))
+    return fig, file_name0, 0
+
+
+def config_fig_multi_axes(n):
+
+    if n == 11:
+        n_col, n_row = (4, 3)
+    elif n == 10:
+        n_col, n_row = (4, 3)
+    elif n == 9:
+        n_col, n_row = (4, 3)
+    elif n == 8:
+        n_col, n_row = (3, 3)
+    elif n == 7:
+        n_col, n_row = (3, 3)
+    elif n == 6:
+        n_col, n_row = (3, 3)
+    elif n == 5:
+        n_col, n_row = (3, 2)
+    elif n == 4:
+        n_col, n_row = (3, 2)
+    elif n == 3:
+        n_col, n_row = (2, 2)
+    elif n == 2:
+        n_col, n_row = (2, 2)
+
+    return n_col, n_row
 
 
 def path_to_pic(file_path, flag, format='png'):
@@ -320,24 +372,24 @@ def graph_3d(*args):
     from matplotlib import cm
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(1, 1, 1, projection='3d')
-    xval, yval, z, s = args
+    xval, yval, z, s, file_name, head = args
     x, y = np.meshgrid(xval, yval)
     ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
-    title1, title2 = pic_title()
+    title1, title2, title3 = title_func(file_name, head)
     ax.set_title(title2 + ' ' + title1, fontsize=20)
-    ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
-    ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
+    # ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
+    # ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
     ax.set_xlabel('Frequency, MHz', fontsize=16)
     ax.set_ylabel('Time, s', fontsize=16)
     plt.tick_params(axis='both', which='major', labelsize=14)
     # cmap = plt.get_cmap('jet')
     if s:
         surf = ax.plot_surface(x, y, z, rstride=2, cstride=2, cmap=cm.plasma)
-        plt.savefig(file_name0 + '_wK' + '.png', format='png', dpi=100)
+        plt.savefig(file_name + '_wK' + '.png', format='png', dpi=100)
         return
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
-    add_path0 = fp.path_to_pic(file_name0 + '\\', 3)
-    plt.savefig(file_name0 + '\\' + add_path0, format='png', dpi=100)
+    add_path0 = path_to_pic(file_name + '\\', 3)
+    # plt.savefig(file_name + '\\' + add_path0, format='png', dpi=100)
     plt.show()
     return
 

@@ -11,15 +11,6 @@ import os
 __all__ = ['main', 'ExampleApp']
 
 
-class PermitAPP(QtWidgets.QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.window = QtWidgets.QMainWindow()
-        self.window.btn1
-
-
 class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self, param_dict_str):
@@ -42,19 +33,17 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lne_time_resolution.setText(self.time_res)
         self.gB_pattrens.adjustSize()
         self.param_dict = param_dict_str
-        print(f'path to catalog: {self.catalog}')
+        self.rbn_one_window.checkStateSet()
+        # print(f'path to catalog: {self.catalog}')
 
-        # self.btn = QPushButton('Attention!', self)
         # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
         # словаря param_dict_str по ключу 'freq_mask'.
         self.tableWidget_freq_patterns.setColumnWidth(0, 450)
         freq_mask = param_dict_str['freq_mask']
         k = 0
-        print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)
             item_freq.setText(unit)
-            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
             k += 1
 
@@ -64,7 +53,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         for unit in time_mask:
             item_time = self.tableWidget_time_patterns.item(k, 0)
             item_time.setText(unit)
-            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_time_patterns.setItem(k, 0, item_time)
             k += 1
 
@@ -87,7 +75,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         init_dict = self.param_dict
         with open('save_param.bin', 'rb') as inp:
             param_set = pickle.load(inp)[-1]
-        print(f'param_set = {param_set}')
+        # print(f'param_set = {param_set}')
         self.__set_attr('index_freq_mask', param_set['ind_freq_checkbox'])
         self.__set_attr('index_time_mask', param_set['ind_time_checkbox'])
         self.__set_attr('frequency_mask', param_set['freq_mask'])
@@ -105,8 +93,8 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lne_file_name.setText(self.lne_file_name.text() + self.file_name)
 
         a = param_set['file_folder']
-        print(f'path to catalog: {self.catalog}, file folder: {a}')
-        print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
+        # print(f'path to catalog: {self.catalog}, file folder: {a}')
+        # print(f'ind_freq_mask: {self.index_freq_mask}, freq_mask = {self.frequency_mask}')
         freq_mask = init_dict['freq_mask']
         if self.index_freq_mask is not None:
             i = self.index_freq_mask
@@ -120,7 +108,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)
             item_freq.setText(unit)
-            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_freq_patterns.setItem(k, 0, item_freq)
             k += 1
 
@@ -132,20 +119,16 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 time_mask[i] = self.time_mask
             except IndexError:
                 time_mask.append(self.time_mask)
-            # self.tableWidget_time_patterns.setCheckState(i, 0, 2)
         for unit in time_mask:
             item_time = self.tableWidget_time_patterns.item(k, 0)
             item_time.setText(unit)
-            # newItem.setForeground(QBrush(QColor(255, 0, 0)))
             self.tableWidget_time_patterns.setItem(k, 0, item_time)
             k += 1
         pass
 
     def __save_latest_setup(self, state):
         if state == Qt.Checked:
-            print(state, type(state))
-            print(f'Save_latest - file_folder: {self.file_folder}, file_name: {self.file_name}')
-            # file = open('custom_parameters.txt', 'a')
+            # print(f'Save_latest - file_folder: {self.file_folder}, file_name: {self.file_name}')
             parameter_dict = {'freq_res': self.freq_res,
                               'time_res': self.time_res,
                               'freq_mask': self.frequency_mask,
@@ -179,14 +162,13 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if int(res_time) < 8:
             message_box_time = QMessageBox.information(self, 'Time resolution verification',
                                                        'Your resolution too small or negative! '
-                                                       'Set the resolution greater then 8')
+                                                       'Set the resolution greater or equal then 8 and divisible by 8')
             message_box_time.move(self, 200, 400)
         else:
             self.__set_attr('time_res', res_time)
         if int(res_frequency) < 1:
-            message_box_freq = QMessageBox.critical(self, 'Frequency resolution verification',
-                                                    'Your resolution too small or negative! '
-                                                    'Set the resolution greater then 1')
+            QMessageBox.critical(self, 'Frequency resolution verification', 'Your resolution too small or negative! '
+                                                                            'Set the resolution greater then 1')
         else:
             self.__set_attr('freq_res', res_frequency)
 
@@ -197,7 +179,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         for i in range(n):
             item_freq = self.tableWidget_freq_patterns.item(i, 0)
             a_freq = item_freq.checkState()
-            print(a_freq, item_freq)
+            # print(a_freq, item_freq)
 
             if a_freq == 2:
                 self.__set_attr('index_freq_mask', i)
@@ -208,17 +190,14 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     freq_mask_choose_str = item_freq.text()
                     self.__set_attr('frequency_mask', freq_mask_choose_str)
         if count_choose == 0:
-            print('Choose frequency pattern')
-            message_box_freq = QMessageBox.critical(self, 'Frequency pattern verification',
-                                                    'Choose frequency pattern! '
-                                                    'Set the frequency pattern!')
+            QMessageBox.critical(self, 'Frequency pattern verification', 'Choose frequency pattern! '
+                                                                         'Set the frequency pattern!')
         # Маска По времени
         n = self.tableWidget_time_patterns.rowCount()
         count_choose = 0
         for i in range(n):
             item_time = self.tableWidget_time_patterns.item(i, 0)
             a_time = item_time.checkState()
-            print(a_time, item_time)
 
             if a_time == 2:
                 self.__set_attr('index_time_mask', i)
@@ -229,10 +208,8 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     time_mask_choose_str = item_time.text()
                     self.__set_attr('time_mask', time_mask_choose_str)
         if count_choose == 0:
-            print('Choose time pattern')
-            message_box_time = QMessageBox.critical(self, 'Time pattern verification',
-                                                    'Choose time pattern! '
-                                                    'Set the time pattern!')
+            QMessageBox.critical(self, 'Time pattern verification', 'Choose time pattern! '
+                                 'Set the time pattern!')
             # Сохранение текущих настроек
         self.__save_latest_setup(self.cbx_save_current_parameters.checkState())
         pass
@@ -261,10 +238,9 @@ def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
     param_dict_str = param_dict_to_str(param_dict())
     window = ExampleApp(param_dict_str)  # Создаём объект класса ExampleApp
-    # if window.btn_load_setup.clicked.connect()
     window.show()  # Показываем окно
-    # save_parameters(window)
     app.exec_()  # и запускаем приложение
+
     freq_mask_num = list_str_to_num(window.frequency_mask)
     time_mask_num = list_str_to_num(window.time_mask)
 
@@ -274,7 +250,8 @@ def main():
                        'freq_mask': freq_mask_num,
                        'time_mask': time_mask_num,
                        'file_name': window.file_name,
-                       'file_folder': window.file_folder}
+                       'file_folder': window.file_folder,
+                       'output_picture_mode': 'yes' if window.rbn_one_window.isChecked() == True else "no"}
     return parameters_dict
 
 
@@ -301,20 +278,6 @@ def list_str_to_num(list_str):
     return list(map(lambda x: int(x), list_str.split(', ')))
 
 
-# def save_parameters(data):
-#     if not (os.path.isfile('save_object.bin')):
-#         head = [None]
-#         with open('save_object.bin', 'wb') as out:
-#             pickle.dump(head, out)
-#
-#     with open('save_object.bin', 'rb') as inp:
-#         head = pickle.load(inp)
-#         head.append(data)
-#         print(head)
-#     with open('save_object.bin', 'wb') as out:
-#         pickle.dump(head, out)
-
-
 if __name__ == '__main__':
     parameter = main()
     time_res = parameter['time_res']
@@ -323,8 +286,9 @@ if __name__ == '__main__':
     file_folder = parameter['file_folder']
     freq_mask = parameter['freq_mask']
     time_mask = parameter['time_mask']
+    picture_mode = parameter['output_picture_mode']
     print(f'time_res = {time_res}, freq_res = {freq_res}, file_name = {file_name}, file_folder= {file_folder},'
-          f' freq_mask = {freq_mask}, time_mask = {time_mask}')
+          f' freq_mask = {freq_mask}, time_mask = {time_mask}, picture mode = {picture_mode}')
 
 # # объект приложения
 # app = QApplication(sys.argv)
