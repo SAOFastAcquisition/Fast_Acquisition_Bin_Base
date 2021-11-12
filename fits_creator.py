@@ -18,13 +18,13 @@ spectrum1 = np.array(spectrum[3])
 f_spectrum = fits.PrimaryHDU(spectrum1)
 pass
 print(f_spectrum)
-f_spectrum.update('NAXIS1', 512, "frequency axis")
+# f_spectrum.update('NAXIS1', 512, "frequency axis")
 # hdulist.info()
 
 print(repr(f_spectrum.header))
 print(list(f_spectrum.header.keys()))
 a = f_spectrum.header
-b = f_spectrum.data
+b = np.log10(np.log10(f_spectrum.data))
 print(f_spectrum.data)
 m = f_spectrum.data.shape
 print(f'shape of f_spectrum.data is: {m}')
