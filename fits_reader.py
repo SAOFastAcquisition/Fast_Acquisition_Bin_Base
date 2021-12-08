@@ -14,5 +14,6 @@ b = hdu.data
 print(hdu.data)
 m = hdu.data.shape
 print(m)
+print(type(a), a, '/')
 plt.imshow(hdu.data[:,:], origin='lower')
 plt.show()

@@ -21,8 +21,8 @@ def save_fig(func):
     """ Функция-декоратор для сохранения в одноименную с файлом данных папку рисунков временных сканов и спектров
     в выделенные моменты времени."""
     def wrapper(*args):
-        figure, file_name, flag = func(*args)
-        add_pass1 = path_to_pic(file_name + '\\', flag)
+        figure, file_name, flag, format = func(*args)
+        add_pass1 = path_to_pic(file_name + '\\', flag, format)
         path = Path(file_name, add_pass1)
         figure.savefig(path)
         del figure
@@ -124,8 +124,12 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
 
     plt.show()
+    format = 'png'
+    path_Bogod = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')
+    if path_Bogod.is_dir():
+        format = 'svg'
     # print(f'type fig: {type(fig)}')
-    return fig, file_name0, flag
+    return fig, file_name0, flag, format
 
 
 def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.05, 0.35, 0.35]):
