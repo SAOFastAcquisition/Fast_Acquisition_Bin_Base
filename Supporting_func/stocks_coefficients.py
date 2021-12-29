@@ -133,8 +133,8 @@ if __name__ == '__main__':
     align = 'y'
 
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
-    current_data_dir = '2021_03_27sun'  # Папка с текущими данными
-    current_data_file = '2021-03-27_06+12'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_12_22sun'  # Папка с текущими данными
+    current_data_file = '2021-12-22_06_+04'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 

@@ -271,7 +271,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
                                        style='normal', size=16)
     # add_pass1 = path_to_pic(file_name0, 0)
     # fig.savefig(Path(file_name0, add_pass1))
-    return fig, file_name0, 0
+    return fig, file_name0, 0, 'png'
 
 
 def config_fig_multi_axes(n):

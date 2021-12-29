@@ -49,6 +49,9 @@ def align_func(s_loc: object, aver_param_noise: object, diff: object = 'n') -> o
     if n_nyq == 3:
         n1 = int((90 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
         n2 = int((220 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n3 = int((540 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n4 = int((700 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        kp_norm[n3:n4] = 1
     else:
         n1 = int((80 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
         n2 = int((230 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
@@ -95,8 +98,8 @@ def align_visualization(coeff_set):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-04-15_14'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_04_15test'  # Папка с текущими данными
+current_data_file = '2021-12-21_11_LP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_12_21test'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
@@ -182,11 +185,16 @@ calibrate_row_ser = pd.Series(calibrate_row)
 # Определяем, есть ли в сводной таблице данные с такими же исходными параметрами. Если есть, то будет их
 # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
 # вставлен в таблицу (объект DataFrame)
-idx = calibration_frame.loc[(calibration_frame.date == head['date'])
-                            & (calibration_frame.att1 == head['att1'])
-                            & (calibration_frame.att2 == head['att2'])
-                            & (calibration_frame.att3 == head['att3'])
-                            & calibration_frame.polar == head['polar']].index
+try:
+    if not 'polar' in calibration_frame.columns:
+        calibration_frame.polar = ''
+    idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+                                & (calibration_frame.att1 == head['att1'])
+                                & (calibration_frame.att2 == head['att2'])
+                                & (calibration_frame.att3 == head['att3'])
+                                & (calibration_frame.polar == head['polar'])].index
+except AttributeError:
+    calibration_frame.polar = ''
 
 if len(idx):
     r = calibration_frame.iloc[idx[0]]
