@@ -30,9 +30,9 @@ def noise_kp(spectrum_noise_out, diff='n'):
     s_max = np.max(s)
     kp_norm = s / s_max
     # plt.plot(s)
-    #     # plt.show()
-    #     # plt.plot(kp_norm)
-    #     # plt.show()
+    # plt.show()
+    # plt.plot(kp_norm)
+    # plt.show()
     return kp_norm, n_col, s_max
 
 
@@ -98,7 +98,7 @@ def align_visualization(coeff_set):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-12-21_11_LP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-12-21_04_RP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_12_21test'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
@@ -217,7 +217,7 @@ if len(idx):
         calibration_frame = calibration_frame.drop(idx).append(r, ignore_index=True)
 else:
     calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
-
+# calibration_frame = calibration_frame.drop(idx)
 with open(Path(folder_align_path, align_file_name), 'wb') as out:
     pickle.dump(calibration_frame, out)
 

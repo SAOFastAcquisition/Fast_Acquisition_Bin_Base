@@ -15,8 +15,8 @@ def head_creator(head_fits, head_data):
     head_fits['ALIGNPA'] = (head_data['align_file_path'], 'Path to align coefficients')
     head_fits['ALIGNPOS'] = (head_data['align_coeff_pos'], 'Align coefficients position')
 
-    head_fits['DTIME'] = (8.125e-3, 'Time resolution')
-    head_fits['DFREQ'] = (7.875, 'Frequency resolution')
+    head_fits['DTIME'] = (8.125e-3, 'Time resolution, s')
+    head_fits['DFREQ'] = (7.875, 'Frequency resolution, MHz')
 
     head_fits['KURTOSIS'] = (head_data['kurtosis'], 'Half wide of kurtosis interval')
     head_fits['ATT1'] = (head_data['att1'], 'Common attenuation')
@@ -54,10 +54,7 @@ f_spectrum = fits.PrimaryHDU(spectrum1)
 pass
 # hdulist.info()
 
-# print(repr(f_spectrum.header))
-# a = f_spectrum.header
 f_spectrum.header = head_creator(f_spectrum.header, head)
-# f_spectrum.header = a
 print(repr(f_spectrum.header))
 
 b = np.log10(np.log10(f_spectrum.data))
