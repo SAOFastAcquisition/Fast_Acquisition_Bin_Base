@@ -97,7 +97,7 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibr
     # align_coeff = np.loadtxt(path_calibration)
     with open(path_calibration, 'rb') as inp:
         calibration_frame_inp = pickle.load(inp)
-    r = calibration_frame_inp.iloc[3]
+    r = calibration_frame_inp.iloc[1]
     align_coeff = [r['spectrum_left1'], r['spectrum_left2'], r['spectrum_right1'], r['spectrum_right2']]
     # align_coeff2 =
     # align_coeff3 =

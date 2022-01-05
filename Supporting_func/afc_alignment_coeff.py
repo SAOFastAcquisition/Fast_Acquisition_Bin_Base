@@ -67,7 +67,6 @@ def align_func(s_loc: object, aver_param_noise: object, diff: object = 'n') -> o
         freq = np.linspace(1000 * n_nyq - 3.9063 / aver_param, 1000 * (n_nyq - 1) + 3.9063 / aver_param, n_col)
 
     return align_coeff, s_max
-    # , freq * 1000000, spectrum_cal
 
 
 def align_visualization(coeff_set):
@@ -85,20 +84,20 @@ def align_visualization(coeff_set):
     freq1 = np.linspace(1000 * 2 - 3.9063 / aver_param, 1000 * (2 - 1) + 3.9063 / aver_param, n_col)
     freq = np.concatenate((freq1, freq2))
 
-    fig, ax = plt.subplots(1, figsize=(12, 6))
-    ax.plot(freq, align_right[0])
-    ax.plot(freq, align_right[1])
-    ax.plot(freq, align_right[2])
+    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    # ax.plot(freq, align_right[0])
+    # ax.plot(freq, align_right[1])
+    # ax.plot(freq, align_right[2])
     # ax.plot(align_coeff[1])
     # ax.plot(align_coeff[2])
     # ax.plot(align_coeff[3])
-    plt.show()
+    # plt.show()
 
     pass
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-12-21_04_RP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-12-21_01_RP_ng_att-00'  # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_12_21test'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
@@ -109,7 +108,7 @@ file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 # Путь к файлу хранения коэффициентов (он один для всех калибровок АЧХ каналов)
 folder_align_path = Path(head_path, 'Alignment')
 
-visualization_set = [0, 1, 2]
+visualization_set = [0, 1]
 
 # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
 columns_names = ['date', 'att1', 'att2', 'att3',
@@ -123,7 +122,7 @@ else:
         calibration_frame = pickle.load(inp)
 # ************************************************************************************
 
-align_visualization(visualization_set)
+# align_visualization(visualization_set)
 
 # Загрузка исходных данных ('_spectrum.npy' - сами данные, _head.bin - вспомогательные)
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
@@ -142,9 +141,9 @@ i = 0
 flag_align = 0  # Выравнивания по всему диапазону еще нет
 for s in spectrum:
     if i % 2:
-        n_nyq = 2
-    else:
         n_nyq = 3
+    else:
+        n_nyq = 2
     if np.size(s) > 1:
         s_unipol = s  # [s > 100]
         align_coeff[i], s_max_band[i] = align_func(s_unipol, aver_param)
@@ -177,7 +176,7 @@ plt.show()
 calibrate_row = {'date': current_data_file[:11], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                  'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                  'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
-                 'max_left1': s_max_band[0], 'max_left2': s_max_band[1],
+                 'max_left1': s_max_band[2], 'max_left2': s_max_band[3],
                  'max_right1': s_max_band[2], 'max_right2': s_max_band[3],
                  'flag_align': flag_align}  # 'flag_align' - признак выравнивания по всему диапазону : 1 - сделано
 calibrate_row_ser = pd.Series(calibrate_row)
@@ -185,16 +184,14 @@ calibrate_row_ser = pd.Series(calibrate_row)
 # Определяем, есть ли в сводной таблице данные с такими же исходными параметрами. Если есть, то будет их
 # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
 # вставлен в таблицу (объект DataFrame)
-try:
-    if not 'polar' in calibration_frame.columns:
-        calibration_frame.polar = ''
-    idx = calibration_frame.loc[(calibration_frame.date == head['date'])
-                                & (calibration_frame.att1 == head['att1'])
-                                & (calibration_frame.att2 == head['att2'])
-                                & (calibration_frame.att3 == head['att3'])
-                                & (calibration_frame.polar == head['polar'])].index
-except AttributeError:
+
+if not 'polar' in calibration_frame.columns:
     calibration_frame.polar = ''
+idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+                            & (calibration_frame.att1 == head['att1'])
+                            & (calibration_frame.att2 == head['att2'])
+                            & (calibration_frame.att3 == head['att3'])
+                            & (calibration_frame.polar == head['polar'])].index
 
 if len(idx):
     r = calibration_frame.iloc[idx[0]]
