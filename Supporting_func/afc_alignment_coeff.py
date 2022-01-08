@@ -97,7 +97,7 @@ def align_visualization(coeff_set):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-12-21_01_RP_ng_att-00'  # Имя файла с исходными текущими данными без расширения
+current_data_file = '2021-12-21_11_LP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
 current_data_dir = '2021_12_21test'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
@@ -176,7 +176,7 @@ plt.show()
 calibrate_row = {'date': current_data_file[:11], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                  'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                  'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
-                 'max_left1': s_max_band[2], 'max_left2': s_max_band[3],
+                 'max_left1': s_max_band[0], 'max_left2': s_max_band[1],
                  'max_right1': s_max_band[2], 'max_right2': s_max_band[3],
                  'flag_align': flag_align}  # 'flag_align' - признак выравнивания по всему диапазону : 1 - сделано
 calibrate_row_ser = pd.Series(calibrate_row)
