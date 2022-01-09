@@ -51,7 +51,7 @@ band_size_init = 'whole'
 # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
+align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
