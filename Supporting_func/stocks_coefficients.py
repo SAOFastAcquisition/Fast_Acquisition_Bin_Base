@@ -21,7 +21,7 @@ def initial_scan_cut(data):
     """ Функция принимает данные с левой поляризацией и определяет индексы центров импульсов
     меандра с левой поляризацией. Центры импульсов с правой поляризацией принимаются
     как лежащие посередине между между центрами с левой поляризацией.
-    Функция отдает массивы индексов центров с левой и правой поляризациями"""
+    Функция возвращает массивы индексов центров с левой и правой поляризациями"""
 
     data_shape = np.shape(data)
     j = 0
@@ -133,51 +133,56 @@ if __name__ == '__main__':
     align = 'y'
 
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
-    current_data_dir = '2021_12_22sun'  # Папка с текущими данными
-    current_data_file = '2021-12-22_06_+04'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_12_26sun'  # Папка с текущими данными
+    current_data_file = '2021-12-26_16+00'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+    path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
 
+    if not (os.path.isfile(path_to_stocks)):
 
-    #               **********************************************
-    # ************** Загрузка матрицы спектров и установок (head) *************
-    with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
-        head = pickle.load(inp)
-    spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
-    #               **********************************************
+        #               **********************************************
+        # ************** Загрузка матрицы спектров и установок (head) *************
+        with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
+            head = pickle.load(inp)
+        spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+        #               **********************************************
 
-    if align == 'y':
-        path = Path(head_path, 'Alignment', align_file_name)
-        spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
-                                   path)
+        if align == 'y':
+            path = Path(head_path, 'Alignment', align_file_name)
+            spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
+                                       path, 1)
 
-    input_data_upper = {'left': spectrum[1],
-                        'right': spectrum[3]}
-    input_data_lower = {'left': spectrum[0],
-                        'right': spectrum[2]}
+        input_data_upper = {'left': spectrum[1],
+                            'right': spectrum[3]}
+        input_data_lower = {'left': spectrum[0],
+                            'right': spectrum[2]}
 
-    a1 = input_data_upper['left']
-    b1 = input_data_upper['right']
+        a1 = input_data_upper['left']
+        b1 = input_data_upper['right']
 
-    a = input_data_lower['left']
-    # a = a[-1::-1][:]
-    b = input_data_lower['right']
-    # b = b[-1::-1][:]
-    mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
+        a = input_data_lower['left']
+        # a = a[-1::-1][:]
+        b = input_data_lower['right']
+        # b = b[-1::-1][:]
+        mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
 
-    c = pol_intensity(a, mean_frame_ind_left)
-    d = pol_intensity(b, mean_frame_ind_right)
-    c1 = pol_intensity(a1, mean_frame_ind_left)
-    d1 = pol_intensity(b1, mean_frame_ind_right)
-    c = np.hstack((c, c1))
-    d = np.hstack((d, d1))
-    # Параметры Стокса
-    s0 = c + d
-    s3 = c - d
-    mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008125
-    stocks_coeff = pd.Series([s0, s3, mean_frame_ind_pol])
-    np.save(Path(file_path_data, current_data_file + '_stocks'), stocks_coeff)
+        c = pol_intensity(a, mean_frame_ind_left)
+        d = pol_intensity(b, mean_frame_ind_right)
+        c1 = pol_intensity(a1, mean_frame_ind_left)
+        d1 = pol_intensity(b1, mean_frame_ind_right)
+        c = np.hstack((c, c1))
+        d = np.hstack((d, d1))
+        # Параметры Стокса
+        s0 = c + d
+        s3 = c - d
+        mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008125
+        stocks_coeff = pd.Series([s0, s3, mean_frame_ind_pol])
+        np.save(path_to_stocks, stocks_coeff)
 
+    else:
+        stocks_coeff = np.load(path_to_stocks, allow_pickle=True)
+        [s0, s3, mean_frame_ind_pol] = stocks_coeff
     for j in range(0, 512, 20):
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()

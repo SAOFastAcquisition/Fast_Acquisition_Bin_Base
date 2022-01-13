@@ -605,6 +605,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     """
     ind_spec = []
     ind_time = []
+    t_ng = 6000
     N_col = np.shape(spectr_extr)[1]
     s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
@@ -666,7 +667,11 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq * (2 ** shift), s_time * (2 ** shift)
+    if head['att3'] == 0:
+        a = 5.27e8
+    elif head['att3'] == 5:
+        a = 6.21e8
+    return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
 
 
 def spectr_construction(Spectr, kf, kt):
@@ -840,9 +845,14 @@ with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
 
 # Выравнивание спектров по результатам шумовых измерений АЧХ
 if align == 'y':
+    if head['att3'] == 5:
+        pos = 1
+    elif head['att3'] == 0:
+        pos = 0
     path_output = Path(folder_align_path, align_file_name)
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
-        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, head, path_output)
+        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
+                       head, path_output, pos)
 
 # Приведение порядка следования отсчетов по частоте к нормальному
 if np.size(spectr_extr_left1):
@@ -872,17 +882,15 @@ else:
 
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
-time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-# time_spect_mask = [1, 2, 7, 8, 9, 17, 18]
+# time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+time_spect_mask = [5, 17, 31, 43, 58]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
 shift = head['shift']
 spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
-# path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
-# print(path_txt)
-# np.savetxt(path_txt, spectr_time)
+
 # Формирование строк-аргументов по времени и частоте и легенды
 N_col = np.shape(spectrum_extr)[1]
 if band_size_init == 'half':
@@ -891,6 +899,15 @@ if band_size_init == 'half':
 elif band_size_init == 'whole':
     freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
+
+# ***************!! Вывод данных в текстовой форме !!*********************
+# path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
+# print(path_txt)
+# np.savetxt(path_txt, spectr_freq)
+# path_txt = str(Path(file_path_data, current_data_file, 'freq.txt'))
+# print(path_txt)
+# np.savetxt(path_txt, freq)
+# ***********************************************************************
 
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
