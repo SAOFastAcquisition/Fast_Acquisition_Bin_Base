@@ -125,7 +125,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     plt.show()
     format = 'png'
-    path_Bogod = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')
+    path_Bogod = Path(r'D:\Fast_Acquisition')
     if path_Bogod.is_dir():
         format = 'svg'
     # print(f'type fig: {type(fig)}')
