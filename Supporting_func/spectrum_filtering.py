@@ -27,7 +27,7 @@ def kernel_cell(n, m):
     """ Функция отдает двумерное сверточное ядро размером (m x n) на основании максимально плоского фильтра"""
     w_inter_freq = np.array(flattop(n))
     w_inter_time = np.array(flattop(m))
-    kernel_in = np.ones((m, n), dtype=np.float)
+    kernel_in = np.ones((m, n), dtype=np.float64)
     for i in range(m):
         kernel_in[i] = w_inter_freq
     for i in range(n):
@@ -64,12 +64,12 @@ if __name__ == '__main__':
     и времени, сворачивая с задаваемым двумерным ядром. Результат записывается в виде файла *.num с '_kernel_spectrum' 
     в имени. 
     """
-    model = 'y'
+    model = 'n'
     visualization = 'y'
     n = 32  # Фильтрация по частоте (постоянная фильтра примерно 2*n/3 отсчетов)
-    m = 8   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
-    current_data_file = '2021-06-28_06+00'  # Имя файла с исходными текущими данными без расширения
-    current_data_dir = '2021_06_28sun'      # Папка с текущими данными
+    m = 128   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
+    current_data_file = '2021-06-28_03+14'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_06_28crab'      # Папка с текущими данными
     current_catalog = r'2021\Results'       # Текущий каталог (за определенный период, здесь - год)
 
     if model == 'y':
@@ -96,12 +96,12 @@ if __name__ == '__main__':
             k = l[0] % 3000
             auxiliary = spectrum[i]
             for j in range(m+1):
-                if j == m:
+                if j == m & k != 0:
                     auxiliary_part = auxiliary[j * 3000:j * 3000 + k, :]
                     # Сворачиваем с ядром и превращеем в 'int32' для экономии памяти
                     blurred = signal.fftconvolve(auxiliary_part, kernel, mode='same').astype('int32')
                     auxiliary[j * 3000:j * 3000 + k, :] = blurred
-                else:
+                elif j != m:
                     auxiliary_part = auxiliary[j * 3000:(j+1)*3000, :]
                     blurred = signal.fftconvolve(auxiliary_part, kernel, mode='same').astype('int32')
                     auxiliary[j * 3000:(j+1)*3000, :] = blurred
@@ -112,5 +112,5 @@ if __name__ == '__main__':
 
     if visualization == 'y':
         some_visualisation()
-
-    # np.save(Path(file_path_data, current_data_file + '_kernel_spectrum'), spectrum)
+    path1 = Path(file_path_data, current_data_file + '_kernel_spectrum')
+    np.save(path1, spectrum)

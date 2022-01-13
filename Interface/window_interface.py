@@ -33,7 +33,7 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lne_time_resolution.setText(self.time_res)
         self.gB_pattrens.adjustSize()
         self.param_dict = param_dict_str
-        self.rbn_one_window.checkStateSet()
+        self.rbn_one_window.setChecked(True)
         # print(f'path to catalog: {self.catalog}')
 
         # Работа с масками по частоте и времени. Устанавливаем начальные маски по частоте, которые взяты из
@@ -103,7 +103,6 @@ class ExampleApp(QtWidgets.QMainWindow, Ui_MainWindow):
             except IndexError:
                 freq_mask.append(self.frequency_mask)
 
-            # self.tableWidget_freq_patterns                 # setCheckState(i, 0, 2)
         k = 0
         for unit in freq_mask:
             item_freq = self.tableWidget_freq_patterns.item(k, 0)

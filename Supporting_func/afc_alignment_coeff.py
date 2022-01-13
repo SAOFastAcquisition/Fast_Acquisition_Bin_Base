@@ -30,9 +30,9 @@ def noise_kp(spectrum_noise_out, diff='n'):
     s_max = np.max(s)
     kp_norm = s / s_max
     # plt.plot(s)
-    #     # plt.show()
-    #     # plt.plot(kp_norm)
-    #     # plt.show()
+    # plt.show()
+    # plt.plot(kp_norm)
+    # plt.show()
     return kp_norm, n_col, s_max
 
 
@@ -49,6 +49,9 @@ def align_func(s_loc: object, aver_param_noise: object, diff: object = 'n') -> o
     if n_nyq == 3:
         n1 = int((90 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
         n2 = int((220 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n3 = int((540 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        n4 = int((700 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
+        kp_norm[n3:n4] = 1
     else:
         n1 = int((80 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
         n2 = int((230 - delta_f / 2 / aver_param_noise) // (delta_f / aver_param_noise))
@@ -64,7 +67,6 @@ def align_func(s_loc: object, aver_param_noise: object, diff: object = 'n') -> o
         freq = np.linspace(1000 * n_nyq - 3.9063 / aver_param, 1000 * (n_nyq - 1) + 3.9063 / aver_param, n_col)
 
     return align_coeff, s_max
-    # , freq * 1000000, spectrum_cal
 
 
 def align_visualization(coeff_set):
@@ -82,21 +84,21 @@ def align_visualization(coeff_set):
     freq1 = np.linspace(1000 * 2 - 3.9063 / aver_param, 1000 * (2 - 1) + 3.9063 / aver_param, n_col)
     freq = np.concatenate((freq1, freq2))
 
-    fig, ax = plt.subplots(1, figsize=(12, 6))
-    ax.plot(freq, align_right[0])
-    ax.plot(freq, align_right[1])
-    ax.plot(freq, align_right[2])
+    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    # ax.plot(freq, align_right[0])
+    # ax.plot(freq, align_right[1])
+    # ax.plot(freq, align_right[2])
     # ax.plot(align_coeff[1])
     # ax.plot(align_coeff[2])
     # ax.plot(align_coeff[3])
-    plt.show()
+    # plt.show()
 
     pass
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-04-15_14'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_04_15test'  # Папка с текущими данными
+current_data_file = '2021-12-21_11_LP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2021_12_21test'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 
@@ -106,7 +108,7 @@ file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 # Путь к файлу хранения коэффициентов (он один для всех калибровок АЧХ каналов)
 folder_align_path = Path(head_path, 'Alignment')
 
-visualization_set = [0, 1, 2]
+visualization_set = [0, 1]
 
 # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
 columns_names = ['date', 'att1', 'att2', 'att3',
@@ -120,7 +122,7 @@ else:
         calibration_frame = pickle.load(inp)
 # ************************************************************************************
 
-align_visualization(visualization_set)
+# align_visualization(visualization_set)
 
 # Загрузка исходных данных ('_spectrum.npy' - сами данные, _head.bin - вспомогательные)
 spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
@@ -139,9 +141,9 @@ i = 0
 flag_align = 0  # Выравнивания по всему диапазону еще нет
 for s in spectrum:
     if i % 2:
-        n_nyq = 2
-    else:
         n_nyq = 3
+    else:
+        n_nyq = 2
     if np.size(s) > 1:
         s_unipol = s  # [s > 100]
         align_coeff[i], s_max_band[i] = align_func(s_unipol, aver_param)
@@ -182,11 +184,14 @@ calibrate_row_ser = pd.Series(calibrate_row)
 # Определяем, есть ли в сводной таблице данные с такими же исходными параметрами. Если есть, то будет их
 # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
 # вставлен в таблицу (объект DataFrame)
+
+if not 'polar' in calibration_frame.columns:
+    calibration_frame.polar = ''
 idx = calibration_frame.loc[(calibration_frame.date == head['date'])
                             & (calibration_frame.att1 == head['att1'])
                             & (calibration_frame.att2 == head['att2'])
                             & (calibration_frame.att3 == head['att3'])
-                            & calibration_frame.polar == head['polar']].index
+                            & (calibration_frame.polar == head['polar'])].index
 
 if len(idx):
     r = calibration_frame.iloc[idx[0]]
@@ -209,7 +214,7 @@ if len(idx):
         calibration_frame = calibration_frame.drop(idx).append(r, ignore_index=True)
 else:
     calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
-
+# calibration_frame = calibration_frame.drop(idx)
 with open(Path(folder_align_path, align_file_name), 'wb') as out:
     pickle.dump(calibration_frame, out)
 

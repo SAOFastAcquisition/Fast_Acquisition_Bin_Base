@@ -37,7 +37,7 @@ freq_res = parameters['freq_res']  # Установка разрешения п�
 kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
 N_Nyq = 2   # Номер зоны Найквиста
-shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
+shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
 
 delta_t = 8.1925e-3
@@ -54,7 +54,7 @@ param_robust_filter = 1.1
 align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
-graph_3d_perm = 'y'
+graph_3d_perm = 'n'
 contour_2d_perm = 'n'
 
 if N_Nyq == 3:
@@ -345,8 +345,8 @@ def extract_whole_band():
                         spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
                     else:
                         spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
-                    if spectrum_val > 1000000000:
-                        spectrum_val = 1000000000
+                    # if spectrum_val > 1000000000:
+                    #     spectrum_val = 1000000000
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
                     if pp_good / 256 < 0.1:
                         spectrum_val = 2
@@ -375,6 +375,8 @@ def extract_whole_band():
 
             print(i, frame_num, band, attenuators)
             i += 1
+            if att_1 == 31 & att_2 == 31 & att_3 == 31:
+                break
         pass
         n_right1 = len(spectrum_right_1)
         n_left1 = len(spectrum_left_1)
@@ -402,14 +404,14 @@ def extract_whole_band():
             spectrum_right_1 = parts_to_numpy(spectrum_right_1, n_right1)
         if n_left1 > 1:
             spectrum_left_1 = cut_spectrum(spectrum_left_1, n_aver)
-            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int32)
+            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int64)
         if n_right2 > 1:
             spectrum_right_2 = cut_spectrum(spectrum_right_2, n_aver)
             # spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
             spectrum_right_2 = parts_to_numpy(spectrum_right_2, n_right2)
         if n_left2 > 1:
             spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
-            spectrum_left_2 = np.array(spectrum_left_2, dtype=np.int32)
+            spectrum_left_2 = np.array(spectrum_left_2, dtype=np.int64)
     finally:
         f_in.close()
         pass
@@ -444,10 +446,10 @@ def parts_to_numpy(list_arr, len_list):
     for i in range(n + 1):
         if i == n:
             auxiliary = list_arr[int(i * 1e5):int(i * 1e5 + k)]
-            auxiliary = np.array(auxiliary, dtype='int32')
+            auxiliary = np.array(auxiliary, dtype='int64')
         else:
             auxiliary = list_arr[int(i * 1e5):int((i + 1) * 1e5)]
-            auxiliary = np.array(auxiliary, dtype='int32')
+            auxiliary = np.array(auxiliary, dtype='int64')
         l = np.size(numpy_arr)
         if l:
             numpy_arr = np.vstack([numpy_arr, auxiliary])
@@ -603,6 +605,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     """
     ind_spec = []
     ind_time = []
+    t_ng = 6000
     N_col = np.shape(spectr_extr)[1]
     s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
@@ -664,7 +667,11 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    return s_freq * (2 ** shift), s_time * (2 ** shift)
+    if head['att3'] == 0:
+        a = 5.27e8
+    elif head['att3'] == 5:
+        a = 6.21e8
+    return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
 
 
 def spectr_construction(Spectr, kf, kt):
@@ -838,9 +845,14 @@ with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
 
 # Выравнивание спектров по результатам шумовых измерений АЧХ
 if align == 'y':
+    if head['att3'] == 5:
+        pos = 1
+    elif head['att3'] == 0:
+        pos = 0
     path_output = Path(folder_align_path, align_file_name)
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
-        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, head, path_output)
+        align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
+                       head, path_output, pos)
 
 # Приведение порядка следования отсчетов по частоте к нормальному
 if np.size(spectr_extr_left1):
@@ -870,14 +882,15 @@ else:
 
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
-time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-time_spect_mask = [1, 2, 7, 8, 9, 17, 18]
+# time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+time_spect_mask = [5, 17, 31, 43, 58]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 
 # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
+shift = head['shift']
 spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
-# np.save(file_name0 + '_spectr', spectr_time)
+
 # Формирование строк-аргументов по времени и частоте и легенды
 N_col = np.shape(spectrum_extr)[1]
 if band_size_init == 'half':
@@ -886,6 +899,15 @@ if band_size_init == 'half':
 elif band_size_init == 'whole':
     freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
+
+# ***************!! Вывод данных в текстовой форме !!*********************
+# path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
+# print(path_txt)
+# np.savetxt(path_txt, spectr_freq)
+# path_txt = str(Path(file_path_data, current_data_file, 'freq.txt'))
+# print(path_txt)
+# np.savetxt(path_txt, freq)
+# ***********************************************************************
 
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),

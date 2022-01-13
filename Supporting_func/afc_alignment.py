@@ -86,7 +86,7 @@ def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object 
     return align_coeff, freq * 1000000, spectrum_cal
 
 
-def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibration):
+def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibration, _pos):
     """ Принимает спектры левой (spectrum1, spectrum2) и правой (spectrum3, spectrum4) поляризаций.
     При этом spectrum1 и spectrum3 относятся ко второй зоне Найквиста и имеют обратный порядок следования
     отсчетов по частоте. По пути path_calibration загружаем выравнивающие коэффициенты для спектров.
@@ -97,11 +97,9 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibr
     # align_coeff = np.loadtxt(path_calibration)
     with open(path_calibration, 'rb') as inp:
         calibration_frame_inp = pickle.load(inp)
-    r = calibration_frame_inp.iloc[2]
+    r = calibration_frame_inp.iloc[_pos]
     align_coeff = [r['spectrum_left1'], r['spectrum_left2'], r['spectrum_right1'], r['spectrum_right2']]
-    # align_coeff2 =
-    # align_coeff3 =
-    # align_coeff4 =
+
     len_calibr = np.size(align_coeff[1])
     if np.size(spectrum1):
         l1 = np.shape(spectrum1)[1]
