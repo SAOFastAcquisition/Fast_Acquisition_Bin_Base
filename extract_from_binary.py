@@ -671,6 +671,8 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         a = 5.27e8
     elif head['att3'] == 5:
         a = 6.21e8
+    else:
+        a = 5.8e8
     return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
 
 
@@ -849,6 +851,8 @@ if align == 'y':
         pos = 1
     elif head['att3'] == 0:
         pos = 0
+    else:
+        pos = 1
     path_output = Path(folder_align_path, align_file_name)
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
         align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
@@ -882,8 +886,8 @@ else:
 
 # Динамическая маска (зависит от длины записи во времени)
 t_spect = N_row * delta_t
-# time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-time_spect_mask = [5, 17, 31, 43, 58]
+time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+# time_spect_mask = [5, 17, 31, 43, 58]
 # if band_size == 'whole':
 #   freq_spect_mask = []
 

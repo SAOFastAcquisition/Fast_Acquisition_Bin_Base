@@ -23,7 +23,7 @@ def path_to_data():
     head_path1 = Path(r'G:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')  # Путь к каталогу данных для ноута ВМ
-    head_path4 = Path(r'I:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
+    head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
     head_path5 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для нового ноута
     if head_path1.is_dir():
         head_path_out = head_path1

@@ -112,7 +112,7 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'D:\Fast_acquisition')  # Путь к каталогу данных для ноута ВМ
-    head_path4 = Path(r'I:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
+    head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
 
     if head_path1.is_dir():
         head_path_out = head_path1
