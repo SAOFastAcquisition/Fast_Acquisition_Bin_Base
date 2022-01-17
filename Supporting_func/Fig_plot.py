@@ -111,9 +111,9 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
 
-    if False:
-        set_zoom = 6.5, 11.5, 1.425e6, 1.5e6
-        axins = insert_zoom(ax, argument, spectr1[6, :], line_color[6], line_legend[6], set_zoom)
+    if True:
+        set_zoom = 210, 240, 5000, 9000
+        axins = insert_zoom(ax, argument, spectr1[:, :], line_color[:], line_legend[:], set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
     # Управление шрифтом легенды
@@ -132,7 +132,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     return fig, file_name0, flag, format
 
 
-def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.05, 0.35, 0.35]):
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.35, 0.35, 0.35]):
     """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
     родительского рисунка, тот же массив
     аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого

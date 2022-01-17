@@ -920,7 +920,7 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
 path_to_fig()
 
 if parameters['output_picture_mode'] == 'yes':
-    fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+    # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
     fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # *********************************************************
