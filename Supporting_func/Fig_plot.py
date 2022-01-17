@@ -113,7 +113,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
 
     if True:
         set_zoom = 210, 240, 5000, 9000
-        axins = insert_zoom(ax, argument, spectr1[:, :], line_color[:], line_legend[:], set_zoom)
+        axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
     # Управление шрифтом легенды
@@ -132,7 +132,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     return fig, file_name0, flag, format
 
 
-def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.5, 0.35, 0.35, 0.35]):
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.4, 0.6, 0.35, 0.35]):
     """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
     родительского рисунка, тот же массив
     аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
@@ -141,7 +141,10 @@ def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_p
     sf = ScalarFormatter()
     sf.set_powerlimits((-4, 4))
     axins = ax.inset_axes(set_pos)
-    axins.plot(argument, ordinate, color=line_color, label=line_legend)
+    size = ordinate.shape
+    line_qwa = size[0]
+    for i in range(line_qwa):
+        axins.plot(argument, ordinate[i, :], color=line_color[i], label=line_legend[i])
     axins.minorticks_on()
     axins.grid(b=True, which='major', color='#666666', linestyle='-')
     axins.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
