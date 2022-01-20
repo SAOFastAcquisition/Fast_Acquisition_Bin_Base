@@ -23,7 +23,7 @@ current_data_file = parameters['file_name']      # Имя файла с исхо
 current_data_dir = parameters['file_folder']          # Папка с текущими данными
 
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
-current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
+current_catalog = r'2022/Results'           # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 folder_align_path = Path(head_path, 'Alignment')
@@ -37,7 +37,7 @@ freq_res = parameters['freq_res']  # Установка разрешения п�
 kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
 N_Nyq = 2   # Номер зоны Найквиста
-shift = 10  # Усечение младших разрядов при обработке первичного бинарного файла данных
+shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
 # *****************************************************
 
 delta_t = 8.1925e-3
@@ -51,7 +51,7 @@ band_size_init = 'whole'
 # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
+align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
 
 noise_calibr = 'n'
 graph_3d_perm = 'n'
@@ -605,7 +605,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     """
     ind_spec = []
     ind_time = []
-    t_ng = 6000
+    t_ng = 1
     N_col = np.shape(spectr_extr)[1]
     s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
@@ -673,6 +673,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         a = 6.21e8
     else:
         a = 5.8e8
+    a = 1
     return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
 
 
@@ -920,7 +921,7 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
 path_to_fig()
 
 if parameters['output_picture_mode'] == 'yes':
-    # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
+    fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
     fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
 # *********************************************************
