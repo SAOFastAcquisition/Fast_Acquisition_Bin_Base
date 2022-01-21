@@ -24,10 +24,14 @@ spectrum1 = spectrum[1]
 spectrum2 = spectrum[2]
 spectrum3 = spectrum[3]
 
-signal_rand_sample = np.reshape(spectrum1, (8192, -1))    # Разбиваем на реализации длиной 1024 отсчетов
-spectrum_signal_rand = fft(signal_rand_sample, 8192)
+shape = spectrum1.shape
+n = int(shape[0] // 8192 * 8192)
+a = spectrum1[0:n, 50]
+signal_rand_sample = np.reshape(a, (8192, -1))    # Разбиваем на реализации длиной 1024 отсчетов
+signal_rand_sample_t = np.transpose(signal_rand_sample)
+spectrum_signal_rand = fft(signal_rand_sample_t, 8192)
 spectrum_signal_av = np.average(np.abs(spectrum_signal_rand ** 2), 0)
-# spectrum_signal_rand = fft(spectrum1[:, 100], 1024)
+# spectrum_signal_rand = fft(spectrum1[:, 50], 1024)
 # spectrum_signal_av = np.abs(spectrum_signal_rand ** 2)
 
 axes = plt.subplots()
