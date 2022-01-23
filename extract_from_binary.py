@@ -9,6 +9,7 @@ from pathlib import Path
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Interface import main
+from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
 from Interface.window_handler import exec_app
 
 current_dir = Path.cwd()
@@ -913,6 +914,8 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 # print(path_txt)
 # np.savetxt(path_txt, freq)
 # ***********************************************************************
+spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
+plot_low_freq_spec(spectrum_signal_av, delta_t * kt)
 
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
