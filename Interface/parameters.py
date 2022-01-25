@@ -20,7 +20,7 @@ class CustomError(Exception):
 
 def path_to_data():
     """ Определяет путь к каталогу текущих данных на конкретной машине и к корню каталога. """
-    head_path1 = Path(r'E:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
+    head_path1 = Path(r'C:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'C:\SCIENCE\PYTHON 3\Fast_Acquisition')  # Путь к каталогу данных для ноута ВМ
     head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'

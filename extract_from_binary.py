@@ -24,7 +24,7 @@ current_data_file = parameters['file_name']      # Имя файла с исхо
 current_data_dir = parameters['file_folder']          # Папка с текущими данными
 
 align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
-current_catalog = r'2022/Results'           # Текущий каталог (за определенный период, здесь - год)
+current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 folder_align_path = Path(head_path, 'Alignment')
@@ -53,7 +53,7 @@ band_size_init = 'whole'
 robust_filter = 'n'
 param_robust_filter = 1.1
 align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
-
+low_noise_spectrum = 'y'    # Вывод графика НЧ спектра шумовой дорожки ('y' / 'n')
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -914,13 +914,16 @@ timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 # print(path_txt)
 # np.savetxt(path_txt, freq)
 # ***********************************************************************
-spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
-plot_low_freq_spec(spectrum_signal_av, delta_t * kt)
 
 line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
+
+if low_noise_spectrum == 'y':
+    spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
+    plot_low_freq_spec(spectrum_signal_av, delta_t * kt, (Path(file_path_data, current_data_file)),
+                       line_legend_freq)
 path_to_fig()
 
 if parameters['output_picture_mode'] == 'yes':
