@@ -19,7 +19,7 @@ def head_creator(head_fits, head_data):
     head_fits['DFREQ'] = (7.875, 'Frequency resolution, MHz')
 
     head_fits['KURTOSIS'] = (head_data['kurtosis'], 'Half wide of kurtosis interval')
-    head_fits['ATT1'] = (head_data['att1'], 'Common attenuation')
+    head_fits['ATT3'] = (head_data['att3'], 'Common attenuation')
     head_fits['ATT2'] = (head_data['att2'], 'Attenuation in left channel')
     head_fits['ATT3'] = (head_data['att3'], 'Attenuation in right channel')
 
