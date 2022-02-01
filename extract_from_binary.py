@@ -28,7 +28,7 @@ current_catalog = r'2021/Results'           # Текущий каталог (з�
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 folder_align_path = Path(head_path, 'Alignment')
-date = current_data_file[0:11]
+date = current_data_file[0:10]
 
 # !!!! ******************************************* !!!!
 # ****** Блок исходных параметров для обработки *******

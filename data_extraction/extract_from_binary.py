@@ -6,22 +6,13 @@ import pickle
 import json as jsn
 from datetime import datetime
 from pathlib import Path
-from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
-# from Supporting_func import align_spectrum, path_to_data
-from Interface import main
-from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
-from Interface.window_handler import exec_app
+from Supporting_func import align_spectrum, path_to_data
 
 current_dir = Path.cwd()
 home_dir = Path.home()
 
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 sys.path.insert(0, Path(current_dir, 'Interface'))
-start = datetime.now()
-
-# current_data_file = parameters['file_name']      # Имя файла с исходными текущими данными без расширения
-# current_data_dir = parameters['file_folder']          # Папка с текущими данными
-
 
 
 def extract():
@@ -229,6 +220,7 @@ def extract_whole_band():
     spectrum_right_2 = []
     attenuators = []
     frame = ' '
+    frame_num_before = 0
 
     try:
         if os.path.isfile(file_name) == 1:
@@ -248,6 +240,25 @@ def extract_whole_band():
                 frame_int = int.from_bytes(frame, byteorder='little')
                 if k == 0:
                     frame_num = frame_int & 0xFFFFFFF
+                    ind = 0
+
+                    # ********* Обработка сбоя приема "нулевого" байта с номером кадра *********
+                    # Из f_in байты будут
+                    # считываться до тех пор, пока число, прочитанное на месте в байте номера кадра, не
+                    # будет отличаться от предыдущего на величину меньше заданной. Если на протяжении 10
+                    # кадров такой байт не найдется (1300 байт), то обработка прерывается и выводятся
+                    # прочитанные до момента сбоя данные
+                    while abs(frame_num - frame_num_before) > 1000:
+                        frame = f_in.read(8)
+                        frame_int = int.from_bytes(frame, byteorder='little')
+                        frame_num = frame_int & 0xFFFFFFF
+                        ind += 1
+                        # delta_frame = frame_num - frame_num_before
+                        # print(ind, delta_frame)
+                        if ind > 1300:
+                            print('Прервывание обработки из-за сбоя определения номера кадра')
+                            break
+                    # ******************************************************************************
 
                     # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
                     # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
@@ -295,6 +306,9 @@ def extract_whole_band():
                     spectr_frame.append(spectrum_val)
                     pass
 
+            if abs(frame_num_before - frame_num):
+                print('Прервывание обработки из-за сбоя определения номера кадра')
+                break
             if antenna == 0 and (antenna_before - antenna == 0):
                 if band:
                     spectrum_left_2.append(spectr_frame)
@@ -317,8 +331,10 @@ def extract_whole_band():
 
             print(i, frame_num, band, attenuators)
             i += 1
-            if att_1 == 31 & att_2 == 31 & att_3 == 31:
-                break
+
+            frame_num_before = frame_num
+            # if att_1 == 31 & att_2 == 31 & att_3 == 31:
+            #     break
         pass
         n_right1 = len(spectrum_right_1)
         n_left1 = len(spectrum_left_1)
@@ -465,6 +481,12 @@ def save_spectrum(spectrum_extr, head):
     else:
         spectrum2_high = []
     spectrum_whole = pd.Series([spectrum1_low, spectrum1_high, spectrum2_low, spectrum2_high])
+
+    # **** Создание папки для хранения конвертированных данных, если ее нет ****
+    if not os.path.isdir(Path(converted_data_file_path)):
+        os.mkdir(Path(converted_data_file_path))
+    # **************************************************************************
+
     np.save(Path(converted_data_file_path, current_primary_file + '_spectrum'), spectrum_whole)
     with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
@@ -544,17 +566,19 @@ def preparing_data():
 
 if __name__ == '__main__':
 
+    start = datetime.now()
+
     current_data_dir = '2022'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_01_21test'
+    current_primary_dir = '2022_01_24calibr'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-01-21_01test'
+    current_primary_file = '2022-01-24_08cal'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
