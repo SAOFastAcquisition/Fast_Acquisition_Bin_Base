@@ -197,12 +197,12 @@ def spectr_construction(Spectr, kf, kt):
     return S1  # // kt // kf
 
 
-def path_to_fig():
+def path_to_fig(_path):
     """ Создает директорию для рисунков обрабатываемого наблюдения, если она до этого не была создана,
     название директории  совпадает с названием исходного файла данных наблюдения
     """
-    if not os.path.isdir(Path(current_treatment_path, current_primary_file)):
-        os.mkdir(Path(current_treatment_path, current_primary_file))
+    if not os.path.isdir(_path):
+        os.mkdir(_path)
     return
 
 
@@ -212,8 +212,8 @@ def preparing_data():
 
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
-
-    spectrum = np.load(Path(converted_data_file_path, current_primary_file + '_spectrum.npy'), allow_pickle=True)
+    _path1 = Path(converted_data_file_path, current_primary_file + '_spectrum.npy')
+    spectrum = np.load(_path1, allow_pickle=True)
     with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     n_aver = head['n_aver']
@@ -313,7 +313,8 @@ if __name__ == '__main__':
     # current_data_file = parameters['file_name']      # Имя файла с исходными текущими данными без расширения
     # current_data_dir = parameters['file_folder']          # Папка с текущими данными
     # freq_res = parameters['freq_res']  # Установка разрешения по частоте в МГц
-    # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
+    # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения
+    # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
@@ -323,27 +324,25 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_01_24calibr'
-    # current_primary_path = Path(primary_data_dir, current_primary_dir)
+    current_primary_dir = '2022_01_27test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-01-24_08cal'
-    # primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
+    current_primary_file = '2022-01-27_02'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
+    data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
-    # file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     folder_align_path = Path(head_path, 'Alignment')
-    date = current_primary_file[0:11]
+    date = current_primary_file[0:10]
 
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 8  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
+    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
     N_Nyq = 2   # Номер зоны Найквиста
     shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
@@ -352,9 +351,6 @@ if __name__ == '__main__':
     delta_t = 8.1925e-3
     delta_f = 7.8125
     num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
-    if num_of_polar == 1:
-        q = int(current_data_file[-1])
-        N_Nyq = q
     band_size_init = 'whole'
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
@@ -376,9 +372,7 @@ if __name__ == '__main__':
         # freq_spect_mask = parameters['freq_mask']
         # freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
         # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
-        # freq_spect_mask = [1535,  2450, 2550, 2750,  2800, 2950]
         # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
-        # freq_spect_mask = [1050, 1465, 1500, 1535, 1600, 1700, 1750, 1950]
         freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
         # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
         # freq_spect_mask = [1220, 1540, 1980, 2060, 2500, 2780] # for Crab '2021-06-28_04+12'
@@ -396,8 +390,8 @@ if __name__ == '__main__':
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
         preparing_data()
     aver_param = 2 ** (6 - n_aver)
-    kf = int(freq_res / delta_f * aver_param)   # Установка разрешения по частоте в единицах максимального разрешения для
-    # данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
+    kf = int(freq_res / delta_f * aver_param)   # Установка разрешения по частоте в единицах максимального разрешения
+                                                # для данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
     with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
 
@@ -474,16 +468,16 @@ if __name__ == '__main__':
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
                 ('polarisation ' + polar), 'align: ' + align]
-
+    path1 = Path(data_treatment_file_path, current_primary_file)
+    path_to_fig(data_treatment_file_path)
+    path_to_fig(path1)
     if low_noise_spectrum == 'y':
         spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
-        plot_low_freq_spec(spectrum_signal_av, delta_t * kt, (Path(current_treatment_path, current_primary_file)),
-                           line_legend_freq)
-    path_to_fig()
+        plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
 
     if output_picture_mode == 'y':
-        fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(current_treatment_path, current_primary_file), head, line_legend_time)
-        fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(current_treatment_path, current_primary_file), head, line_legend_freq)
+        fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+        fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
     # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
     # *********************************************************
     # ***            Многооконный вывод данных             ****
@@ -502,7 +496,6 @@ if __name__ == '__main__':
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
                 ('polarisation ' + polar)]
-    path_to_fig()
 
     if graph_3d_perm == 'y':
         fp.graph_3d(freq, timeS, spectr_extr1, 0, current_data_file, head)

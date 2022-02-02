@@ -294,10 +294,10 @@ def extract_whole_band():
 
                     # Отбросили "shift" младших разрядов двоичного представления или 3 разряда десятичного
                     # при "shift=10"
-                    if band:
-                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
-                    else:
-                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
+                    # if band:
+                    #     spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
+                    # else:
+                    #     spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
                     # if spectrum_val > 1000000000:
                     #     spectrum_val = 1000000000
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
@@ -306,7 +306,7 @@ def extract_whole_band():
                     spectr_frame.append(spectrum_val)
                     pass
 
-            if abs(frame_num_before - frame_num):
+            if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
             if antenna == 0 and (antenna_before - antenna == 0):
@@ -573,12 +573,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_01_24calibr'
+    current_primary_dir = '2022_01_27test'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-01-24_08cal'
+    current_primary_file = '2022-01-27_02'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
