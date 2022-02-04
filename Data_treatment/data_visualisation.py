@@ -324,13 +324,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_01_27test'
+    current_primary_dir = '2021_12_26_3C84'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-01-27_02'
+    current_primary_file = '2021-12-26_03+12'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
@@ -341,7 +341,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
 
-    freq_res = 8  # Установка разрешения по частоте в МГц
+    freq_res = 200  # Установка разрешения по частоте в МГц
     kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
     N_Nyq = 2   # Номер зоны Найквиста
@@ -373,7 +373,8 @@ if __name__ == '__main__':
         # freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
         # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
         # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
-        freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+        #freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+        freq_spect_mask = [2880]
         # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
         # freq_spect_mask = [1220, 1540, 1980, 2060, 2500, 2780] # for Crab '2021-06-28_04+12'
     else:
