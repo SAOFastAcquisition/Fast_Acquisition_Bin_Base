@@ -11,12 +11,14 @@ from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 from Interface import main
 from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
 from Interface.window_handler import exec_app
+from Polyphase.cic_filter import signal_filtering
 
 current_dir = Path.cwd()
 home_dir = Path.home()
 
 sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 sys.path.insert(0, Path(current_dir, 'Interface'))
+sys.path.insert(0, Path(current_dir, 'Polyphase'))
 start = datetime.now()
 
 freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
@@ -341,7 +343,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
 
-    freq_res = 200  # Установка разрешения по частоте в МГц
+    freq_res = 300  # Установка разрешения по частоте в МГц
     kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
 
     N_Nyq = 2   # Номер зоны Найквиста
@@ -374,7 +376,7 @@ if __name__ == '__main__':
         # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
         # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
         #freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
-        freq_spect_mask = [2880]
+        freq_spect_mask = [2850]
         # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
         # freq_spect_mask = [1220, 1540, 1980, 2060, 2500, 2780] # for Crab '2021-06-28_04+12'
     else:
@@ -472,12 +474,14 @@ if __name__ == '__main__':
     path1 = Path(data_treatment_file_path, current_primary_file)
     path_to_fig(data_treatment_file_path)
     path_to_fig(path1)
+    np.save(path1, spectr_time)
+    spectr_time = signal_filtering(spectr_time, 0.003)
     if low_noise_spectrum == 'y':
-        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
+        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 2048)
         plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
 
     if output_picture_mode == 'y':
-        fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+        # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
         fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
     # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
     # *********************************************************
