@@ -1,7 +1,7 @@
 import numpy as np               # Import numpy
 import matplotlib.pyplot as plt  # Import matplotlib
 # from scipy.signal import freqz
-from scipy.signal import lfilter, butter
+from scipy.signal import lfilter, filtfilt,  butter, freqs, remez, freqz
 from scipy.fftpack import fft
 # %matplotlib inline
 
@@ -44,21 +44,54 @@ class MafFilter:
         """
         return lfilter(np.ones(M - 1), 1, self.x)
 
-    def butter_iir(self, _delta_f, m=2):
+    def butter_iir(self, _delta_f, _order=5):
         """
         Calculate moving average filter as FIR
 
         Parameters
         ----------
-        m : int
-            moving average step
+        _order : filter order
+        _delta_f : float
+            cut off frequency
         """
-        b, a = butter(3, delta_f)  # [low, high], btype='band'
+        b, a = butter(_order, _delta_f)  # [low, high], btype='band'
         # Change to recursive form
         # a = [1, -1]
         # b = np.zeros(M)
         # b[0], b[-1] = a
+        # w, h = freqs(b, a)
+        # plt.semilogx(w, 20 * np.log10(abs(h)))
+        # plt.show()
         return lfilter(b, a, self.x)
+
+    def maf_iir(self, m=2):
+        """
+        Calculate moving average filter as FIR
+        Parameters
+        ----------
+        m : int
+            moving average step
+        """
+        # Change to recursive form
+        a = [1, -1]
+        b = np.zeros(m)
+        b[0], b[-1] = a
+        # w, h = freqs(b, a)
+        # plt.semilogx(w, 20 * np.log10(abs(h)))
+        # plt.show()
+        return filtfilt(b, a, self.x)
+
+    def remez_fir(self, _delta_f):
+        bpass = remez(5, [0, 0.001, 0.002, 0.1, 0.5, 60], [0, 1, 0], Hz=122)
+        freq, response = freqz(bpass)
+        ampl = np.abs(response)
+
+        # fig = plt.figure()
+        # ax1 = fig.add_subplot(111)
+        # ax1.semilogy(freq / (2 * np.pi), ampl, 'b-')  # freq in Hz
+        # plt.show()
+
+        return lfilter(bpass, 1, self.x)
 
 
 def signal_filtering(_signal, delta_f):
@@ -92,19 +125,12 @@ if __name__ == '__main__':
     LM = len(M)  # Size of M
 
 
-    sig1 = np.load('2021-12-26_03+12.npy', allow_pickle=True)
-    sig = sig1[0, :]
-    # sig = model_signal()
+    # sig1 = np.load('2021-12-26_03+12.npy', allow_pickle=True)
+    # sig = sig1[0, :]
+    sig = model_signal()
     lns = sig.size  # Size of signal
 
-    # Add some noise and peaks
-    # np.random.seed(2)
-    # sig += np.random.randn(lns)  # Add Gaussian noise
-    # rnd = np.random.randint(0, lns, 15)  # Add random numbers for index
-    # sig[rnd] = 15  # Add peaks
-
     # Calculate Moving Average filter:
-
     # filt = MafFilter(sig)
     res = np.zeros((lns, LM))
     for i in range(LM):
@@ -161,7 +187,7 @@ if __name__ == '__main__':
         plt.plot(res[:, i], linewidth=1.5)
         plt.title('Moving average, M = %d' % M[i])
         plt.grid()
-        plt.xlim([0, 40000])
+        # plt.xlim([0, 40000])
         # plt.ylim([0, 1e20])
 
     plt.tight_layout()

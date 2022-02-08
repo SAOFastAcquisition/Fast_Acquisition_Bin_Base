@@ -111,8 +111,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
 
-    if False:
-        set_zoom = 420, 440, 5800, 11500
+    if True:
+        set_zoom = 150, 350, 3.43e6, 3.4475e6
         axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
@@ -132,7 +132,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     return fig, file_name0, flag, format
 
 
-def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.4, 0.6, 0.35, 0.35]):
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.4, 0.05, 0.4, 0.5]):
     """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
     родительского рисунка, тот же массив
     аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
@@ -178,6 +178,10 @@ def title_func(file_name0, head):
     elif not file_name0.find('crab') == -1:
         title2 = 'Crab intensity'
         title02 = 'Crab spectrum '
+
+    elif not file_name0.find('3C84') == -1:
+        title2 = '3C84 intensity'
+        title02 = '3C84 spectrum '
 
     elif not file_name0.find('calibration') == -1:
         title2 = 'Calibration'
