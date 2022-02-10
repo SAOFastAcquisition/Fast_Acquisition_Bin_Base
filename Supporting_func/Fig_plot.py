@@ -111,7 +111,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
 
-    if True:
+    if False:
         set_zoom = 150, 350, 3.43e6, 3.4475e6
         axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")

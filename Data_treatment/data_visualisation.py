@@ -309,6 +309,23 @@ def unite_spectrum(spec):
     return united_spec
 
 
+def freq_mask(_i):
+    _n1 = 2
+    _n2 = 9
+    _freq_mask = [
+        [1500],                                                               # [0]
+        [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980],               # [1]
+        [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
+        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
+        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
+        [2850],                                                               # [5]
+        [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
+        [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
+        [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]    # [8]
+    ]
+    return _freq_mask[_i]
+
+
 if __name__ == '__main__':
 
     # parameters = main()
@@ -326,13 +343,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2021_12_26_3C84'
+    current_primary_dir = '2022_01_27calibr'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2021-12-26_03+12'
+    current_primary_file = '2022-01-27_13'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
@@ -342,52 +359,31 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-
-    freq_res = 100  # Установка разрешения по частоте в МГц
+    freq_res = 8  # Установка разрешения по частоте в МГц
     kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
-
-    N_Nyq = 2   # Номер зоны Найквиста
-    shift = 0  # Усечение младших разрядов при обработке первичного бинарного файла данных
+    delta_t = 8.3886e-3
+    delta_f = 7.8125
+    att_val = [i * 0.5 for i in range(64)]
+    att_dict = {s: 10 ** (s / 10) for s in att_val}
+    freq_spect_mask = freq_mask(5)
     # *****************************************************
 
-    delta_t = 8.1925e-3
-    delta_f = 7.8125
-    num_of_polar = 2  # Параметр равен "1" для записей до 12.12.2020 и "2" для записей после 12.12.2020
     band_size_init = 'whole'
+    num_of_polar = 2
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
-    robust_filter = 'n'
-    param_robust_filter = 1.1
-    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
+    # *****************************************************
     output_picture_mode = 'y'
-    low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки ('y' / 'n')
+    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
+    save_data = 'y'     # Сохранение сканов в формате *.npy: 'y' / 'n'
+    lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    low_noise_spectrum = 'y'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    robust_filter = 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
 
-    if N_Nyq == 3:
-        freq_spect_mask = [2120, 2300, 2700, 2820, 2900]  # 2060, 2750, 2760, 2770, 2780, 2790, 2800, 2810,
-        # 2820, 2830, 2850, 2880, 2900, 2950# Временные сканы Солнца на этих частотах
-    elif band_size_init == 'whole':
-        n1 = 2
-        n2 = 9
-        # freq_spect_mask = parameters['freq_mask']
-        # freq_spect_mask = [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980]
-        # freq_spect_mask = [1080, 1140, 1360, 1420, 1620, 1780, 1980]
-        # freq_spect_mask = [1000 * n1 + 100 * n2 + 10 * i for i in range(10)]
-        #freq_spect_mask = [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
-        freq_spect_mask = [2300]
-        # freq_spect_mask = [1140, 1420, 1480, 2460, 2500, 2780] # for Crab '2021-06-28_03+14'
-        # freq_spect_mask = [1220, 1540, 1980, 2060, 2500, 2780] # for Crab '2021-06-28_04+12'
-    else:
-        freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
-
-    time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]  # Срез частотного спектра в эти моменты времени
-
-    att_val = [i * 0.5 for i in range(64)]
-    att_dict = {s: 10 ** (s / 10) for s in att_val}
-    pass
-
+    # *****************************************************
     # Чтение с диска, если спектры ранее извлекались,
     # или извлечение спектров из исходных записей
     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
@@ -410,7 +406,6 @@ if __name__ == '__main__':
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
                            head, path_output, pos)
-
 
     # Приведение порядка следования отсчетов по частоте к нормальному
     if np.size(spectr_extr_left1):
@@ -467,6 +462,7 @@ if __name__ == '__main__':
     # np.savetxt(path_txt, freq)
     # ***********************************************************************
 
+    # ************************** !!! Вывод данных !!! ***********************
     line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
@@ -474,16 +470,28 @@ if __name__ == '__main__':
     path1 = Path(data_treatment_file_path, current_primary_file)
     path_to_fig(data_treatment_file_path)
     path_to_fig(path1)
-    # np.save(path1, spectr_time)
-    spectr_time = signal_filtering(spectr_time, 0.0015)
+    # ********************** Сохранение сканов в формате *.npy **************
+    if save_data == 'y':
+        np.save(path1, spectr_time)
+        path_mesh = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed')
+        path_mesh1 = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed' + '.npy')
+        if os.path.isfile(path_mesh1):
+            print('Meshed spectrum file exist')
+        else:
+            path_to_fig(Path(data_treatment_file_path, 'Meshed_Spectrum'))
+            spectrum_mesh = spectr_construction(spectrum_extr, kf, kt)
+            np.save(path_mesh, spectrum_mesh)
+    # ***********************************************************************
+    if lf_filter == 'y':
+        spectr_time = signal_filtering(spectr_time, 0.003)
     if low_noise_spectrum == 'y':
-        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 2048)
+        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 1024)
         plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
 
     if output_picture_mode == 'y':
-        # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+        fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
         fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
-    # fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+
     # *********************************************************
     # ***            Многооконный вывод данных             ****
     # *********************************************************
