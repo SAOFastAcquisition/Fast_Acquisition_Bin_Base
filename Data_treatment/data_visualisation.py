@@ -318,7 +318,7 @@ def freq_mask(_i):
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
         [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
-        [2850],                                                               # [5]
+        [1230, 1560, 2350, 2900],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
         [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]    # [8]
@@ -343,13 +343,14 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_02_14test'
+    current_primary_dir = '2022_02_16test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-02-14_02'
+    current_primary_file = '2022-02-16_04'
+
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
@@ -363,9 +364,10 @@ if __name__ == '__main__':
     kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
+    N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(4)
+    freq_spect_mask = freq_mask(5)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -487,7 +489,7 @@ if __name__ == '__main__':
     if lf_filter == 'y':
         spectr_time = signal_filtering(spectr_time, 0.003)
     if low_noise_spectrum == 'y':
-        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 8192)
+        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768)
         plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
 
     if output_picture_mode == 'y':

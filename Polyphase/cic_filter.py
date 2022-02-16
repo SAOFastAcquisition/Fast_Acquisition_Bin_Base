@@ -42,7 +42,7 @@ class MafFilter:
         m : int
             moving average step
         """
-        return lfilter(np.ones(M - 1), 1, self.x)
+        return filtfilt(np.ones(m - 1), 1, self.x) / (m - 1) / (m - 1)
 
     def butter_iir(self, _delta_f, _order=5):
         """
@@ -97,7 +97,7 @@ class MafFilter:
 def signal_filtering(_signal, delta_f):
     _filt = MafFilter(_signal)
 
-    return _filt.butter_iir(delta_f)
+    return _filt.maf_fir(10)
 
 
 def model_signal():
@@ -137,6 +137,12 @@ if __name__ == '__main__':
         # res[:, i] = filt.maf_conv(m=M[i])
         # res[:, i] = filt.maf_iir()  # m=M[i]
         res[:, i] = signal_filtering(sig, 0.0025)
+    std = np.std(res, 0)
+    for i in range(LM):
+        sig1 = sig[abs(sig[:] - res[:, i]) > 2 * std[i]] = std[i]
+    res1 = np.zeros((lns, LM))
+    for i in range(LM):
+        res1[:, i] = signal_filtering(sig1, 0.0025)
     # Calculate Frequency responce:
     hfq = np.zeros((lns, LM))
     for j in range(LM):
@@ -174,8 +180,9 @@ if __name__ == '__main__':
     plt.xlim([0, lns - 1])
 
     plt.subplot(3, 2, 5)
-    for i in range(LM):
+    for i in range(LM-1):
         plt.plot(res[:, i], linewidth=1.0, label="M=%d" % M[i])
+    plt.plot(res1[:, LM-1], linewidth=1.0, label="M=%d" % M[LM-1])
     plt.title('Output signal')
     plt.grid()
     plt.legend(loc=2)
