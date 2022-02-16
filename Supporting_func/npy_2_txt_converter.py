@@ -17,6 +17,11 @@ if __name__ == '__main__':
     current_data_file = '2021-06-27_19-28'      # Имя файла с исходными текущими данными без расширения
     current_data_dir = '2021_06_27sun'          # Папка с текущими данными
     current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
+    # current_data_file = 'Align_coeff'  # Имя файла с исходными текущими данными без расширения
+    # current_data_dir = ''  # Папка с текущими данными
+    # current_catalog = r'Alignment'  # Текущий каталог (за определенный период, здесь - год)
+
+
     date = current_data_file[0:10]
     year = current_data_file[0:4]
 

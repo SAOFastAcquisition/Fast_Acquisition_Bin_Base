@@ -35,25 +35,31 @@ def filter_AFC1(n, k):
 
 
 def synt_filter(n, m, k=8192):
-
+    """
+    :param n: Общая длина заны Найквиста для фильтра - разрешение по частоте
+    :param m: Количество ненулевых значений усеченного отклика идеального синтезируемого фильтра
+    :param k: Ширина в отсчетах в частотной области прямоугольного идеального фильтра
+    :return:
+    """
     a = filter_AFC1(n, k)
-    response = [0] * (n - 0)
-    response_filt = [0] * n
-    FFT = np.fft.ifft(a)            # Прообраз АЧХ во временной области (отклик фильтра) с правым крылом правее отсчета 0 и
+    _response = [0] * (n - 0)
+    _response_filt = [0] * n
+    FFT = np.fft.ifft(a)  # Прообраз АЧХ во временной области (отклик фильтра) с правым крылом правее отсчета 0 и
     # левым крылом левее последнего отсчета n-1
     FFT1 = np.abs(FFT)
     # Центрирование отклика относительно отсчета n//2
-    response[0:n//2] = FFT[n//2+0:n]
+    _response[0:n//2] = FFT[n//2+0:n]
 
-    response[n//2:n-0] = FFT[0:n//2-0]
-    response_filt[n//2-m//2:n//2+m//2] = response[n//2-m//2:n//2+m//2]
+    _response[n//2:n-0] = FFT[0:n//2-0]
+    _response_filt[n//2-m//2:n//2+m//2] = _response[n//2-m//2:n//2+m//2]
+    _response_filt_out = _response[n//2-m//2:n//2+m//2]
 
-    return response_filt, FFT1
+    return _response_filt, FFT1
 
 
 if __name__ == '__main__':
-    n = 512                       # Длина выборки
-    m = 32                          # Длина фильтрующей выборки отклика
+    n = 4096                       # Длина выборки
+    m =1024                          # Длина фильтрующей выборки отклика
     k = 128
     response_filt, FFT1 = synt_filter(n, m, k)
     # response[7:n//2] = FFT[n//2+7:n]
