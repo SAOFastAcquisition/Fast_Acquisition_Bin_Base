@@ -95,9 +95,18 @@ class MafFilter:
 
 
 def signal_filtering(_signal, delta_f):
-    _filt = MafFilter(_signal)
-
-    return _filt.maf_fir(10)
+    _f = MafFilter(_signal)
+    _filt = _f.maf_fir(10)
+    _signal1 = _signal.copy()
+    _std = np.std(_signal - _filt)
+    _f = MafFilter(_signal)
+    _signal[abs(_signal[:] - _filt[:]) > 2 * _std] = _filt[abs(_signal[:] - _filt[:]) > 2 * _std]
+    _std1 = np.std(_signal - _filt)
+    _filt = _f.maf_fir(10)
+    _signal[abs(_signal[:] - _filt[:]) > 2 * _std] = _filt[abs(_signal[:] - _filt[:]) > 2 * _std]
+    _std2 = np.std(_signal - _filt)
+    _f = MafFilter(_signal)
+    return _f.maf_fir(10)
 
 
 def model_signal():
@@ -137,14 +146,16 @@ if __name__ == '__main__':
         # res[:, i] = filt.maf_conv(m=M[i])
         # res[:, i] = filt.maf_iir()  # m=M[i]
         res[:, i] = signal_filtering(sig, 0.0025)
-    std = np.std(res, 0)
-    for i in range(LM):
-        sig1 = sig[abs(sig[:] - res[:, i]) > 2 * std[i]] = std[i]
-    res1 = np.zeros((lns, LM))
-    for i in range(LM):
-        res1[:, i] = signal_filtering(sig1, 0.0025)
+    std = np.std(sig - res[:, 0])
+    sig1 = np.zeros(lns)
+    sig1 = sig.copy()
+    sig[abs(sig[:] - res[:, 0]) > 2 * std] = res[abs(sig[:] - res[:, 0]) > 2 * std, 0]
+    res1 = np.zeros(lns)
+    res1 = signal_filtering(sig, 0.0025)
+    std1 = np.std(res1 - sig)
     # Calculate Frequency responce:
     hfq = np.zeros((lns, LM))
+
     for j in range(LM):
         for i in range(lns):
             if i == 0:
@@ -169,7 +180,7 @@ if __name__ == '__main__':
     plt.plot(sig, linewidth=1.25)
     plt.title('Input signal')
     plt.grid()
-    plt.xlim([0, 40000])
+    # plt.xlim([0, 40000])
 
     plt.subplot(3, 2, 3)
     for i in range(LM):
@@ -182,7 +193,7 @@ if __name__ == '__main__':
     plt.subplot(3, 2, 5)
     for i in range(LM-1):
         plt.plot(res[:, i], linewidth=1.0, label="M=%d" % M[i])
-    plt.plot(res1[:, LM-1], linewidth=1.0, label="M=%d" % M[LM-1])
+    plt.plot(res1, linewidth=1.0, label="M=%d" % M[LM-1])
     plt.title('Output signal')
     plt.grid()
     plt.legend(loc=2)
@@ -191,6 +202,7 @@ if __name__ == '__main__':
     for i in range(LM):
         plt.subplot(3, 2, 2 * i + 2)
         plt.plot(sig, '-', linewidth=0.5)
+        plt.plot(sig1, '-', linewidth=0.5)
         plt.plot(res[:, i], linewidth=1.5)
         plt.title('Moving average, M = %d' % M[i])
         plt.grid()

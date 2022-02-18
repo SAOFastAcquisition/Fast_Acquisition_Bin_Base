@@ -5,9 +5,8 @@ import math
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
-from scipy import stats
 from pathlib import Path
-from Supporting_func import Fig_plot as fp, path_to_data
+from Supporting_func import path_to_data
 
 
 def mean_and_std(_t_start, _t_stop, _data):
@@ -48,8 +47,8 @@ def paths(_current_primary_file, _current_primary_dir):
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
-    _path_mesh1 = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed' + '.npy')
-    _path_head = Path(converted_data_file_path, current_primary_file + '_head.bin')
+    _path_mesh1 = Path(data_treatment_file_path, 'Meshed_Spectrum', _current_primary_file + '_meshed' + '.npy')
+    _path_head = Path(converted_data_file_path, _current_primary_file + '_head.bin')
 
     return _path_mesh1, _path_head
 
@@ -111,6 +110,28 @@ def noise_gen_test(_spectrum):
     return _dev, _std, _mean
 
 
+def low_noise_spectra_base(_spectrum, _head, _freq_mask):
+    # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
+    columns_names = ['file_name', 'att1', 'att2', 'att3', 'kurtosis', 'polar', 'config', 'freq_mask',
+                     'arg', 'LN_spectra']
+    config_dict = {'1': 'ADC only',
+                   '2': 'ADC + Micran_ampl',
+                   '3': 'ADC + Micran_ampl + preampl2',
+                   '4': 'ADC + Micran_ampl + preampl2 + preampl1'}
+    path_to_ln_spectra = r'J:\Fast_Acquisition\2022\Data_treatment'
+    ln_spectra_file_name = 'LN_spectra_base.bin'
+    if not os.path.isfile(Path(path_to_ln_spectra, ln_spectra_file_name)):
+        low_noise_spectra = pd.DataFrame(columns=columns_names)
+    else:
+        with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'rb') as inp:
+            low_noise_spectra = pickle.load(inp)
+    pass
+    with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'wb') as out:
+        pickle.dump(low_noise_spectra, out)
+
+    pass
+
+
 if __name__ == '__main__':
 
     current_primary_file = '2022-01-27_11'
@@ -125,6 +146,8 @@ if __name__ == '__main__':
     l, m = np.shape(spectrum_mesh)
     with open(path_head, 'rb') as inp:
         head = pickle.load(inp)
+    freq_mask = [1250, 1550, 2350, 2800]
+    low_noise_spectra_base(spectrum_mesh, head, freq_mask)
 
     dev, std, mean = noise_gen_test(spectrum_mesh)
 
