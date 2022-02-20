@@ -110,7 +110,7 @@ def noise_gen_test(_spectrum):
     return _dev, _std, _mean
 
 
-def low_noise_spectra_base(_spectrum, _head, _freq_mask):
+def low_noise_spectra_base(_spectrum, _head, _freq_mask, _arg, _current_primary_file):
     # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
     columns_names = ['file_name', 'att1', 'att2', 'att3', 'kurtosis', 'polar', 'config', 'freq_mask',
                      'arg', 'LN_spectra']
@@ -118,18 +118,36 @@ def low_noise_spectra_base(_spectrum, _head, _freq_mask):
                    '2': 'ADC + Micran_ampl',
                    '3': 'ADC + Micran_ampl + preampl2',
                    '4': 'ADC + Micran_ampl + preampl2 + preampl1'}
-    path_to_ln_spectra = r'J:\Fast_Acquisition\2022\Data_treatment'
+    path_to_ln_spectra = r'H:\Fast_Acquisition\2022\Data_treatment'
     ln_spectra_file_name = 'LN_spectra_base.bin'
+
+    low_noise_spectrum = {'file_name': _current_primary_file, 'att1': _head['att1'], 'att2': _head['att2'],
+                          'att3': _head['att3'], 'kurtosis': _head['kurtosis'], 'polar': _head['polar'],
+                          'config': '1', 'freq_mask': _freq_mask, 'arg': _arg, 'LN_spectra': _spectrum
+                          }
+    low_noise_ser = pd.Series(low_noise_spectrum)
+    idx = None
     if not os.path.isfile(Path(path_to_ln_spectra, ln_spectra_file_name)):
         low_noise_spectra = pd.DataFrame(columns=columns_names)
+        low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
     else:
         with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'rb') as inp:
             low_noise_spectra = pickle.load(inp)
     pass
-    with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'wb') as out:
-        pickle.dump(low_noise_spectra, out)
+    if low_noise_spectra.size == 0:
+        low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
+    else:
+        idx = low_noise_spectra.loc[(low_noise_spectra.file_name == _current_primary_file)
+                                    & low_noise_spectra.freq_mask == _freq_mask].index
+    if len(idx):
+        print('Such low noise spectra is exist')
+    else:
+        low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
+        with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'wb') as out:
+            pickle.dump(low_noise_spectra, out)
 
     pass
+    return
 
 
 if __name__ == '__main__':
@@ -147,7 +165,8 @@ if __name__ == '__main__':
     with open(path_head, 'rb') as inp:
         head = pickle.load(inp)
     freq_mask = [1250, 1550, 2350, 2800]
-    low_noise_spectra_base(spectrum_mesh, head, freq_mask)
+    arg = [1000 + delta_f * i for i in range(m)]
+    low_noise_spectra_base(spectrum_mesh, head, freq_mask, arg, current_primary_file)
 
     dev, std, mean = noise_gen_test(spectrum_mesh)
 
