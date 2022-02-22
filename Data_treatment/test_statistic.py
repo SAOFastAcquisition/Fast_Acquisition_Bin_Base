@@ -111,12 +111,14 @@ def noise_gen_test(_spectrum):
 
 def low_noise_spectra_base(_spectrum, _head, _freq_mask, _arg, _current_primary_file):
     # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
+    # Формируем названия столбцов фрейма для хранения низкочастолтных спектров
     columns_names = ['file_name', 'att1', 'att2', 'att3', 'kurtosis', 'polar', 'config', 'freq_mask',
                      'arg', 'LN_spectra']
     config_dict = {'1': 'ADC only',
                    '2': 'ADC + Micran_ampl',
                    '3': 'ADC + Micran_ampl + preampl2',
                    '4': 'ADC + Micran_ampl + preampl2 + preampl1'}
+    # Путь к папке, где будет находиться база со спектрами "LN_spectra_base.bin"
     path_to_ln_spectra, head_path = path_to_data('2022', 'Data_treatment')
     ln_spectra_file_name = 'LN_spectra_base.bin'
 
@@ -153,7 +155,7 @@ def low_noise_spectra_base(_spectrum, _head, _freq_mask, _arg, _current_primary_
             print('Such low noise spectra is exist')
         else:
             low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
-
+    low_noise_spectra = low_noise_spectra.drop([1,2,3,4,5,6,7])
     with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'wb') as out:
         pickle.dump(low_noise_spectra, out)
 
