@@ -121,36 +121,30 @@ def low_noise_spectra_base(_spectrum, _head, _freq_mask, _arg, _current_primary_
     # Путь к папке, где будет находиться база со спектрами "LN_spectra_base.bin"
     path_to_ln_spectra, head_path = path_to_data('2022', 'Data_treatment')
     ln_spectra_file_name = 'LN_spectra_base.bin'
+    path1 = Path(path_to_ln_spectra, ln_spectra_file_name)
+    if not os.path.isfile(path1):
+        low_noise_spectra = pd.DataFrame(columns=columns_names)
+        idx = []
+    else:
+        with open(path1, 'rb') as inp:
+            low_noise_spectra = pickle.load(inp)
 
-    with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'rb') as inp:
-        low_noise_spectra = pickle.load(inp)
-
-    m = np.size(_freq_mask)
-    for i in range(m):
+    _m = np.size(_freq_mask)
+    for i in range(_m):
         low_noise_spectrum = {'file_name': _current_primary_file, 'att1': _head['att1'], 'att2': _head['att2'],
                               'att3': _head['att3'], 'kurtosis': _head['kurtosis'], 'polar': _head['polar'],
                               'config': '1', 'freq_mask': _freq_mask[i], 'arg': _arg, 'LN_spectra': _spectrum[i, :]
                               }
         low_noise_ser = pd.Series(low_noise_spectrum)
-        idx = None
-        path1 = Path(path_to_ln_spectra, ln_spectra_file_name)
-        if not os.path.isfile(path1):
-            low_noise_spectra = pd.DataFrame(columns=columns_names)
-            low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
             # low_noise_spectra = low_noise_spectra.drop(1)
-        pass
-        if low_noise_spectra.shape[0] == 0:
+        flag = low_noise_spectra.shape[0]
+        if not flag:
             low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
-        else:
-            a11 = _freq_mask
-            a12 = low_noise_spectra.freq_mask
-            a2 = low_noise_spectra.freq_mask
-            idx = low_noise_spectra.loc[(low_noise_spectra.freq_mask == _freq_mask[i])
-                                        & (low_noise_spectra.file_name == _current_primary_file)].index
-        if idx == None:
-            len_idx = 0
-        else:
-            len_idx = len(idx)
+
+        idx = low_noise_spectra.loc[(low_noise_spectra.freq_mask == _freq_mask[i])
+                                    & (low_noise_spectra.file_name == _current_primary_file)].index
+
+        len_idx = len(idx)
         if len_idx:
             print('Such low noise spectra is exist')
         else:
