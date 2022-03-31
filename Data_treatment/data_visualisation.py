@@ -311,18 +311,18 @@ def unite_spectrum(spec):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 9
+    _n1 = 1
+    _n2 = 3
     _freq_mask = [
         [2850],                                                               # [0]
         [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980],               # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
         [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
-        [1230, 1560, 2350, 2900],                                                               # [5]
+        [1230, 1380, 2300, 2900],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]    # [8]
+        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]    # [8]
     ]
     return _freq_mask[_i]
 
@@ -344,13 +344,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_01_20test'
+    current_primary_dir = '2022_03_28crab'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-01-20_02test'
+    current_primary_file = '2022-03-28_05-06'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -361,7 +361,7 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 8 # Установка разрешения по частоте в МГц
+    freq_res = 32  # Установка разрешения по частоте в МГц
     kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
@@ -381,7 +381,7 @@ if __name__ == '__main__':
     noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'y'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     robust_filter = 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
@@ -401,7 +401,7 @@ if __name__ == '__main__':
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
         if head['att3'] == 5:
-            pos = 1
+            pos = 0
         elif head['att3'] == 0:
             pos = 0
         else:

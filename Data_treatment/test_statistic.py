@@ -155,7 +155,7 @@ def low_noise_spectra_base(_spectrum, _head, _freq_mask, _arg, _current_primary_
             print('Such low noise spectra is exist')
         else:
             low_noise_spectra = low_noise_spectra.append(low_noise_ser, ignore_index=True)
-    low_noise_spectra = low_noise_spectra.drop([1,2,3,4,5,6,7])
+    # low_noise_spectra = low_noise_spectra.drop([1,2,3,4,5,6,7])
     with open(Path(path_to_ln_spectra, ln_spectra_file_name), 'wb') as out:
         pickle.dump(low_noise_spectra, out)
 
