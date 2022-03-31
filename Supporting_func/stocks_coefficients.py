@@ -136,11 +136,13 @@ if __name__ == '__main__':
     align = 'y'
 
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
-    current_data_dir = '2021_12_26sun'  # Папка с текущими данными
-    current_data_file = '2021-12-26_16+00'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2021_12_22sun'  # Папка с текущими данными
+    current_data_file = '2021-12-22_04_+12'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
+    path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
+    path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
 
     if not (os.path.isfile(path_to_stocks)):
 
@@ -176,6 +178,8 @@ if __name__ == '__main__':
         d1 = pol_intensity(b1, mean_frame_ind_right)
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
+        np.savetxt(path_to_stocks_left_txt,c)
+        np.savetxt(path_to_stocks_right_txt, d)
         # Параметры Стокса
         s0 = c + d
         s3 = c - d

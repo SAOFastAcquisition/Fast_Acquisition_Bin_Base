@@ -231,6 +231,7 @@ def extract_whole_band():
 
         f_in = open(file_name, 'rb')
         antenna = 0
+        frame_num = 0
         while frame:
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
@@ -573,12 +574,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2021_12_22sun'
+    current_primary_dir = '2022_03_28crab'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2021-12-22_10_-12'
+    current_primary_file = '2022-03-28_05-06'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 

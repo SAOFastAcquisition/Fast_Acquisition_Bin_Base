@@ -21,7 +21,7 @@ def noise_kp(spectrum_noise_out, diff='n'):
             s_loc = spectrum_noise_out[:, i]
             s_loc_mod = s_loc[s_loc > 100]
             # s[i] = np.sum(spectrum_noise_out[:500, i]) / 500
-            s[i] = np.sum(s_loc_mod[:500]) / 500
+            s[i] = np.sum(s_loc_mod[1700:2700]) / 1000
         else:
             s[i] = np.sum(spectrum_noise_out[:1600, i]) / 1600
             s1[i] = np.sum(spectrum_noise_out[2000:3600, i]) / 1600
@@ -96,11 +96,35 @@ def align_visualization(coeff_set):
     pass
 
 
+def convert_to_txt(path_to_align, _index):
+    with open(path_to_align, 'rb') as _inp:
+        _calibration_frame = pickle.load(_inp)
+
+    align_left1 = _calibration_frame.iloc[_index].spectrum_left1
+    align_left2 = _calibration_frame.iloc[_index].spectrum_left2
+    align_right1 = _calibration_frame.iloc[_index].spectrum_right1
+    align_right2 = _calibration_frame.iloc[_index].spectrum_right2
+    align = [align_left1, align_left2, align_right1, align_right2]
+    align_name = ['align_left1', 'align_left2', 'align_right1', 'align_right2']
+    i = 0
+    for _s in align:
+        file_name_out: str = align_name[i] + '.txt'
+        # Расчет и запись коэффициентов корректировки АЧХ в файл
+        # При этом для второй зоны Найквиста - инверсный порядок по частоте
+        path_align_txt = Path(r'H:\Fast_Acquisition\Alignment\Align_coeff2_txt', file_name_out)
+        np.savetxt(path_align_txt, _s)
+        i += 1
+
+
+
 # ******************** Путь к исходным данным *********************
-current_data_file = '2021-12-21_11_LP_ng_att-05'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2021_12_21test'  # Папка с текущими данными
+current_data_file = '2022-03-18_RP'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2022_03_18calibr_conv'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+if current_data_file[0:4] == '2021':
+    current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+if current_data_file[0:4] == '2022':
+    current_catalog = r'2022\Converted_data'
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
@@ -173,7 +197,7 @@ plt.show()
 
 # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
 # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
-calibrate_row = {'date': current_data_file[:11], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
+calibrate_row = {'date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                  'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                  'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
                  'max_left1': s_max_band[0], 'max_left2': s_max_band[1],
@@ -191,7 +215,7 @@ idx = calibration_frame.loc[(calibration_frame.date == head['date'])
                             & (calibration_frame.att1 == head['att1'])
                             & (calibration_frame.att2 == head['att2'])
                             & (calibration_frame.att3 == head['att3'])
-                            & (calibration_frame.polar == head['polar'])].index
+                            ].index  # & (calibration_frame.polar == head['polar'])
 
 if len(idx):
     r = calibration_frame.iloc[idx[0]]
@@ -214,7 +238,7 @@ if len(idx):
         calibration_frame = calibration_frame.drop(idx).append(r, ignore_index=True)
 else:
     calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
-# calibration_frame = calibration_frame.drop(idx)
+# calibration_frame = calibration_frame.drop(axis=0, index=[2, 3])
 with open(Path(folder_align_path, align_file_name), 'wb') as out:
     pickle.dump(calibration_frame, out)
 
@@ -222,3 +246,4 @@ with open(Path(folder_align_path, align_file_name), 'rb') as inp:
     calibration_frame_inp = pickle.load(inp)
 
 pass
+convert_to_txt(Path(folder_align_path, align_file_name), 0)
