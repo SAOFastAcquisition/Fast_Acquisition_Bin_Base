@@ -311,15 +311,15 @@ def unite_spectrum(spec):
 
 
 def freq_mask(_i):
-    _n1 = 1
-    _n2 = 3
+    _n1 = 2
+    _n2 = 1
     _freq_mask = [
-        [2850],                                                               # [0]
+        [1900],                                                               # [0]
         [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980],               # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
         [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
-        [1230, 1380, 2300, 2900],                                                               # [5]
+        [1230, 1560, 2300, 2910],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
         [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]    # [8]
@@ -344,13 +344,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_03_28crab'
+    current_primary_dir = '2022_03_25_3C84'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-03-28_05-06'
+    current_primary_file = '2022-03-25_05-12'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -361,8 +361,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 32  # Установка разрешения по частоте в МГц
-    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
+    freq_res = 30  # Установка разрешения по частоте в МГц
+    kt = 30  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3

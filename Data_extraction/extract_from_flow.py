@@ -302,7 +302,7 @@ def extract_whole_band():
                     # if spectrum_val > 1000000000:
                     #     spectrum_val = 1000000000
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    if pp_good / 256 < 0.1:
+                    if pp_good / 256 < 0.99:
                         spectrum_val = 2
                     spectr_frame.append(spectrum_val)
                     pass
@@ -574,12 +574,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_03_28crab'
+    current_primary_dir = '2022_03_25_3C84'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-03-28_05-06'
+    current_primary_file = '2022-03-25_05-12'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
