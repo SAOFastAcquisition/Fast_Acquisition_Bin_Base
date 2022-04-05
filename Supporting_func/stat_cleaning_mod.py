@@ -51,21 +51,21 @@ def clean_func(data, frame_centers_loc, length_frame):
     for ind_frame in frame_centers_loc:
         frame = data[ind_frame - delta_ind:ind_frame + delta_ind, :]
         form = np.shape(frame)
-        for j in range(form[1]):
-        # for j in [n, m]:          # Используются при отладке
+        # for j in range(form[1]):
+        for j in [n, m]:          # Используются при отладке
             frame_small = frame[:, j]
             mean_frame = np.mean(frame_small[frame_small > 100])
             sigma_mean_frame = np.sqrt(np.var(frame_small[frame_small > 100]))
             for i in range(form[0]):
                 if np.abs(frame[i, j] - mean_frame) > sigma_mean_frame * 3:
-                    frame[i, j] = 10
+                    frame[i, j] = mean_frame
             frame_small = frame[:, j]
             mean_frame = np.mean(frame_small[frame_small > 100])
             for i in range(form[0]):
                 c = frame[i, j]
                 d = c / mean_frame - 1
                 if np.abs(d) > (3 * radiometric_advantage1):
-                    frame[i, j] = 0
+                    frame[i, j] = mean_frame
 
         data[ind_frame - delta_ind:ind_frame + delta_ind] = frame
     pass
@@ -143,9 +143,9 @@ def func_frame_centers():
 
 if __name__ == '__main__':
 
-    current_data_file = '2021-12-26_03+12'  # Имя файла с исходными текущими данными без расширения
-    current_data_dir = '2021_12_26_3C84'  # Папка с текущими данными
-    current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
+    current_data_file = '2022-03-28_03+20'  # Имя файла с исходными текущими данными без расширения
+    current_data_dir = '2022_03_28moon_conv'  # Папка с текущими данными
+    current_catalog = r'2022\Converted_data'  # Текущий каталог (за определенный период, здесь - год)
 
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     n_aver = int(head['n_aver'])
     freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
     spectrum_out = [[], [], [], []]
-    debugging = 'n'
+    debugging = 'y'
 
     # Если запись содержит две поляризации, то длина отрезка разбиения (полупериод переключения
     # поляризаций) равна 34, если поляризация одна то длина отрезка - 63
