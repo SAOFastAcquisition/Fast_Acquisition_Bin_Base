@@ -302,7 +302,7 @@ def extract_whole_band():
                     # if spectrum_val > 1000000000:
                     #     spectrum_val = 1000000000
                     pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    if pp_good / 256 < 0.99:
+                    if pp_good / 256 < pp_good_bound:
                         spectrum_val = 2
                     spectr_frame.append(spectrum_val)
                     pass
@@ -387,6 +387,7 @@ def extract_whole_band():
             'n_aver': n_aver,
             'shift': shift,
             'kurtosis': bound_left,
+            'good_bound': pp_good_bound,
             'att1': att01,
             'att2': att02,
             'att3': att03,
@@ -574,12 +575,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_03_25_3C84'
+    current_primary_dir = '2022_03_18sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-03-25_05-12'
+    current_primary_file = '2022-03-18_06+08'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
@@ -592,6 +593,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
     band_size_init = 'whole'
     num_of_polar = 2
+    pp_good_bound = 0.99
     shift = 0
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
