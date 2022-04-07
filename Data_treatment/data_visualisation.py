@@ -311,8 +311,8 @@ def unite_spectrum(spec):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 1
+    _n1 = 1
+    _n2 = 9
     _freq_mask = [
         [1900],                                                               # [0]
         [2060, 2220, 2300, 2500, 2560, 2700, 2800, 2880, 2980],               # [1]
@@ -327,7 +327,22 @@ def freq_mask(_i):
     return _freq_mask[_i]
 
 
-def prep_data_to_poly3d():
+def data_poly3d_perm(_spectrum_extr):
+    _k, _m = np.shape(_spectrum_extr)
+    freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]
+    i = 0
+    _n = [0] * 6
+    _data_poly3d = []
+    for s in freq_mask_poly:
+        _n[i] = int((s - 1000) / 2000 * _m)
+        if i % 2 == 1:
+            if len(_data_poly3d) ==0:
+                _data_poly3d = _spectrum_extr[:, _n[i - 1]:_n[i]]
+            else:
+                _data_poly3d = np.hstack((_data_poly3d, _spectrum_extr[:, _n[i - 1]:_n[i]]))
+
+        i += 1
+
 
 
     pass
@@ -350,13 +365,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_03_18sun'
+    current_primary_dir = '2022_03_26sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-03-18_06+08'
+    current_primary_file = '2022-03-26_04+16'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -368,13 +383,13 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 30  # Установка разрешения по частоте в МГц
-    kt = 12  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
+    kt = 30  # Установка разрешения по времени в единицах минимального разрешения 8.1925e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -382,16 +397,16 @@ if __name__ == '__main__':
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'm'
+    output_picture_mode = 'b'
     align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     robust_filter = 'n'
-    graph_3d_perm = 'y'
-    contour_2d_perm = 'y'
-    polys3d_perm = 'y'
+    graph_3d_perm = 'n'
+    contour_2d_perm = 'n'
+    poly3d_perm = 'y'
 
     # *****************************************************
     # Чтение с диска, если спектры ранее извлекались,
@@ -476,13 +491,9 @@ if __name__ == '__main__':
 
     # ************************** !!! Вывод данных !!! ***********************
     line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
-    try:
-        pp_good = head['good_bound']
-    except KeyError:
-        pp_good = 0.1
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-                ('polarisation ' + polar), 'align: ' + align, 'percent of good samples: ' + str(pp_good)]
+                ('polarisation ' + polar), 'align: ' + align]
     path1 = Path(data_treatment_file_path, current_primary_file)
     path_to_fig(data_treatment_file_path)
     path_to_fig(path1)
@@ -525,7 +536,7 @@ if __name__ == '__main__':
     # ***        Вывод данных двумерный и трехмерный       ****
     # *********************************************************
     # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-    if graph_3d_perm == 'y' or contour_2d_perm == 'y' or polys3d_perm == 'y':
+    if graph_3d_perm == 'y' or contour_2d_perm == 'y' or poly3d_perm == 'y':
         spectr_extr1 = spectr_construction(spectrum_extr, kf, kt)
     # Информация о временном и частотном резрешениях
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
@@ -533,9 +544,12 @@ if __name__ == '__main__':
                 ('polarisation ' + polar)]
 
     if graph_3d_perm == 'y':
-        fp.graph_3d(freq, timeS, spectr_extr1, 0, data_treatment_file_path, head)
+        fp.graph_3d(freq, timeS, spectr_extr1, 0, current_data_file, head)
     if contour_2d_perm == 'y':
-        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt)
+        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
+
+    if poly3d_perm == 'y':
+        data_poly3d = data_poly3d_perm(spectr_extr1)
 
     # if align == 'y':
     #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
