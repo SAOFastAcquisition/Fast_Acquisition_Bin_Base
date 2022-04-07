@@ -88,6 +88,8 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
         y4 = y_min * 4
+        y5 = y_min * 6
+
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
@@ -101,11 +103,13 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         y2 = y_max - 4 * (y_max - y_min) / 10
         y3 = y_max - (y_max - y_min) / 10
         y4 = y_max - (y_max - y_min) / 5
+        y5 = y_max - 5 * (y_max - y_min) / 10
 
     plt.text(x_min, y1, inform[0], fontsize=16)  # Разрешение по частоте
     plt.text(x_min, y2, inform[1], fontsize=16)  # Разрешение по времени
     plt.text(x_min, y3, inform[2], fontsize=16)  # Информация о поляризации
     plt.text(x_min, y4, inform[3], fontsize=16)  # Информация о статистической чистке сканов
+    plt.text(x_min, y5, inform[4], fontsize=16)  # Информация о статистической чистке сканов
     m = 0
     for i in range(freq_line_sp1):
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
@@ -336,7 +340,7 @@ def path_to_pic(file_path, flag, format='png'):
 
 def graph_contour_2d(*args):
     import matplotlib.font_manager as font_manager
-    xval, yval, z, s = args
+    xval, yval, z, s, _info_txt = args
     x, y = np.meshgrid(xval, yval)
     z = np.log10(z)
 
@@ -353,8 +357,8 @@ def graph_contour_2d(*args):
     y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
     y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
     fig.colorbar(cf, ax=ax1)
-    title1, title2 = pic_title()
-    ax1.set_title(title2 + ' ' + title1, fontsize=20)
+    # title1, title2 = pic_title()
+    # ax1.set_title(title2 + ' ' + title1, fontsize=20)
     ax1.set_xlabel('Freq, MHz', fontsize=18)
     ax1.set_ylabel('Time, s', fontsize=18)
 
@@ -363,14 +367,14 @@ def graph_contour_2d(*args):
     plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
     plt.tick_params(axis='both', which='major', labelsize=16)
 
-    plt.text(x_min, y1, info_txt[0], fontsize=16)
-    plt.text(x_min, y2, info_txt[1], fontsize=16)
+    plt.text(x_min, y1, _info_txt[0], fontsize=16)
+    plt.text(x_min, y2, _info_txt[1], fontsize=16)
 
     # adjust spacing between subplots so `ax1` title and `ax0` tick labels
     # don't overlap
     fig.tight_layout()
-    add_path0 = fp.path_to_pic(file_name0 + '\\', 2, 'png')
-    fig.savefig(file_name0 + '\\' + add_path0)
+    # add_path0 = fp.path_to_pic(file_name0 + '\\', 2, 'png')
+    # fig.savefig(file_name0 + '\\' + add_path0)
     plt.show()
     return
 
@@ -386,8 +390,8 @@ def graph_3d(*args):
     xval, yval, z, s, file_name, head = args
     x, y = np.meshgrid(xval, yval)
     ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
-    title1, title2, title3 = title_func(file_name, head)
-    ax.set_title(title2 + ' ' + title1, fontsize=20)
+    # title1, title2, title3 = title_func(file_name, head)
+    # ax.set_title(title2 + ' ' + title1, fontsize=20)
     # ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
     # ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
     ax.set_xlabel('Frequency, MHz', fontsize=16)
@@ -399,7 +403,7 @@ def graph_3d(*args):
         plt.savefig(file_name + '_wK' + '.png', format='png', dpi=100)
         return
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
-    add_path0 = path_to_pic(file_name + '\\', 3)
+    # add_path0 = path_to_pic(file_name + '\\', 3)
     # plt.savefig(file_name + '\\' + add_path0, format='png', dpi=100)
     plt.show()
     return

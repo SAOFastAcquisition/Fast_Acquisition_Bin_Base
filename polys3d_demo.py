@@ -37,7 +37,7 @@ def cc(arg):
 
 
 @save_fig
-def poly_graph3d():
+def poly_graph3d_model():
     fig = plt.figure()
     ax = fig.gca(projection='3d')
 
@@ -67,6 +67,40 @@ def poly_graph3d():
     return fig
 
 
+def poly_graph3d(*args):
+    xs = args[0]    # Вектор значений аргумента (в нашем случае время)
+    ys = args[1]    # Массив значений ординаты при значениях параметра из вектора zs (скан по времени на фиксированной
+                    # частоте)
+    zs = args[2]    # Вектор значений параметра (в нашем случае частоты)
+    # xs = np.arange(0, 10, 0.4)
+    # zs = [0.0, 1.0, 2.0, 3.0]
+    verts = []
+    for z in zs:
+        # ys = np.random.rand(len(xs))
+        # ys[0], ys[-1] = 0, 0
+        verts.append(list(zip(xs, ys)))
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    poly = PolyCollection(verts, facecolors=[cc('r'), cc('g'), cc('b'),
+                                             cc('y')])
+    poly.set_alpha(0.7)
+    ax.add_collection3d(poly, zs=zs, zdir='y')
+
+    ax.set_xlabel('X')
+    ax.set_xlim3d(0, 10)
+    ax.set_ylabel('Y')
+    ax.set_ylim3d(-1, 4)
+    ax.set_zlabel('Z')
+    ax.set_zlim3d(0, 1)
+
+    plt.show()
+    print(f'type fig: {type(fig)}')
+    # fig.savefig('Poly3D.png')
+    return fig
+
+
 def save_question():
     root = Tk()
     answer = mb.askquestion(
@@ -77,7 +111,7 @@ def save_question():
 
 
 if __name__ == '__main__':
-    poly_graph3d()
+    poly_graph3d_model()
     #
     # print(save_question())
 

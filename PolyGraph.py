@@ -43,13 +43,13 @@ def poly_graph(xs, y, zs):
     plt.show()
 
 
-# xs = np.arange(0, 10, 0.4)
-# y = [1]
-# zs = [0.0, 1.0, 2.0, 3.0]
-# i = 0
-# for z in zs:
-#     ys = np.random.rand(len(xs))
-#     ys[0], ys[-1] = 0, 0
-#     y[i, :] = ys
+xs = np.arange(0, 10, 0.4)
+y = [1]
+zs = [0.0, 1.0, 2.0, 3.0]
+i = 0
+for z in zs:
+    ys = np.random.rand(len(xs))
+    ys[0], ys[-1] = 0, 0
+    y[i, :] = ys
 
-# poly_graph(xs, y, zs)
+poly_graph(xs, y, zs)
