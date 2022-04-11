@@ -13,6 +13,7 @@ from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
 from Interface.window_handler import exec_app
 from Polyphase.cic_filter import signal_filtering
 from test_statistic import low_noise_spectra_base
+from polys3d_demo import poly_graph3d
 
 current_dir = Path.cwd()
 home_dir = Path.home()
@@ -327,7 +328,7 @@ def freq_mask(_i):
     return _freq_mask[_i]
 
 
-def data_poly3d_perm(_spectrum_extr):
+def data_poly3d_prep(_spectrum_extr):
     _k, _m = np.shape(_spectrum_extr)
     freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]
     i = 0
@@ -337,15 +338,15 @@ def data_poly3d_perm(_spectrum_extr):
         _n[i] = int((s - 1000) / 2000 * _m)
         if i % 2 == 1:
             if len(_data_poly3d) ==0:
-                _data_poly3d = _spectrum_extr[:, _n[i - 1]:_n[i]]
+                _data_poly3d = _spectrum_extr[:, _n[i - 1]:_n[i] + 1]
+                num_mask = [n for n in range(_n[i - 1], _n[i] + 1)]
             else:
-                _data_poly3d = np.hstack((_data_poly3d, _spectrum_extr[:, _n[i - 1]:_n[i]]))
-
+                _data_poly3d = np.hstack((_data_poly3d, _spectrum_extr[:, _n[i - 1]:_n[i] + 1]))
+                num_mask = np.hstack((num_mask, [n for n in range(_n[i - 1], _n[i] + 1)]))
         i += 1
-
-
-
+    _freq_mask = freq[num_mask]
     pass
+    return _data_poly3d, _freq_mask
 
 
 if __name__ == '__main__':
@@ -549,7 +550,9 @@ if __name__ == '__main__':
         fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
 
     if poly3d_perm == 'y':
-        data_poly3d = data_poly3d_perm(spectr_extr1)
+        data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
+        poly_graph3d(timeS, data_poly3d, freq_mask)
+
 
     # if align == 'y':
     #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
