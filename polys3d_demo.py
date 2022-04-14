@@ -54,11 +54,11 @@ def poly_graph3d_model():
     poly.set_alpha(0.7)
     ax.add_collection3d(poly, zs=zs, zdir='y')
 
-    ax.set_xlabel('X')
+    ax.set_xlabel('Time, sec')
     # ax.set_xlim3d(0, 10)
-    ax.set_ylabel('Y')
+    ax.set_ylabel('Frequency, MHz')
     # ax.set_ylim3d(-1, 4)
-    ax.set_zlabel('Z')
+    ax.set_zlabel('Spectrum, arb. un.')
     # ax.set_zlim3d(0, 1)
 
     plt.show()
@@ -72,33 +72,35 @@ def poly_graph3d(*args):
     ys_arr = args[1]    # Массив значений ординаты при значениях параметра из вектора zs (скан по времени на фиксированной
                     # частоте)
     zs = args[2]    # Вектор значений параметра (в нашем случае частоты)
-    # xs = np.arange(0, 10, 0.4)
-    # zs = [0.0, 1.0, 2.0, 3.0]
+    _l = len(zs)
     verts = []
-    i = 0
-    for z in zs:
+    for i in range(_l):
         ys = ys_arr[:, i]
-        # ys = np.random.rand(len(xs))
-        # ys[0], ys[-1] = 0, 0
         verts.append(list(zip(xs, ys)))
-        i += 1
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
+    colours_map = [0]*_l
+    for i in range(_l // 2):
+        colours_map[2 * i] = cc('r')
+        colours_map[2 * i + 1] = cc('b')
+        if _l % 2:
+            colours_map[_l - 1] = cc('r')
+    # colours_map = [cc('r'), cc('g'), cc('b'), cc('y'),
+    #                cc('r'), cc('g'), cc('b'), cc('y'), cc('g'),
+    #                cc('r'), cc('g'), cc('b'),
+    #                cc('y')]
 
-    poly = PolyCollection(verts, facecolors=[cc('r'), cc('g'), cc('b'), cc('y'),
-                                             cc('r'), cc('g'), cc('b'), cc('y'), cc('g'),
-                                             cc('r'), cc('g'), cc('b'),
-                                             cc('y')])
+    poly = PolyCollection(verts, facecolors=colours_map)
     # poly = PolyCollection(verts)
-    poly.set_alpha(0.3)
+    poly.set_alpha(0.6)
     ax.add_collection3d(poly, zs=zs, zdir='y')
 
-    ax.set_xlabel('X')
+    ax.set_xlabel('Time, sec')
     ax.set_xlim3d(0, 400)
-    ax.set_ylabel('Y')
+    ax.set_ylabel('Frequency, MHz')
     ax.set_ylim3d(1000, 3000)
-    ax.set_zlabel('Z')
+    ax.set_zlabel('Spectrum, arb. un.')
     ax.set_zlim3d(0, 2e8)
 
     plt.show()

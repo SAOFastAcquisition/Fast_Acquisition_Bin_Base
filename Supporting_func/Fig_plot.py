@@ -167,10 +167,11 @@ def title_func(file_name0, head):
     att1 = str(head['att1'])
     att2 = str(head['att2'])
     att3 = str(head['att3'])
-    date = head['date'][:-1]
+    date = head['date']
 
     title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
-    if not file_name0.find('sun') == -1:
+    a = file_name0.find('sun', -50, -1)
+    if not file_name0.find('sun', -50, -1) == -1:
         title2 = 'Sun intensity'
         title02 = 'Sun spectrum '
         if file_name0[-1:] == 'b':
@@ -182,6 +183,10 @@ def title_func(file_name0, head):
     elif not file_name0.find('crab') == -1:
         title2 = 'Crab intensity'
         title02 = 'Crab spectrum '
+
+    elif not file_name0.find('moon') == -1:
+        title2 = 'Moon intensity'
+        title02 = 'Moon spectrum '
 
     elif not file_name0.find('3C84') == -1:
         title2 = '3C84 intensity'
