@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
+from Fig_plot import fig_multi_axes
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -132,17 +133,37 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     return file_path_data_out, head_path_out
 
 
+def freq_mask(_i):
+    _n1 = 1
+    _n2 = 5
+    _freq_mask = [
+        [1350],                                                               # [0]
+        [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
+        [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
+        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
+        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
+        [1230, 1560, 2300, 2910],                                                               # [5]
+        [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
+        [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
+        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]    # [8]
+    ]
+    return _freq_mask[_i]
+
+
 if __name__ == '__main__':
     align = 'y'
 
-    current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
-    current_data_dir = '2021_12_22sun'  # Папка с текущими данными
-    current_data_file = '2021-12-22_04_+12'  # Имя файла с исходными текущими данными без расширения
+    current_catalog = r'2022\Converted_data'  # Текущий каталог (за определенный период, здесь - год)
+    current_primary_dir = '2022_04_29sun'
+    current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
+    current_data_file = '2022-04-29_04+16'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
+    freq_mask_list = freq_mask(1)
+    freq_mask0 = np.array(freq_mask(1))
 
     if not (os.path.isfile(path_to_stocks)):
 
@@ -156,7 +177,7 @@ if __name__ == '__main__':
         if align == 'y':
             path = Path(head_path, 'Alignment', align_file_name)
             spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
-                                       path, 1)
+                                       path, 0)
 
         input_data_upper = {'left': spectrum[1],
                             'right': spectrum[3]}
@@ -183,26 +204,43 @@ if __name__ == '__main__':
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
-        mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008125
+        mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008336
         stocks_coeff = pd.Series([s0, s3, mean_frame_ind_pol])
         np.save(path_to_stocks, stocks_coeff)
 
     else:
         stocks_coeff = np.load(path_to_stocks, allow_pickle=True)
         [s0, s3, mean_frame_ind_pol] = stocks_coeff
-    for j in range(0, 512, 20):
-        fig, ax1 = plt.subplots()
-        ax2 = ax1.twinx()
-        ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
-        ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
-        ax1.set_ylabel('Stocks_I')
-        ax2.set_ylabel('Stocks_V', color='darkred')
-        ax1.minorticks_on()
-        ax1.grid()
-        ax1.grid(which='minor',
-                 axis='x',
-                 color='k',
-                 linestyle=':')
-        plt.show()
 
+    m, n = np.shape(s0)
+    num_mask = [int((s - 1000 * (1 + 1 / 1025)) * 1025 / 2000) for s in freq_mask0]
+    # for j in num_mask:
+    #     fig, ax1 = plt.subplots()
+    #     ax2 = ax1.twinx()
+    #     ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
+    #     ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
+    #     ax1.set_ylabel('Stocks_I')
+    #     ax2.set_ylabel('Stocks_V', color='darkred')
+    #     ax1.minorticks_on()
+    #     f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
+    #     max_y2 = np.nanmax(s3[:, j])
+    #     text1 = 'f = ' + str(f1) + ' MHz'
+    #     plt.text(0, max_y2 / 2, text1, fontsize=12)  # Разрешение по времени
+    #     ax1.grid()
+    #     ax2.grid()
+    #     ax1.grid(which='minor',
+    #              axis='x',
+    #              color='k',
+    #              linestyle=':')
+    #     plt.show()
+    with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
+        head = pickle.load(inp)
+    inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
+                ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
+                ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
+    current_treatment_dir = current_primary_dir + '_treat'
+    current_treatment_path = Path('Data_treatment', current_treatment_dir)
+    s0_selected = s3[:, num_mask]
+    fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,  Path(current_treatment_path,
+                                                                                current_data_file), freq_mask0, head)
     pass
