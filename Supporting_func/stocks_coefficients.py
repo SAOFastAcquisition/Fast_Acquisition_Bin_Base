@@ -135,12 +135,12 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 5
+    _n2 = 1
     _freq_mask = [
         [1350],                                                               # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
-        [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
-        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
+        [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],                           # [2]
+        [1000 * _n1 + 260 * _n2 + 10 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
         [1230, 1560, 2300, 2910],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
@@ -153,10 +153,10 @@ def freq_mask(_i):
 if __name__ == '__main__':
     align = 'y'
 
-    current_catalog = r'2022\Converted_data'  # Текущий каталог (за определенный период, здесь - год)
+    current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
     current_primary_dir = '2022_04_29sun'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_data_file = '2022-04-29_04+16'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-04-29_02+24'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
@@ -199,7 +199,18 @@ if __name__ == '__main__':
         d1 = pol_intensity(b1, mean_frame_ind_right)
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
-        np.savetxt(path_to_stocks_left_txt,c)
+        #                               ****************
+        # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
+        av_c_cal = (np.mean(c[166:185, :], axis=0) + np.mean(c[1034:11063, :], axis=0)) / 2
+        av_d_cal = (np.mean(d[166:185, :], axis=0) + np.mean(d[1034:11063, :], axis=0)) / 2
+        noise_coeff = av_c_cal / av_d_cal
+        m, n = np.shape(c)
+        for i in range(m):
+            for j in range(n):
+                d[i, j] = d[i, j] * noise_coeff[j]
+        #                               *****************
+
+        np.savetxt(path_to_stocks_left_txt, c)
         np.savetxt(path_to_stocks_right_txt, d)
         # Параметры Стокса
         s0 = c + d
@@ -214,25 +225,27 @@ if __name__ == '__main__':
 
     m, n = np.shape(s0)
     num_mask = [int((s - 1000 * (1 + 1 / 1025)) * 1025 / 2000) for s in freq_mask0]
-    # for j in num_mask:
-    #     fig, ax1 = plt.subplots()
-    #     ax2 = ax1.twinx()
-    #     ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
-    #     ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
-    #     ax1.set_ylabel('Stocks_I')
-    #     ax2.set_ylabel('Stocks_V', color='darkred')
-    #     ax1.minorticks_on()
-    #     f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
-    #     max_y2 = np.nanmax(s3[:, j])
-    #     text1 = 'f = ' + str(f1) + ' MHz'
-    #     plt.text(0, max_y2 / 2, text1, fontsize=12)  # Разрешение по времени
-    #     ax1.grid()
-    #     ax2.grid()
-    #     ax1.grid(which='minor',
-    #              axis='x',
-    #              color='k',
-    #              linestyle=':')
-    #     plt.show()
+    for j in num_mask:
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        # ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
+        # ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
+        ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
+        ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
+        ax1.set_ylabel('Stocks_I')
+        ax2.set_ylabel('Stocks_V', color='darkred')
+        ax1.minorticks_on()
+        f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
+        max_y2 = np.nanmax(s3[:, j])
+        text1 = 'f = ' + str(f1) + ' MHz'
+        plt.text(0, max_y2 / 2, text1, fontsize=12)  # Разрешение по времени
+        ax1.grid()
+        ax2.grid()
+        ax1.grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+        plt.show()
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
