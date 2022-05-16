@@ -6,7 +6,7 @@ import pickle
 import json as jsn
 from datetime import datetime
 from pathlib import Path
-from Supporting_func import align_spectrum, path_to_data
+from Supporting_func import align_spectrum, path_to_data, Fig_plot
 
 current_dir = Path.cwd()
 home_dir = Path.home()
@@ -575,12 +575,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_04_29sun'
+    current_primary_dir = '2021_12_22sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-04-29_05+12'
+    current_primary_file = '2021-12-22_07+00'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 

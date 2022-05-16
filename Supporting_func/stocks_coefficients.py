@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
-from Fig_plot import fig_multi_axes
+from Supporting_func.Fig_plot import fig_multi_axes
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -135,12 +135,12 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 1
+    _n2 = 6
     _freq_mask = [
         [1350],                                                               # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
         [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],                           # [2]
-        [1000 * _n1 + 260 * _n2 + 10 * i for i in range(10)],                 # [3]
+        [1000 * _n1 + 101 * _n2 + 20 * i for i in range(7)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
         [1230, 1560, 2300, 2910],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
@@ -154,16 +154,16 @@ if __name__ == '__main__':
     align = 'y'
 
     current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
-    current_primary_dir = '2022_04_29sun'
+    current_primary_dir = '2021_12_22sun'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_data_file = '2022-04-29_02+24'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2021-12-22_07+00'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
-    freq_mask_list = freq_mask(1)
-    freq_mask0 = np.array(freq_mask(1))
+    freq_mask_list = freq_mask(3)
+    freq_mask0 = np.array(freq_mask(3))
 
     if not (os.path.isfile(path_to_stocks)):
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             head = pickle.load(inp)
         spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
         #               **********************************************
-
+        channel_align = 'n'
         if align == 'y':
             path = Path(head_path, 'Alignment', align_file_name)
             spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
@@ -201,14 +201,15 @@ if __name__ == '__main__':
         d = np.hstack((d, d1))
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
-        av_c_cal = (np.mean(c[166:185, :], axis=0) + np.mean(c[1034:11063, :], axis=0)) / 2
-        av_d_cal = (np.mean(d[166:185, :], axis=0) + np.mean(d[1034:11063, :], axis=0)) / 2
-        noise_coeff = av_c_cal / av_d_cal
-        m, n = np.shape(c)
-        for i in range(m):
-            for j in range(n):
-                d[i, j] = d[i, j] * noise_coeff[j]
-        #                               *****************
+        if channel_align == 'y':
+            av_c_cal = (np.mean(c[166:185, :], axis=0) + np.mean(c[1034:1063, :], axis=0)) / 2
+            av_d_cal = (np.mean(d[166:185, :], axis=0) + np.mean(d[1034:1063, :], axis=0)) / 2
+            noise_coeff = av_c_cal / av_d_cal
+            m, n = np.shape(c)
+            for i in range(m):
+                for j in range(n):
+                    d[i, j] = d[i, j] * noise_coeff[j]
+            #                               *****************
 
         np.savetxt(path_to_stocks_left_txt, c)
         np.savetxt(path_to_stocks_right_txt, d)
