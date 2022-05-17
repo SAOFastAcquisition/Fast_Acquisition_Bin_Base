@@ -9,6 +9,7 @@ import pandas as pd
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
 from Supporting_func.Fig_plot import fig_multi_axes
+from Supporting_func.dict_calibr_from_csv import start_stop_calibr
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -154,9 +155,9 @@ if __name__ == '__main__':
     align = 'y'
 
     current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
-    current_primary_dir = '2021_12_22sun'
+    current_primary_dir = '2022_04_29sun'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_data_file = '2021-12-22_07+00'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-04-29_02+24'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
@@ -202,8 +203,11 @@ if __name__ == '__main__':
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
         if channel_align == 'y':
-            av_c_cal = (np.mean(c[166:185, :], axis=0) + np.mean(c[1034:1063, :], axis=0)) / 2
-            av_d_cal = (np.mean(d[166:185, :], axis=0) + np.mean(d[1034:1063, :], axis=0)) / 2
+            dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+            path_to_csv = Path(file_path_data, dict_calibr_file_name)
+            s = start_stop_calibr(current_data_file, path_to_csv)
+            av_c_cal = (np.mean(c[s[0]:s[1], :], axis=0) + np.mean(c[s[2]:s[3], :], axis=0)) / 2
+            av_d_cal = (np.mean(d[s[0]:s[1], :], axis=0) + np.mean(d[s[2]:s[3], :], axis=0)) / 2
             noise_coeff = av_c_cal / av_d_cal
             m, n = np.shape(c)
             for i in range(m):

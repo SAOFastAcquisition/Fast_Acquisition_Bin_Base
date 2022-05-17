@@ -85,11 +85,11 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.set_yscale('log')
         ax.set_ylabel('Power Spectrum', fontsize=20)
         ax.set_title(title02 + title1, fontsize=18)
-        y1 = y_min * 2
+        y1 = y_min * 3
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
-        y4 = y_min * 4
-        y5 = y_min * 6
+        y4 = y_min * 9
+        y5 = y_min * 27
 
     else:
         # pylab.xlim(x_min, x_max + 100)
@@ -115,9 +115,16 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     for i in range(freq_line_sp1):
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
+    if flag:
+        logic = True
+    else:
+        logic = False
 
-    if False:
-        set_zoom = 150, 350, 3.43e6, 3.4475e6
+    if logic:
+        if flag:
+            set_zoom = 1600, 1750, 4e8, 2.5e9
+        else:
+            set_zoom = 150, 350, 3.43e6, 3.4475e6
         axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
