@@ -111,20 +111,21 @@ def convert_to_txt(path_to_align, _index):
         file_name_out: str = align_name[i] + '.txt'
         # Расчет и запись коэффициентов корректировки АЧХ в файл
         # При этом для второй зоны Найквиста - инверсный порядок по частоте
-        path_align_txt = Path(r'H:\Fast_Acquisition\Alignment\Align_coeff2_txt', file_name_out)
+        path_to_align_txt = str(path_to_align)[0:-5] + '2_txt'
+        path_align_txt = Path(path_to_align_txt, file_name_out) # r'H:\Fast_Acquisition\Alignment\Align_coeff2_txt'
         np.savetxt(path_align_txt, _s)
         i += 1
 
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2022-03-18_RP'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2022_03_18calibr_conv'  # Папка с текущими данными
+current_data_file = '2022-03-27_02'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2022_03_27calibr_conv'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 if current_data_file[0:4] == '2021':
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 if current_data_file[0:4] == '2022':
-    current_catalog = r'2022\Converted_data'
+    current_catalog = r'2022/Converted_data'
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
@@ -246,4 +247,4 @@ with open(Path(folder_align_path, align_file_name), 'rb') as inp:
     calibration_frame_inp = pickle.load(inp)
 
 pass
-convert_to_txt(Path(folder_align_path, align_file_name), 0)
+# convert_to_txt(Path(folder_align_path, align_file_name), 0)
