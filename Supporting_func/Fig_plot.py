@@ -22,9 +22,9 @@ def save_fig(func):
     в выделенные моменты времени."""
     def wrapper(*args):
         figure, file_name, flag, format = func(*args)
-        add_pass1 = path_to_pic(file_name + '\\', flag, format)
-        # path = Path(file_name, add_pass1)
-        path = file_name + add_pass1
+        add_pass1 = path_to_pic(file_name, flag, format)
+        path = Path(file_name, add_pass1)
+        # path = file_name + add_pass1
         figure.savefig(path)
         del figure
         flag_save = save_question()
@@ -116,7 +116,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
     if flag:
-        logic = True
+        logic = False
     else:
         logic = False
 

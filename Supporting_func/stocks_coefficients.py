@@ -9,7 +9,7 @@ import pandas as pd
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
 from Supporting_func.Fig_plot import fig_multi_axes
-from Supporting_func.dict_calibr_from_csv import start_stop_calibr
+from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -229,7 +229,18 @@ if __name__ == '__main__':
         [s0, s3, mean_frame_ind_pol] = stocks_coeff
 
     m, n = np.shape(s0)
-    num_mask = [int((s - 1000 * (1 + 1 / 1025)) * 1025 / 2000) for s in freq_mask0]
+    num_mask = [int((s - 1000 * (1 + 1 / 1024)) * 1024 / 2000) for s in freq_mask0]
+    calibration_temperature = [calibration_temp(f) for f in freq_mask0]
+    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    path_to_csv = Path(file_path_data, dict_calibr_file_name)
+    s = start_stop_calibr(current_data_file, path_to_csv)
+    c = (s3 + s0) / 2
+    av_c_cal = [(np.mean(c[s[0]:s[1], j], axis=0) + np.mean(c[s[2]:s[3], j], axis=0)) / 2 for j in num_mask]
+    temp_coeff = calibration_temperature / av_c_cal
+    for j in range(np.size(freq_mask0)):
+        s0[:, j] = s0[:, j] * temp_coeff[j]
+        s3[:, j] = s3[:, j] * temp_coeff[j]
+
     for j in num_mask:
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()

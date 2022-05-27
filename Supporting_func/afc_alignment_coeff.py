@@ -119,8 +119,8 @@ def convert_to_txt(path_to_align, _index):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2022-03-27_02'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2022_03_27calibr_conv'  # Папка с текущими данными
+current_data_file = '2022-03-19_RP'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2022_03_18calibr_conv'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 if current_data_file[0:4] == '2021':
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
@@ -216,7 +216,7 @@ idx = calibration_frame.loc[(calibration_frame.date == head['date'])
                             & (calibration_frame.att1 == head['att1'])
                             & (calibration_frame.att2 == head['att2'])
                             & (calibration_frame.att3 == head['att3'])
-                            ].index  # & (calibration_frame.polar == head['polar'])
+                            & (calibration_frame.polar == head['polar'])].index  #
 
 if len(idx):
     r = calibration_frame.iloc[idx[0]]

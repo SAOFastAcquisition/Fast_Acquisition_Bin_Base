@@ -32,6 +32,12 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     return file_path_data_out, head_path_out
 
 
+def calibration_temp(f):
+    p0, p1, p2, p3 = [-3551, 6.9, -2.95e-3, 3.7e-7]
+    temp = p0 + p1 * f + p2 * f * f + p3 * f ** 3
+    return temp
+
+
 def start_stop_calibr(*args):
     _current_file_name = args[0]
     _recording_id = _current_file_name[11:16]

@@ -373,13 +373,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_03_27calibr'
+    current_primary_dir = '2022_05_26sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-03-27_01'
+    current_primary_file = '2022-05-26_15-28'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -391,13 +391,13 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
     output_picture_mode = 'y'
-    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
@@ -431,11 +431,11 @@ if __name__ == '__main__':
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
         if head['att3'] == 5:
-            pos = 0
+            pos = 2
         elif head['att3'] == 0:
-            pos = 0
+            pos = 2
         else:
-            pos = 0
+            pos = 2
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
