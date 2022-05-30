@@ -163,8 +163,8 @@ if __name__ == '__main__':
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
-    freq_mask_list = freq_mask(3)
-    freq_mask0 = np.array(freq_mask(3))
+    freq_mask_list = freq_mask(8)
+    freq_mask0 = np.array(freq_mask(8))
 
     if not (os.path.isfile(path_to_stocks)):
 
@@ -234,20 +234,21 @@ if __name__ == '__main__':
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     path_to_csv = Path(file_path_data, dict_calibr_file_name)
     s = start_stop_calibr(current_data_file, path_to_csv)
-    c = (s3 + s0) / 2
-    av_c_cal = [(np.mean(c[s[0]:s[1], j], axis=0) + np.mean(c[s[2]:s[3], j], axis=0)) / 2 for j in num_mask]
-    temp_coeff = calibration_temperature / av_c_cal
+    c = (s3 + s0) / 2   # левая поляризация
+
     for j in range(np.size(freq_mask0)):
-        s0[:, j] = s0[:, j] * temp_coeff[j]
-        s3[:, j] = s3[:, j] * temp_coeff[j]
+        av_c_cal = (np.mean(c[s[0]:s[1], num_mask[j]]) + np.mean(c[s[2]:s[3], num_mask[j]]))
+        temp_coeff = calibration_temperature[j] / av_c_cal
+        s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
+        s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
     for j in num_mask:
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
-        # ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
-        # ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
-        ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
-        ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
+        ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
+        ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
+        # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
+        # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
         ax1.set_ylabel('Stocks_I')
         ax2.set_ylabel('Stocks_V', color='darkred')
         ax1.minorticks_on()
