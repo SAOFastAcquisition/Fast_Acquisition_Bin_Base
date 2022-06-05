@@ -22,8 +22,9 @@ def save_fig(func):
     в выделенные моменты времени."""
     def wrapper(*args):
         figure, file_name, flag, format = func(*args)
-        add_pass1 = path_to_pic(file_name + '\\', flag, format)
+        add_pass1 = path_to_pic(file_name, flag, format)
         path = Path(file_name, add_pass1)
+        # path = file_name + add_pass1
         figure.savefig(path)
         del figure
         flag_save = save_question()
@@ -84,11 +85,11 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         ax.set_yscale('log')
         ax.set_ylabel('Power Spectrum', fontsize=20)
         ax.set_title(title02 + title1, fontsize=18)
-        y1 = y_min * 2
+        y1 = y_min * 3
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
-        y4 = y_min * 4
-        y5 = y_min * 6
+        y4 = y_min * 9
+        y5 = y_min * 27
 
     else:
         # pylab.xlim(x_min, x_max + 100)
@@ -114,9 +115,16 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     for i in range(freq_line_sp1):
         ax.plot(argument, spectr1[i, :], color=line_color[m], label=line_legend[i])
         m += 1
+    if flag:
+        logic = False
+    else:
+        logic = False
 
-    if False:
-        set_zoom = 150, 350, 3.43e6, 3.4475e6
+    if logic:
+        if flag:
+            set_zoom = 1600, 1750, 4e8, 2.5e9
+        else:
+            set_zoom = 150, 350, 3.43e6, 3.4475e6
         axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
@@ -255,9 +263,6 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
         # Show the minor grid lines with very faint and almost transparent grey lines
         axes[i_freq // n_col_pic, i_freq % n_col_pic].minorticks_on()
         axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
-        # axes[i_phantom // 3, i_phantom % 3].set_yticks([0, 1])
-        # axes[i_phantom // 3, i_phantom % 3].set_ylim(0, 4)
-        # axes[i_phantom // 3, i_phantom % 3].set_xlabel('t, sec', fontsize=10)
 
         xticks = axes[i_freq // n_col_pic, i_freq % n_col_pic].get_xticks().tolist()
         xticks[-2:] = ''
