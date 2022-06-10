@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
+from Supporting_func.dict_calibr_from_csv import calibration_temp
 from Interface import main
 from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
 from Interface.window_handler import exec_app
@@ -311,6 +312,20 @@ def unite_spectrum(spec):
     return united_spec
 
 
+def noise_self_calibration(_scan, _polar):
+    seq_start = _scan[1:501, :]
+    seq_finish = _scan[-501:-1, :]
+    sec_start1 = seq_start[seq_start > 10000]
+    seq_finish1 = seq_finish[seq_finish > 10000]
+    sec_start_av = np.mean(seq_start[seq_start > 10000], axis=0)
+    seq_finish_av = np.mean(seq_finish[seq_finish > 10000], axis=0)
+    m, n = np.shape(_scan)
+    freq = [1000 + 2000 * (i + 1 / 2) / n for i in range(n)]
+    freq_np = np.array(freq)
+    self_calibr_temp = calibration_temp(freq_np)
+    pass
+
+
 def freq_mask(_i):
     _n1 = 1
     _n2 = 6
@@ -373,13 +388,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_05_26sun'
+    current_primary_dir = '2022_06_01sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-05-26_15-28'
+    current_primary_file = '2022-06-01_09-04'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -391,7 +406,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
@@ -407,7 +422,7 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'n'
+    noise_calibr = 'y'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
@@ -453,6 +468,10 @@ if __name__ == '__main__':
             spectr_extr_right1[i][0:] = spectr_extr_right1[i][-1::-1]
 
     spectrum = pd.Series([spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2])
+
+    if noise_calibr == 'y':
+        for s in spectrum:
+            noise_self_calibration(s, head['polar'])
 
     united_spectrum = unite_spectrum(spectrum)
     ser_ind = united_spectrum.index
