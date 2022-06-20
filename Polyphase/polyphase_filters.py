@@ -1,8 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy import fft
-from scipy.signal.windows import kaiser, flattop
-import filters as ftr
+from scipy.signal.windows import flattop
+from archive import filters as ftr
 
 
 def interpolate_filter(l_interpol, x, h):

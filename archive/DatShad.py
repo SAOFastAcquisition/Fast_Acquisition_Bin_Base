@@ -9,7 +9,7 @@ from datashader.utils import export_image
 from functools import partial
 
 background = "white"
-export = partial(export_image, background=background, export_path="export")
+export = partial(export_image, background=background, export_path="../export")
 
 N = 100000
 df = pd.DataFrame(np.random.random((N, 3)), columns=['x', 'y', 'z'])

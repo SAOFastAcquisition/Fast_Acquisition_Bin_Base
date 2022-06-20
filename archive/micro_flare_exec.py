@@ -1,9 +1,8 @@
 import numpy as np
 from numpy.core._multiarray_umath import ndarray
 
-from path_to_Yandex_Disk import path_to_YaDisk
+from archive.path_to_Yandex_Disk import path_to_YaDisk
 import Fig_plot as fp
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import PolyCollection
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager

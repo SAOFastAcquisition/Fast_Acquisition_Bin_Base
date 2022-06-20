@@ -1,6 +1,5 @@
 import numpy as np
-import os
-from path_to_Yandex_Disk import path_to_YaDisk
+from archive.path_to_Yandex_Disk import path_to_YaDisk
 import matplotlib.pyplot as plt
 
 head_path = path_to_YaDisk()

@@ -1,7 +1,5 @@
-import os
 import numpy as np
 import matplotlib.pyplot as plt
-from path_to_Yandex_Disk import path_to_YaDisk
 
 
 def noise_kp(spectrum_frame, diff='n'):

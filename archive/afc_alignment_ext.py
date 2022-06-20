@@ -1,6 +1,4 @@
-import os
 import numpy as np
-from path_to_Yandex_Disk import path_to_YaDisk
 
 """ Приложение принимает файл со spectrum1, spectrum2 - левая поляризация, полосы 1-2 и 2-3 ГГц,
 соответственно, spectrum3, spectrum4 - правая поляризация, полосы 1-2 и 2-3 ГГц, соответственно. 

@@ -15,8 +15,8 @@ from Interface.window_handler import exec_app
 current_dir = Path.cwd()
 home_dir = Path.home()
 
-sys.path.insert(0, Path(current_dir, 'Supporting_func'))
-sys.path.insert(0, Path(current_dir, 'Interface'))
+sys.path.insert(0, Path(current_dir, '../Supporting_func'))
+sys.path.insert(0, Path(current_dir, '../Interface'))
 start = datetime.now()
 
 parameters = main()

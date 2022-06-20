@@ -327,18 +327,18 @@ def noise_self_calibration(_scan, _polar):
 
 
 def freq_mask(_i):
-    _n1 = 1
-    _n2 = 6
+    _n1 = 2
+    _n2 = 7
     _freq_mask = [
         [1350],                                                               # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
-        [1000 * _n1 + 100 * _n2 + 20 * i for i in range(7)],                 # [3]
+        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
         [1230, 1560, 2300, 2910],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]    # [8]
+        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2710, 2800, 2920]    # [8]
     ]
     return _freq_mask[_i]
 
@@ -388,13 +388,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_01sun'
+    current_primary_dir = '2022_06_19sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-01_09-04'
+    current_primary_file = '2022-06-19_02-04-28'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 8  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
@@ -422,7 +422,7 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
+    noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
@@ -490,7 +490,7 @@ if __name__ == '__main__':
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
     time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    time_spect_mask = [110, 123, 181, 210, 232]
+    # time_spect_mask = [110, 123, 181, 210, 232]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 

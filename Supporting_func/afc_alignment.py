@@ -1,8 +1,5 @@
-import os
 import numpy as np
-import pandas as pd
 import pickle
-from path_to_Yandex_Disk import path_to_YaDisk
 
 
 def noise_kp(file_name, n_nyq, diff='n'):
