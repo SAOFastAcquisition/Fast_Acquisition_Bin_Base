@@ -8,7 +8,6 @@ from datetime import datetime
 from pathlib import Path
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
-from Supporting_func.dict_calibr_from_csv import calibration_temp
 from Interface import main
 from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
 from Interface.window_handler import exec_app
@@ -312,9 +311,87 @@ def unite_spectrum(spec):
     return united_spec
 
 
-def noise_self_calibration(_scan, _polar):
-    pass
+def noise_self_calibration(_spectrum, _ngi_temperature_path):
+    # Временные интервалы для калибровки по внутреннему ГШ
+    t_cal0, t_cal1 = 0, 10  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 18, 25   # Интервал определения фона, сек
 
+    # Закрузка шумовой калибровочной температуры на входе приемника
+    with open(_ngi_temperature_path, 'rb') as _inp:
+        _ngi_temperature = pickle.load(_inp)
+
+    temp_left = _ngi_temperature[_ngi_temperature['ngi_id'] == '01'][_ngi_temperature['polar']=='left']
+    temp_right = _ngi_temperature[_ngi_temperature['ngi_id'] == '01'][_ngi_temperature['polar'] == 'right']
+
+    temp_left0 = temp_left['low_band'][1]
+    temp_left1 = temp_left['upper_band'][1]
+    temp_right0 = temp_right['low_band'][0]
+    temp_right1 = temp_right['upper_band'][0]
+    _l = np.size(temp_left0)
+
+    # Интервалы в отсчетах для калибровки по внутреннему ГШ
+    n_cal0, n_cal1 = int(t_cal0 // delta_t), int(t_cal1 // delta_t)
+    n_ground1, n_ground2 = int(t_ground1 // delta_t), int(t_ground2 // delta_t)
+
+    # Пересчет данных из относительных единиц в температуру для левой поляризации
+    if np.size(spectrum[0]):
+        s_left0 = spectrum[0][n_cal0:n_cal1, :]
+        s_left1 = spectrum[1][n_cal0:n_cal1, :]
+        s_ground0 = spectrum[0][n_ground1:n_ground2, :]
+        s_ground1 = spectrum[1][n_ground1:n_ground2, :]
+
+        _m, _n = np.shape(_spectrum[0])
+        s_left0_av = np.array([np.mean(s_left0[:, i][s_left0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_left1_av = np.array([np.mean(s_left1[:, i][s_left1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av0 = np.array([np.mean(s_ground0[:, i][s_ground0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av1 = np.array([np.mean(s_ground1[:, i][s_ground1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_left0_av = s_left0_av - s_ground_av0
+        s_left1_av = s_left1_av - s_ground_av1
+
+        #                   **** Приведение разрешения по частоте ****
+        #           калибровочной шумовой температуры к разрешению по частоте
+        #                               преобразуемых данных
+        _k = _l // _n
+        temp_left0m = np.reshape(temp_left0, (_k, -1), order='F')
+        temp_left1m = np.reshape(temp_left1, (_k, -1), order='F')
+        temp_left0m_av = np.mean(temp_left0m, axis=0)
+        temp_left1m_av = np.mean(temp_left1m, axis=0)
+        coeff_left0 = temp_left0m_av / s_left0_av
+        coeff_left1 = temp_left1m_av / s_left1_av
+
+        for i in range(_m):
+            _spectrum[0][i, :] = _spectrum[0][i, :] * coeff_left0
+            _spectrum[1][i, :] = _spectrum[1][i, :] * coeff_left1
+
+    # Пересчет данных из относительных единиц в температуру для правой поляризации
+    if np.size(spectrum[2]):
+        s_right0 = spectrum[2][n_cal0:n_cal1, :]
+        s_right1 = spectrum[3][n_cal0:n_cal1, :]
+        s_ground2 = spectrum[2][n_ground1:n_ground2, :]
+        s_ground3 = spectrum[3][n_ground1:n_ground2, :]
+        _m1, _n1 = np.shape(_spectrum[2])
+
+        s_right0_av = np.array([np.mean(s_right0[:, i][s_right0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_right1_av = np.array([np.mean(s_right1[:, i][s_right1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av2 = np.array([np.mean(s_ground2[:, i][s_ground2[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av3 = np.array([np.mean(s_ground3[:, i][s_ground3[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_right0_av = s_right0_av - s_ground_av2
+        s_right1_av = s_right1_av - s_ground_av3
+
+        _k1 = _l // _n1
+        temp_right0m = np.reshape(temp_right0, (_k1, -1), order='F')
+        temp_right1m = np.reshape(temp_right1, (_k1, -1), order='F')
+        temp_right0m_av = np.mean(temp_right0m, axis=0)
+        temp_right1m_av = np.mean(temp_right1m, axis=0)
+        coeff_right0 = temp_right0m_av / s_right0_av
+        coeff_right1 = temp_right1m_av / s_right1_av
+
+        for i in range(_m1):
+            _spectrum[2][i, :] = _spectrum[2][i, :] * coeff_right0
+            _spectrum[3][i, :] = _spectrum[3][i, :] * coeff_right1
+
+    pass
+    return _spectrum
 
 def freq_mask(_i):
     _n1 = 2
@@ -378,18 +455,20 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_24sun'
+    current_primary_dir = '2022_06_15sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-24_01+28+04'
+    ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
+    current_primary_file = '2022-06-15_05+08'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
-
+    ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     folder_align_path = Path(head_path, 'Alignment')
+
     date = current_primary_file[0:10]
 
     # !!!! ******************************************* !!!!
@@ -411,12 +490,11 @@ if __name__ == '__main__':
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
     output_picture_mode = 'y'
-    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'n'
+    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    noise_calibr = 'y'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
-    robust_filter = 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
     poly3d_perm = 'n'
@@ -460,8 +538,7 @@ if __name__ == '__main__':
     spectrum = pd.Series([spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2])
 
     if noise_calibr == 'y':
-        for s in spectrum:
-            noise_self_calibration(s, head['polar'])
+        spectrum = noise_self_calibration(spectrum, ngi_temperature_path)
 
     united_spectrum = unite_spectrum(spectrum)
     ser_ind = united_spectrum.index
@@ -470,8 +547,6 @@ if __name__ == '__main__':
     else:
         spectrum_extr = united_spectrum[0]
 
-    # if noise_calibr == 'y':
-    #     spectr_time = calibration(t_cal, spectr_time)
 
     # # ***********************************************
     # # ***        Графический вывод данных        ****
