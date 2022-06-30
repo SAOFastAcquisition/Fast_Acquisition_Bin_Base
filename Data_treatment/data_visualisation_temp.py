@@ -6,6 +6,7 @@ import pickle
 import json as jsn
 from datetime import datetime
 from pathlib import Path
+import matplotlib.pyplot as plt
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Interface import main
@@ -313,8 +314,8 @@ def unite_spectrum(spec):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0, 10  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 18, 25   # Интервал определения фона, сек
+    t_cal0, t_cal1 = 108.0, 118  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 119, 129   # Интервал определения фона, сек
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -390,7 +391,28 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
             _spectrum[2][i, :] = _spectrum[2][i, :] * coeff_right0
             _spectrum[3][i, :] = _spectrum[3][i, :] * coeff_right1
 
+    ant_coeff = np.loadtxt(ant_coeff_path)
+    len_ant_coeff = np.size(ant_coeff)
+    len1 = int(len_ant_coeff / 2)
+    if _n1:
+        k = _n1 / len1
+    else:
+        k = _n / len1
+
+    # ant_coeff_low = ant_coeff[:len1]
+    # ant1 = np.ravel(np.transpose(np.array([ant_coeff_low]*int(k))))
+    # a = _spectrum[0]
+    # for i in range(int(_m)):
+    #     _spectrum[0][i, :] = _spectrum[0][i, :] / ant1
+    # for i in range(int(_m1)):
+    #     _spectrum[2][i, :] = _spectrum[2][i, :] / ant1
+    # a1 = _spectrum[0]
     pass
+    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    # ax.plot(a[50, :])
+    # ax.plot(a1[50, :])
+    # plt.grid()
+    # plt.show()
     return _spectrum
 
 def freq_mask(_i):
@@ -455,20 +477,21 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_15sun'
+    current_primary_dir = '2022_06_27sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
-    current_primary_file = '2022-06-15_05+08'
+    current_primary_file = '2022-06-27_00ant-04'
+    ant_coeff_file = 'ant_afc.txt'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     folder_align_path = Path(head_path, 'Alignment')
-
+    ant_coeff_path = Path(folder_align_path, ant_coeff_file)
     date = current_primary_file[0:10]
 
     # !!!! ******************************************* !!!!

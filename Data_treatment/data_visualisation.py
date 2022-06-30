@@ -378,13 +378,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_24sun'
+    current_primary_dir = '2022_06_28test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-24_01+28+04'
+    current_primary_file = '2022-06-28_03test'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -498,10 +498,10 @@ if __name__ == '__main__':
     timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
     # ***************!! Вывод данных в текстовой форме !!*********************
-    # path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
-    # print(path_txt)
+    # path_txt = str(Path(converted_data_file_path, current_primary_file + '_scan.txt'))
+    # print(path_txt) # (converted_data_file_path, current_primary_file + '_spectrum')
     # np.savetxt(path_txt, spectr_freq)
-    # path_txt = str(Path(file_path_data, current_data_file, 'freq.txt'))
+    # path_txt = str(Path(converted_data_file_path, current_primary_file + '_freq.txt'))
     # print(path_txt)
     # np.savetxt(path_txt, freq)
     # ***********************************************************************
