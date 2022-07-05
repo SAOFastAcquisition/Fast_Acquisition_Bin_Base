@@ -8,12 +8,12 @@ from pathlib import Path
 from Supporting_func.stocks_coefficients import path_to_data
 
 
-def temperature_ngi(_spectrum, polarization, time_boders):
+def temperature_ngi(_spectrum, polarization, time_borders):
     _delta_t = 8.3886e-3
     _delta_f = 7.8125
     aver_param_noise = 8
     df0 = _delta_f / aver_param_noise
-    time0, time1, time2, time3 = time_boders
+    time0, time1, time2, time3 = time_borders
     n0 = int((time0 + 1) / _delta_t)  # На входе радиометра сигнал от эталонного ГШ
     n1 = int((time1 - 1) / _delta_t)
     n2 = int((time1 + 1) / _delta_t)  # На входе радиометра сигнал от согласованной нагрузки
@@ -25,6 +25,9 @@ def temperature_ngi(_spectrum, polarization, time_boders):
         s0, s1 = _spectrum[0], _spectrum[1]
     elif polarization == 'right':
         s0, s1 = _spectrum[2], _spectrum[3]
+    elif polarization == 'both':
+        s0, s1 = _spectrum[0], _spectrum[1]
+
 
     # Вычисление коэффициентов привязки температуры шумового сигнала от внутреннего
     # ГШ к шумовой температуре эталонного ГШ
@@ -130,7 +133,7 @@ def ngi_temperature_update(_ngi_selected, _ngi_id):
 
 def plot_ngi(_data):
 
-    # Argument
+    # Arguments0, s1 = _spectrum[0], _spectrum[1]
     _delta_f = 7.8125
     aver_param_noise = 8
     df0 = _delta_f / aver_param_noise
@@ -172,10 +175,10 @@ def plot_ngi(_data):
     ax.plot(f1, ngi_left1)
     ax.plot(f0, ngi_right0)
     ax.plot(f1, ngi_right1)
-    ax.scatter(f01, array_x)
-    ax.scatter(f11, array_y)
-    ax.scatter(f02, array_x1)
-    ax.scatter(f12, array_y1)
+    # ax.scatter(f01, array_x)
+    # ax.scatter(f11, array_y)
+    # ax.scatter(f02, array_x1)
+    # ax.scatter(f12, array_y1)
     # line_minor = plt.plot(inp_scale / 1000)
     # plt.plot(inp_scale, inp_data, 'r--*', inp_scale, 'g:+')  # В кавычках компактно заданы цвет, стиль линии и маркеры
     # plt.setp(fig_main, linestyle=':', color='r')
@@ -192,8 +195,8 @@ if __name__ == '__main__':
     для каждого экземпляра ГШ ***nge_temperature_base_name***, среднее значение шумовой температуры
     от этого ГШ по всем измерениям записывается в файл ***nge_temperature_file_name***'''
 
-    current_data_file = '2022-06-18_10test'  # Имя файла с исходными текущими данными без расширения
-    current_primary_dir = '2022_06_18test'
+    current_data_file = '2022-06-27_16'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2022_06_27test'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
     current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
 
@@ -247,12 +250,19 @@ if __name__ == '__main__':
     # шумовой температуры встроенного ГШ на входе Радиометра
     # раздельно для каналов левой и правой поляризаций.
     pw = input('Обновить усредненную шумовую температуру ГШ на входе РМ?\t')
+    idx_drop = ngi_temperature_base.loc[ngi_temperature_base.att3 == 15].index
+    if len(idx_drop):
+        for n in idx_drop:
+            ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
         ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]
+        head['polar'] = 'right'
+        ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
+        ngi_temperature_update(ngi_selected1l, ngi_id)
         head['polar'] = 'left'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
-
         ngi_temperature_update(ngi_selected1l, ngi_id)
+
     #               *** Picture ***
     ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]
     plot_ngi(ngi_selected1)
