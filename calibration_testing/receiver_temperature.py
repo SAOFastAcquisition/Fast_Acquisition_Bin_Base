@@ -79,13 +79,13 @@ def receiver_temp_update(_s, _columns_names):
         with open(receiver_temperature_path, 'wb') as _out:
             pickle.dump(_data, _out)
 
-    _fig, _ax = plt.subplots(1, figsize=(12, 6))
-    _ax.plot(_data['temperature'][0])
-    _ax.plot(_data['temperature'][1])
-    _ax.plot(_data['temperature'][2])
-    _ax.plot(_data['temperature'][3])
-    plt.grid()
-    plt.show()
+    # _fig, _ax = plt.subplots(1, figsize=(12, 6))
+    # _ax.plot(_data['temperature'][0])
+    # _ax.plot(_data['temperature'][1])
+    # _ax.plot(_data['temperature'][2])
+    # _ax.plot(_data['temperature'][3])
+    # plt.grid()
+    # plt.show()
     pass
 
 
@@ -113,7 +113,17 @@ def zone_deletion(_s, _flag):
         _s[k1:k2] = 50
         _s[k3:k4] = 50
         _s[k5:k6] = 50
-    pass
+
+    return _s
+
+
+def del_random(_s):
+    _l = len(_s)
+    for _i in range(1, _l - 2):
+        if _s[_i] < 10 and _s[_i - 1] > 20 and _s[_i + 1] > 20:
+            _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
+        if _s[_i] < 0:
+            _s[_i] = 100
     return _s
 
 
@@ -131,7 +141,7 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_27test'
+    current_primary_dir = '2022_06_28test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
@@ -139,8 +149,8 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature.npy'
-    current_primary_file1 = '2022-06-27_02'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-06-27_03'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    current_primary_file1 = '2022-06-28_02test'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-06-28_03test'  # Файл с КЗ и согласованной нагрузкой на входах приемника
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -176,17 +186,19 @@ if __name__ == '__main__':
 
     # Расчет и сохранение в файл шумовой температуры приемника
     temp_left = b1 / (2 * a1 - b1) * temp0
+    temp_left = del_random(temp_left)
     temp1 = pd.Series((date, temp_left, 'left'), index=['date', 'temperature', 'polar'])
     receiver_temp_update(temp1, ['date', 'temperature', 'polar'])
     temp_right = b2 / (2 * a2 - b2) * temp0
+    temp_right = del_random(temp_right)
     temp2 = pd.Series((date, temp_right, 'right'), index=['date', 'temperature', 'polar'])
     receiver_temp_update(temp2, ['date', 'temperature', 'polar'])
     #                       ****************************
     fig, ax = plt.subplots(1, figsize=(12, 6))
     ax.plot(temp_left)
     ax.plot(temp_right)
-    # ax.plot(data['spectrum'][2])
-    # ax.plot(data['spectrum'][3])
+    # # ax.plot(data['spectrum'][2])
+    # # ax.plot(data['spectrum'][3])
     plt.grid()
     plt.show()
     pass
