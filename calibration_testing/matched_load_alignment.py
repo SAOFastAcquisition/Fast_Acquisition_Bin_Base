@@ -8,6 +8,20 @@ from pathlib import Path
 from Supporting_func.stocks_coefficients import path_to_data
 
 
+def del_random_mod(_s, _s0):
+    _l = len(_s)
+    _s = np.array(_s)
+    _s[np.isnan(_s)] = 100
+    for _i in range(1, _l - 2):
+        if abs(_s[_i] - _s[_i - 1]) > 2 * abs(_s[_i + 1] - _s[_i - 1]):
+            _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
+        if _s[_i] <= 0.01:
+            _s[_i] = 10
+    _s[0] = _s0
+    _s[_l - 2:] = _s0
+    return _s
+
+
 if __name__ == '__main__':
 
     """ Расчет выравнивающих коэффициентов АЧХ приемника по шумовому сигналу от согласованной нагрузки на входе
@@ -45,7 +59,7 @@ if __name__ == '__main__':
 
     # Загружаем результаты измерений при черном теле на входе рупора
     dir_horn_measure = '2022_06_27sun'
-    file_horn_measure = '2022-06-27_00ant-28'
+    file_horn_measure = '2022-06-27_00ant-04'
     horn_converted_dir = dir_horn_measure + '_conv'
     horn_converted_path = Path(converted_data_dir, horn_converted_dir)
     dir_horn_treatment = dir_horn_measure + '_treat'
@@ -53,7 +67,7 @@ if __name__ == '__main__':
     file_horn_measure_path, head_path_horn = path_to_data(current_data_dir, horn_converted_path)
     path_horn = Path(file_horn_measure_path, file_horn_measure + '_spectrum.npy')
 
-    time_mask_horn = [46, 66]
+    time_mask_horn = [32.5, 47]
     num_mask_horn = [int(s / delta_t) for s in time_mask_horn]
 
     spectrum2 = np.load(path_horn, allow_pickle=True)
@@ -61,13 +75,19 @@ if __name__ == '__main__':
         head = pickle.load(inp)
     att1, att2, att3 = head['att1'], head['att2'], head['att3']
 
-    spectrum_BB = [s[num_mask_horn[0]:num_mask_horn[1]] for s in spectrum2]
+    spectrum_BB = np.array([s[num_mask_horn[0]:num_mask_horn[1]] for s in spectrum2])
+    a = spectrum_BB[0]
+    a1 = a[:, 221]
+    b = a1[a1 > 100]
+
+    s_av_BB = [[np.mean(s[s > 100]) for s in s1.transpose()] for s1 in spectrum_BB]
+    s_av_BB = [del_random_mod(s, 100) for s in s_av_BB]
 
     fig, ax = plt.subplots(1, figsize=(12, 6))
-    ax.plot(spectrum_BB[0])
-    # ax.plot(spectrum_BB[1])
-    # ax.plot(spectrum_BB[2])
-    # ax.plot(spectrum_BB[3])
+    ax.plot(s_av_BB[0])
+    ax.plot(s_av_BB[1])
+    ax.plot(s_av_BB[2])
+    ax.plot(s_av_BB[3])
     plt.grid()
     plt.show()
     pass
