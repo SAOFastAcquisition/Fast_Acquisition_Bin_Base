@@ -227,14 +227,17 @@ if __name__ == '__main__':
     на второй - КЗ. В промежуток времени time_mask[0] - time_mask[1] 
     включена одна поляризация (левая, как правило), в промежуток времени time_mask[2] - time_mask[3] - 
     другая (правая). Затем нагрузка на входах меняется местами и выполняется второе измерение. Т.о. для каждого 
-    входа (левая и правая поляризации) получаем отклик приемника на согласованную нагрузку и КЗ"""
+    входа (левая и правая поляризации) получаем отклик приемника на согласованную нагрузку и КЗ
+    Скрипт заодно рассчитывает выравнивающие коэффициенты АЧХ приемника по шумовому сигналу от согласованной нагрузки 
+    на входе с учетом собственных шумов приемника и записывает их в уже существующий файл align_coeff.bin в папке
+     /Alignment/."""
 
     current_data_dir = '2022'
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
+    current_primary_dir = '2022_06_28test'
 
-    current_primary_dir = '2022_06_27test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
@@ -242,8 +245,8 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature.npy'
-    current_primary_file1 = '2022-06-27_02'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-06-27_03'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    current_primary_file1 = '2022-06-28_02test'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-06-28_03test'  # Файл с КЗ и согласованной нагрузкой на входах приемника
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -280,4 +283,13 @@ if __name__ == '__main__':
     #                            *****************
     receiver_temperature_calc(data)
 
+    # Загружаем результаты измерений при черном теле на входе рупора
+    dir_horn_measure = '2022_06_27sun'
+    file_horn_measure = '2022-06-27_00ant-04'
+    horn_converted_dir = dir_horn_measure + '_conv'
+    horn_converted_path = Path(converted_data_dir, horn_converted_dir)
+    dir_horn_treatment = dir_horn_measure + '_treat'
+    dir_horn_path = Path(data_treatment_dir, dir_horn_treatment)
+    file_horn_measure_path, head_path_horn = path_to_data(current_data_dir, dir_horn_path)
+    path_horn = Path(converted_data_file_path, file_horn_measure + '_spectrum.npy')
     pass

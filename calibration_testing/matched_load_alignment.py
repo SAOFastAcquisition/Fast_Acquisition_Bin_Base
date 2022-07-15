@@ -42,3 +42,32 @@ if __name__ == '__main__':
     aver_param_noise = 8
     temp0 = 300
     time_mask = [11, 19, 21, 29]
+
+    # Загружаем результаты измерений при черном теле на входе рупора
+    dir_horn_measure = '2022_06_27sun'
+    file_horn_measure = '2022-06-27_00ant-28'
+    horn_converted_dir = dir_horn_measure + '_conv'
+    horn_converted_path = Path(converted_data_dir, horn_converted_dir)
+    dir_horn_treatment = dir_horn_measure + '_treat'
+    dir_horn_treat_path = Path(data_treatment_dir, dir_horn_treatment)
+    file_horn_measure_path, head_path_horn = path_to_data(current_data_dir, horn_converted_path)
+    path_horn = Path(file_horn_measure_path, file_horn_measure + '_spectrum.npy')
+
+    time_mask_horn = [46, 66]
+    num_mask_horn = [int(s / delta_t) for s in time_mask_horn]
+
+    spectrum2 = np.load(path_horn, allow_pickle=True)
+    with open(Path(file_horn_measure_path, file_horn_measure + '_head.bin'), 'rb') as inp:
+        head = pickle.load(inp)
+    att1, att2, att3 = head['att1'], head['att2'], head['att3']
+
+    spectrum_BB = [s[num_mask_horn[0]:num_mask_horn[1]] for s in spectrum2]
+
+    fig, ax = plt.subplots(1, figsize=(12, 6))
+    ax.plot(spectrum_BB[0])
+    # ax.plot(spectrum_BB[1])
+    # ax.plot(spectrum_BB[2])
+    # ax.plot(spectrum_BB[3])
+    plt.grid()
+    plt.show()
+    pass

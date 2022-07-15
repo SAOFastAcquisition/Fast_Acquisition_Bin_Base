@@ -378,13 +378,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_24calibr'
+    current_primary_dir = '2022_06_27sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-24_01'
+    current_primary_file = '2022-06-27_00ant-28'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -436,11 +436,11 @@ if __name__ == '__main__':
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
         if head['att3'] == 5:
-            pos = 2
+            pos = 3
         elif head['att3'] == 0:
-            pos = 2
+            pos = 3
         else:
-            pos = 2
+            pos = 3
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
@@ -479,8 +479,8 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    # time_spect_mask = [110, 123, 181, 210, 232]
+    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    time_spect_mask = [60]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 
@@ -496,6 +496,7 @@ if __name__ == '__main__':
     elif band_size_init == 'whole':
         freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
     timeS = np.linspace(0, delta_t * N_row, N_row // kt)
+
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_data_file_path, current_primary_file + '_scan.txt'))
