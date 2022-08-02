@@ -131,7 +131,7 @@ def del_random_mod(_s, _s0):
         if abs(_s[_i] - _s[_i - 1]) > 2 * abs(_s[_i + 1] - _s[_i - 1]):
             _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
         if _s[_i] <= 0.01:
-            _s[_i] = 10
+            _s[_i] = _s0
     _s[0] = _s0
     _s[_l - 2:] = _s0
     return _s

@@ -108,6 +108,18 @@ def average_ngi(_data):
     return av_data_x, av_data_y
 
 
+def del_random_mod(_s, _s0):
+    _l = len(_s)
+    for _i in range(1, _l - 2):
+        if abs(_s[_i] - _s[_i - 1]) > 2 * abs(_s[_i + 1] - _s[_i - 1]):
+            _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
+        if _s[_i] <= 0.01:
+            _s[_i] = _s0
+    _s[0] = _s0
+    _s[_l - 2:] = _s0
+    return _s
+
+
 def ngi_temperature_update(_ngi_selected, _ngi_id):
     if not os.path.isfile(ngi_temperature_path):
         ngi_temperature = pd.DataFrame(columns=columns_names)
@@ -223,7 +235,7 @@ if __name__ == '__main__':
     spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
-
+    r = temperature_ngi(spectrum, head['polar'], timing)
     attempt_num = current_data_file[11:13]
     idx = ngi_temperature_base.loc[(ngi_temperature_base.nge_id == ngi_id)
                                    & (ngi_temperature_base.date == head['date'])
