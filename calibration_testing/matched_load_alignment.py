@@ -22,6 +22,28 @@ def del_random_mod(_s, _s0):
     return _s
 
 
+def func_path(data_dir, year='2022'):
+    """ Функция принимает названия файлов с исходными данными, каталог/каталоги, в котором они размещены. Возвращает
+    пути к этим файлам, пути к директориям, в которые будут записываться результаты обработки исходных данных"""
+    _current_data_dir = year
+    _primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
+    _converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
+    _data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
+
+    _current_primary_dir = data_dir
+    _current_primary_path = Path(_primary_data_dir, _current_primary_dir)
+    _current_converted_dir = _current_primary_dir + '_conv'
+    _current_converted_path = Path(_converted_data_dir, _current_converted_dir)
+    _current_treatment_dir = _current_primary_dir + '_treat'
+    _current_treatment_path = Path(_data_treatment_dir, _current_treatment_dir)
+
+    _primary_data_dir_path, _head_path = path_to_data(_current_primary_dir, _current_primary_path)
+    _converted_data_dir_path, _head_path = path_to_data(_current_data_dir, _current_converted_path)
+    _data_treatment_dir_path, _head_path = path_to_data(_current_data_dir, _current_treatment_path)
+    pass
+    return _primary_data_dir_path, _converted_data_dir_path, _data_treatment_dir_path, _head_path
+
+
 if __name__ == '__main__':
 
     """ Расчет выравнивающих коэффициентов АЧХ приемника по шумовому сигналу от согласованной нагрузки на входе
