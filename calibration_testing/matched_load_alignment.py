@@ -23,9 +23,9 @@ def del_random_mod(_s, _s0):
 
 
 def func_path(data_dir, year='2022'):
-    """ Функция принимает названия файлов с исходными данными, каталог/каталоги, в котором они размещены. Возвращает
-    пути к этим файлам, пути к директориям, в которые будут записываться результаты обработки исходных данных"""
-    _current_data_dir = year
+    """ Функция принимает имя каталога с исходными данными. Возвращает пути к директориям,
+    в которые будут записываться результаты обработки исходных данных"""
+    _current_dir = year
     _primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     _converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     _data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
@@ -38,8 +38,8 @@ def func_path(data_dir, year='2022'):
     _current_treatment_path = Path(_data_treatment_dir, _current_treatment_dir)
 
     _primary_data_dir_path, _head_path = path_to_data(_current_primary_dir, _current_primary_path)
-    _converted_data_dir_path, _head_path = path_to_data(_current_data_dir, _current_converted_path)
-    _data_treatment_dir_path, _head_path = path_to_data(_current_data_dir, _current_treatment_path)
+    _converted_data_dir_path, _head_path = path_to_data(_current_dir, _current_converted_path)
+    _data_treatment_dir_path, _head_path = path_to_data(_current_dir, _current_treatment_path)
     pass
     return _primary_data_dir_path, _converted_data_dir_path, _data_treatment_dir_path, _head_path
 
@@ -50,24 +50,17 @@ if __name__ == '__main__':
     с учетом собственных шумов приемника."""
 
     current_data_dir = '2022'
-    primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
-    converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-
     current_primary_dir = '2022_06_28test'
-    current_converted_dir = current_primary_dir + '_conv'
-    current_converted_path = Path(converted_data_dir, current_converted_dir)
-    current_treatment_dir = current_primary_dir + '_treat'
-    current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature.npy'
+
     current_primary_file1 = '2022-06-28_01test'  # Файл с согласованной нагрузкой на обоих входах приемника
     current_primary_file2 = '2022-06-28_02test'  # Файл с согласованной нагрузкой и КЗ на входах приемника
     current_primary_file2 = '2022-06-28_03test'  # Файл с КЗ и согласованной нагрузкой на входах приемника
 
-    converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
-    data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
+    primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
+        func_path(current_primary_dir)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file_name)
 
@@ -82,18 +75,15 @@ if __name__ == '__main__':
     # Загружаем результаты измерений при черном теле на входе рупора
     dir_horn_measure = '2022_06_27sun'
     file_horn_measure = '2022-06-27_00ant-04'
-    horn_converted_dir = dir_horn_measure + '_conv'
-    horn_converted_path = Path(converted_data_dir, horn_converted_dir)
-    dir_horn_treatment = dir_horn_measure + '_treat'
-    dir_horn_treat_path = Path(data_treatment_dir, dir_horn_treatment)
-    file_horn_measure_path, head_path_horn = path_to_data(current_data_dir, horn_converted_path)
-    path_horn = Path(file_horn_measure_path, file_horn_measure + '_spectrum.npy')
+    primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
+        func_path(dir_horn_measure)
+    path_horn = Path(converted_data_dir_path, file_horn_measure + '_spectrum.npy')
 
     time_mask_horn = [32.5, 47]
     num_mask_horn = [int(s / delta_t) for s in time_mask_horn]
 
     spectrum2 = np.load(path_horn, allow_pickle=True)
-    with open(Path(file_horn_measure_path, file_horn_measure + '_head.bin'), 'rb') as inp:
+    with open(Path(converted_data_dir_path, file_horn_measure + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     att1, att2, att3 = head['att1'], head['att2'], head['att3']
 
