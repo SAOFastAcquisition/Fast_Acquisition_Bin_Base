@@ -104,15 +104,17 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         i = 0
         while kt * (i + 1) < N_row:
             if kf == 1:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind])
-                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind] > 100).sum()
+                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind][spectr_extr[i * kt:(i + 1) * kt, ind] > 40])
+                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind] > 40).sum()
                 if n_mesh == 0:
                     s_time[i, j] = 2
                 else:
                     s_time[i, j] /= n_mesh
             else:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)])
-                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 100).sum()
+                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind +
+                                                                                         int(kf / 2)][
+                                          spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
+                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
                 if n_mesh == 0:
                     s_time[i, j] = 2
                 else:
@@ -130,15 +132,17 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         j = 0
         while (j + 1) * kf < N_col:
             if kt == 1:
-                s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf])
-                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 10).sum()
+                s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf][spectr_extr[ind, j * kf:(j + 1) * kf] > 40])
+                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 40).sum()
                 if n_mesh == 0:
                     s_freq[i, j] = 2
                 else:
                     s_freq[i, j] /= n_mesh
             else:
-                s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf])
-                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 10).sum()
+                s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf
+                                                                                       :(j + 1) * kf][
+                                          spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
+                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
                 if n_mesh == 0:
                     s_freq[i, j] = 2
                 else:
@@ -314,14 +318,14 @@ def unite_spectrum(spec):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 108.0, 118  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 119, 129   # Интервал определения фона, сек
+    t_cal0, t_cal1 = 40, 49  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 30, 39  # Интервал определения фона, сек
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
         _ngi_temperature = pickle.load(_inp)
 
-    temp_left = _ngi_temperature[_ngi_temperature['ngi_id'] == '01'][_ngi_temperature['polar']=='left']
+    temp_left = _ngi_temperature[_ngi_temperature['ngi_id'] == '01'][_ngi_temperature['polar'] == 'left']
     temp_right = _ngi_temperature[_ngi_temperature['ngi_id'] == '01'][_ngi_temperature['polar'] == 'right']
 
     temp_left0 = temp_left['low_band'][1]
@@ -394,7 +398,7 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
     ant_coeff = np.loadtxt(ant_coeff_path)
     len_ant_coeff = np.size(ant_coeff)
     len1 = int(len_ant_coeff / 2)
-    if _n1:
+    if np.size(spectrum[2]):
         k = _n1 / len1
     else:
         k = _n / len1
@@ -415,26 +419,202 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # plt.show()
     return _spectrum
 
+
+def del_random_mod(_s, _s0, _ds=2):
+    """
+    Функция принимает одномерный массив отсчетов и ограничивает скачки одного отсчета по отношению к соседним справа
+    и слева. Если скачок i-того отсчета по отношению к отсчету i-1  больше в _ds раз, чем отсчета i+1 к отсчету i-1,
+    то i-тый отсчет заменяется средним отсчетов i-1 и i+1.
+    Кроме того, если отсчет принимает значение меньше порогового, то функция присваивает ему значение порога
+    :param _s: исходный одномерный массив
+    :param _s0: пороговое значение
+    :param _ds: коэффициент ограничения скорости роста
+    :return:
+    """
+    _l = len(_s)
+    for _i in range(1, _l - 2):
+        if abs(_s[_i] - _s[_i - 1]) > _ds * abs(_s[_i + 1] - _s[_i - 1]):
+            _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
+        if _s[_i] <= _s0:
+            _s[_i] = _s0
+    _s[0] = _s0
+    _s[_l - 2:] = _s0
+    return _s
+
+
+def treatment_null_mesh(_s, _n, _s0=0):
+    """
+    Функция заменяет элемент последовательности _s средним значением по промежутку 2*_n в окрестности
+    заменяемого элемена из _s, когда элемент меньше порога _s0
+    """
+    _l = np.size(_s)
+    for i in range(_l):
+        if _s[i] < _s0:
+            if _n <= i < _l - _n - 1:
+                _s_loc = _s[i - _n: i + _n + 1][_s[i - _n: i + _n + 1] > 0]
+                pass
+            elif i < _n:
+                _s_loc = _s[0: i + _n + 1][_s[0: i + _n + 1] > 0]
+            elif i > _l - _n - 1:
+                _s_loc = _s[i - _n - 2: -1][_s[i - _n - 2: -1] > 0]
+
+            try:
+                s_loc_av = np.mean(_s_loc)
+                _s[i] = s_loc_av
+            except ValueError:
+                pass
+                _s[i] = 1
+    return _s
+
+
+def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
+    """
+    Функция пересчитывает входные данные в градусы Кельвина по имеющейся в записи калибровке черным телом в
+    промежуток времени t_cal0 ... t_cal1
+
+    :param _spectrum: входные данные
+    :param _receiver_temperature_path: путь к файлу со значениями температуры собственных шумов приемника
+    :return _spectrum: Входные данные, пересчитанные в градусы К по привязке к черному телу с вычтенной шумовой
+    температурой приемника
+    """
+
+    n_av_loc = 10   # Половина длины последовательности отсчетов для усреднения функцией treatment_null_mesh(,_s0,)
+    _s_threshold = 1e6  # Порог для значений исходного массива _spectrum для функции del_random_mod(,_n,)
+    # Закрузка температуры собственных шумов приемника
+    with open(_receiver_temperature_path, 'rb') as _inp:
+        _receiver_temperature = pickle.load(_inp)
+
+    temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+                                                     '2022-06-28'][_receiver_temperature['polar'] == 'left'].iloc[0]
+    temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+                                                      '2022-06-28'][_receiver_temperature['polar'] == 'right'].iloc[0]
+    _l = np.size(temp_left)
+    _l1 = int(_l / 2)
+    temp_left0 = temp_left[0: _l1]
+    temp_left1 = temp_left[_l1: _l]
+    temp_right0 = temp_right[0: _l1]
+    temp_right1 = temp_right[_l1: _l]
+
+    # Интервалы в отсчетах для калибровки по внутреннему ГШ
+    n_cal0, n_cal1 = int(t_cal0 // delta_t), int(t_cal1 // delta_t)
+
+    # Пересчет данных из относительных единиц в температуру для левой поляризации
+    if np.size(spectrum[0]):
+        s_left0 = spectrum[0][n_cal0:n_cal1, :]
+        s_left1 = spectrum[1][n_cal0:n_cal1, :]
+        _m, _n = np.shape(_spectrum[0])
+        s_left0_av = np.array([np.mean(s_left0[:, i][s_left0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        # Исключение неоднозначности, если [np.mean(s_left0[:, i][s_left0[:, i] > 100] пуст
+        s_left0_av = treatment_null_mesh(s_left0_av, n_av_loc)
+        # Убираем одиночные выбросы отсчетов и приравниваем отсчеты ниже _s_threshold к _s_threshold
+        s_left0_av = del_random_mod(s_left0_av, _s_threshold)
+        s_left01_av = s_left0_av.copy()
+        s_left0_av = del_random_mod(s_left0_av, _s_threshold)
+        s_left1_av = np.array([np.mean(s_left1[:, i][s_left1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        # Исключение неоднозначности, если [np.mean(s_left1[:, i][s_left1[:, i] > 100] пуст
+        s_left1_av = treatment_null_mesh(s_left1_av, n_av_loc)
+        s_left1_av = del_random_mod(s_left1_av, 1e6)
+
+        #                   **** Приведение разрешения по частоте ****
+        #           температуры собственных шумов приемника к разрешению по частоте
+        #                               преобразуемых данных
+        _k = _l1 // _n
+        temp_left0m = np.reshape(temp_left0, (_k, -1), order='F')
+        temp_left1m = np.reshape(temp_left1, (_k, -1), order='F')
+        temp_left0m_av = np.mean(temp_left0m, axis=0)
+        temp_left1m_av = np.mean(temp_left1m, axis=0)
+        #           **** Определение коэффициентов пересчета произвольных единиц в градусы К ****
+        coeff_left0 = (temp_left0m_av + 300) / s_left0_av
+        coeff_left0 = del_random_mod(coeff_left0, 1e-6)
+        coeff_left1 = (temp_left1m_av + 300) / s_left1_av
+        coeff_left1 = del_random_mod(coeff_left1, 1e-6)
+
+        # fig, ax = plt.subplots(1, figsize=(12, 6))
+        # ax.plot(s_left0_av)
+        # ax.plot(s_left01_av)
+        # plt.grid()
+        # plt.show()
+
+        #               **** Пересчет в температуру с вычитанием собственных шумов приемника ****
+        #     **** Температура собственных шумов приемника - табличная, ранее рассчитанная по измерениям ****
+        for i in range(_m):
+            a = _spectrum[0][i, :]
+            b = _spectrum[1][i, :]
+            #   Приводим вид сканов к "температурному" виду и Вычитаем температуру собственных шумов приемника
+            _spectrum[0][i, :] = a * coeff_left0 - temp_left0m_av
+            _spectrum[0][i, :][_spectrum[0][i, :] < 0] = 0
+            _spectrum[1][i, :] = b * coeff_left1 - temp_left1m_av
+            _spectrum[1][i, :][_spectrum[1][i, :] < 0] = 0
+            pass
+
+    # Пересчет данных из относительных единиц в температуру для правой поляризации
+    if np.size(spectrum[2]):
+        s_right0 = spectrum[2][n_cal0:n_cal1, :]
+        s_right1 = spectrum[3][n_cal0:n_cal1, :]
+        _m1, _n1 = np.shape(_spectrum[2])
+
+        s_right0_av = np.array([np.mean(s_right0[:, i][s_right0[:, i] > 100], dtype=np.int64) for i in range(_n1)])
+        s_right0_av = treatment_null_mesh(s_right0_av, n_av_loc)
+        s_right0_av = del_random_mod(s_right0_av, _s_threshold)
+        s_right1_av = np.array([np.mean(s_right1[:, i][s_right1[:, i] > 100], dtype=np.int64) for i in range(_n1)])
+        s_right1_av = treatment_null_mesh(s_right1_av, n_av_loc)
+        s_right1_av = del_random_mod(s_right1_av, _s_threshold)
+
+        #                   **** Приведение разрешения по частоте ****
+        #           температуры собственных шумов приемника к разрешению по частоте
+        #                               преобразуемых данных
+        _k1 = _l1 // _n1
+        temp_right0m = np.reshape(temp_right0, (_k1, -1), order='F')
+        temp_right1m = np.reshape(temp_right1, (_k1, -1), order='F')
+        temp_right0m_av = np.mean(temp_right0m, axis=0)
+        temp_right1m_av = np.mean(temp_right1m, axis=0)
+        #           **** Определение коэффициентов пересчета произвольных единиц в градусы К ****
+        coeff_right0 = (temp_right0m_av + 300) / s_right0_av
+        coeff_right0 = del_random_mod(coeff_right0, 1e-6)
+        coeff_right1 = (temp_right1m_av + 300) / s_right1_av
+        coeff_right1 = del_random_mod(coeff_right1, 1e-6)
+
+        #               **** Пересчет в температуру с вычитанием собственных шумов приемника ****
+        #     **** Температура собственных шумов приемника - табличная, ранее рассчитанная по измерениям ****
+        for i in range(_m1):
+            a = _spectrum[2][i, :]
+            b = _spectrum[3][i, :]
+            _spectrum[2][i, :] = a * coeff_right0 - temp_right0m_av
+            _spectrum[2][i, :][_spectrum[2][i, :] < 0] = 0
+            _spectrum[3][i, :] = b * coeff_right1 - temp_right1m_av
+            _spectrum[3][i, :][_spectrum[3][i, :] < 0] = 0
+
+    pass
+    fig, ax = plt.subplots(1, figsize=(12, 6))
+    ax.plot(coeff_left0)
+    ax.plot(coeff_left1)
+    ax.plot(coeff_right0)
+    ax.plot(coeff_right1)
+    plt.grid()
+    plt.show()
+    return _spectrum
+
+
 def freq_mask(_i):
     _n1 = 2
     _n2 = 7
     _freq_mask = [
-        [1350],                                                               # [0]
-        [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
-        [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
-        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],                 # [3]
-        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
-        [1230, 1560, 2300, 2910],                                                               # [5]
-        [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
-        [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2710, 2800, 2920]    # [8]
+        [1350],  # [0]
+        [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
+        [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
+        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],  # [3]
+        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
+        [1230, 1560, 2300, 2910],  # [5]
+        [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
+        [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
+        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2710, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
 
 def data_poly3d_prep(_spectrum_extr):
     _k, _m = np.shape(_spectrum_extr)
-    freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]   # Маска для выбора спектров из трех диапазонов частот
+    freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]  # Маска для выбора спектров из трех диапазонов частот
     freq_mask_singles = [1100, 1200, 1300, 1700, 1780, 2080, 2300, 2500, 2720, 2800, 2920]  # Маска для одиночных частот
     mask_poly = 'y'
     _data_poly3d = []
@@ -469,27 +649,30 @@ if __name__ == '__main__':
     # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения
     # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
-    align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
+    align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_data_dir = '2022'
-    primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
-    converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
+    current_primary_dir = '2022_06_16calibr'
+    current_primary_file = '2022-06-16_01calibr'
 
-    current_primary_dir = '2022_06_27sun'
+    current_data_dir = '2022'
+    primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
+    converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
+    data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
+
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
-    current_primary_file = '2022-06-27_00ant-04'
+    receiver_temperature_file = 'receiver_temperature.npy'  #
     ant_coeff_file = 'ant_afc.txt'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
+    receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file)
     folder_align_path = Path(head_path, 'Alignment')
     ant_coeff_path = Path(folder_align_path, ant_coeff_file)
     date = current_primary_file[0:10]
@@ -498,10 +681,12 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 8  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
+    t_cal0, t_cal1 = 10, 35  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
+
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
     freq_spect_mask = freq_mask(8)
@@ -514,10 +699,11 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
-    save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    noise_calibr = 'n'
+    black_body_calibr = 'y'
+    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
+    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
     poly3d_perm = 'n'
@@ -529,8 +715,8 @@ if __name__ == '__main__':
         preparing_data()
     print('Data are prepared')
     aver_param = 2 ** (6 - n_aver)
-    kf = int(freq_res / delta_f * aver_param)   # Установка разрешения по частоте в единицах максимального разрешения
-                                                # для данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
+    kf = int(freq_res / delta_f * aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
+    # для данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
     with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
 
@@ -562,6 +748,8 @@ if __name__ == '__main__':
 
     if noise_calibr == 'y':
         spectrum = noise_self_calibration(spectrum, ngi_temperature_path)
+    if black_body_calibr == 'y':
+        spectrum = noise_black_body_calibration(spectrum, receiver_temperature_path)
 
     united_spectrum = unite_spectrum(spectrum)
     ser_ind = united_spectrum.index
@@ -569,7 +757,6 @@ if __name__ == '__main__':
         spectrum_extr = united_spectrum[0] + united_spectrum[1]
     else:
         spectrum_extr = united_spectrum[0]
-
 
     # # ***********************************************
     # # ***        Графический вывод данных        ****
@@ -585,6 +772,15 @@ if __name__ == '__main__':
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
     shift = head['shift']
     spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
+    n_freq = len(time_spect_mask)
+    n_time = len(freq_spect_mask)
+    for i in range(n_freq):
+        try:
+            spectr_freq[i, :] = del_random_mod(spectr_freq[i, :], 40)
+        except IndexError:
+            pass
+    for i in range(n_time):
+        spectr_time[i, :] = del_random_mod(spectr_time[i, :], 40)
     print('spectr_freq, spectr_time are formed')
     # Формирование строк-аргументов по времени и частоте и легенды
     N_col = np.shape(spectrum_extr)[1]
@@ -669,7 +865,6 @@ if __name__ == '__main__':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
         poly_graph3d(timeS, data_poly3d, freq_mask)
 
-
     # if align == 'y':
     #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
     #     spectr_extr = spectr_extr * align_coeff1
@@ -678,7 +873,6 @@ if __name__ == '__main__':
     #     graph_3d(freq, timeS[n_start_flame:n_stop_flame], spectr_extr1[n_start_flame:n_stop_flame, :], 0)
     # fp.fig_multi_axes(spectr_time[:10, n_start_flame:n_stop_flame], timeS[n_start_flame:n_stop_flame],
     #                   info_txt, file_name0, freq_spect_mask[:10])
-
 
     stop = datetime.now()
     print('\n Total time = ', stop - start)

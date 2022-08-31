@@ -78,13 +78,13 @@ def receiver_temp_update(_s, _columns_names):
         with open(receiver_temperature_path, 'wb') as _out:
             pickle.dump(_data, _out)
 
-    # _fig, _ax = plt.subplots(1, figsize=(12, 6))
-    # _ax.plot(_data['temperature'][0])
-    # _ax.plot(_data['temperature'][1])
-    # _ax.plot(_data['temperature'][2])
-    # _ax.plot(_data['temperature'][3])
-    # plt.grid()
-    # plt.show()
+    _fig, _ax = plt.subplots(1, figsize=(12, 6))
+    _ax.plot(_data['temperature'][0])
+    _ax.plot(_data['temperature'][1])
+    _ax.plot(_data['temperature'][2])
+    _ax.plot(_data['temperature'][3])
+    plt.grid()
+    plt.show()
     pass
 
 
@@ -159,8 +159,8 @@ def receiver_temperature_calc(_data):
     fig, ax = plt.subplots(1, figsize=(12, 6))
     ax.plot(temp_left)
     ax.plot(temp_right)
-    # # ax.plot(data['spectrum'][2])
-    # # ax.plot(data['spectrum'][3])
+    # ax.plot(data['spectrum'][2])
+    # ax.plot(data['spectrum'][3])
     plt.grid()
     plt.show()
     return
@@ -227,7 +227,9 @@ if __name__ == '__main__':
     на второй - КЗ. В промежуток времени time_mask[0] - time_mask[1] 
     включена одна поляризация (левая, как правило), в промежуток времени time_mask[2] - time_mask[3] - 
     другая (правая). Затем нагрузка на входах меняется местами и выполняется второе измерение. Т.о. для каждого 
-    входа (левая и правая поляризации) получаем отклик приемника на согласованную нагрузку и КЗ
+    входа (левая и правая поляризации) получаем отклик приемника на согласованную нагрузку и КЗ. Для расчетов 
+    использованы пары файлов '2022-06-28_02test', '2022-06-28_03test' и '2022-06-27_02', '2022-06-27_03' с маской 
+    времени time_mask = [11, 19, 21, 29]
     Скрипт заодно рассчитывает выравнивающие коэффициенты АЧХ приемника по шумовому сигналу от согласованной нагрузки 
     на входе с учетом собственных шумов приемника и записывает их в уже существующий файл align_coeff.bin в папке
      /Alignment/."""

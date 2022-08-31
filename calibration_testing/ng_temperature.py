@@ -28,7 +28,6 @@ def temperature_ngi(_spectrum, polarization, time_borders):
     elif polarization == 'both':
         s0, s1 = _spectrum[0], _spectrum[1]
 
-
     # Вычисление коэффициентов привязки температуры шумового сигнала от внутреннего
     # ГШ к шумовой температуре эталонного ГШ
     av_gne0 = np.mean(s0[n0:n1, :], axis=0)
@@ -51,7 +50,7 @@ def temperature_ngi(_spectrum, polarization, time_borders):
     k5 = 0
     k6 = int((230 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     temperature_scale0[k5:k6] = 0
-    temperature_scale0[0:] = temperature_scale0[-1::-1] # Правильный порядок отсчетов
+    temperature_scale0[0:] = temperature_scale0[-1::-1]  # Правильный порядок отсчетов
     # для второй зоны Найквиста
 
     #                   *************************************
@@ -144,7 +143,6 @@ def ngi_temperature_update(_ngi_selected, _ngi_id):
 
 
 def plot_ngi(_data):
-
     # Arguments0, s1 = _spectrum[0], _spectrum[1]
     _delta_f = 7.8125
     aver_param_noise = 8
