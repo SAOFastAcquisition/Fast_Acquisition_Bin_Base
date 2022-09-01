@@ -318,8 +318,8 @@ def unite_spectrum(spec):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 40, 49  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 30, 39  # Интервал определения фона, сек
+    t_cal0, t_cal1 = 0, 10  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 11, 19  # Интервал определения фона, сек
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -652,8 +652,8 @@ if __name__ == '__main__':
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_primary_dir = '2022_06_16calibr'
-    current_primary_file = '2022-06-16_01calibr'
+    current_primary_dir = '2022_06_27test'
+    current_primary_file = '2022-06-27_02'
 
     current_data_dir = '2022'
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
@@ -684,7 +684,7 @@ if __name__ == '__main__':
     kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
-    t_cal0, t_cal1 = 10, 35  # Интервал нагрузки на черное тело, сек
+    t_cal0, t_cal1 = 11, 19  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
 
     att_val = [i * 0.5 for i in range(64)]
@@ -699,8 +699,8 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'n'
-    black_body_calibr = 'y'
+    noise_calibr = 'y'
+    black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
