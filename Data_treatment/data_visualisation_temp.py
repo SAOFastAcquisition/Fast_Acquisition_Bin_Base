@@ -304,10 +304,14 @@ def unite_spectrum(spec):
     else:
         spec_right = []
     if np.size(spec_left) and np.size(spec_right):
-        n_row1 = np.min([np.shape(spec_left)[0], np.shape(spec_right)[0]])
-        spec_left = spec_left[:n_row1]
-        spec_right = spec_right[:n_row1]
-        united_spec = pd.Series([spec_left, spec_right], ind)
+        shape_l = np.shape(spec_left)
+        shape_r = np.shape(spec_right)
+        n_row1 = np.max([shape_l[0], shape_r[0]])
+        spec_left0 = np.full((n_row1, shape_l[1]), 2)
+        spec_right0 = np.full((n_row1, shape_r[1]), 2)
+        spec_left0[:shape_l[0]] = spec_left
+        spec_right0[:shape_r[0]] = spec_right
+        united_spec = pd.Series([spec_left0, spec_right0], ind)
     elif np.size(spec_left):
         united_spec = pd.Series([spec_left], ind)
     else:
@@ -320,6 +324,9 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
     t_cal0, t_cal1 = 0, 10  # Интервал Импульса ГШ, сек
     t_ground1, t_ground2 = 11, 19  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 31, 39  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 21, 29
+
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -347,9 +354,13 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
 
         _m, _n = np.shape(_spectrum[0])
         s_left0_av = np.array([np.mean(s_left0[:, i][s_left0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_left0_av = treatment_null_mesh(s_left0_av, 10)
         s_left1_av = np.array([np.mean(s_left1[:, i][s_left1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_left1_av = treatment_null_mesh(s_left1_av, 10)
         s_ground_av0 = np.array([np.mean(s_ground0[:, i][s_ground0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av0 = treatment_null_mesh(s_ground_av0, 10)
         s_ground_av1 = np.array([np.mean(s_ground1[:, i][s_ground1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av1 = treatment_null_mesh(s_ground_av1, 10)
         s_left0_av = s_left0_av - s_ground_av0
         s_left1_av = s_left1_av - s_ground_av1
 
@@ -364,22 +375,34 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
         coeff_left0 = temp_left0m_av / s_left0_av
         coeff_left1 = temp_left1m_av / s_left1_av
 
+        # fig, ax = plt.subplots(1, figsize=(12, 6))
+        #
+        # plt.grid()
+        # plt.show()
+
         for i in range(_m):
             _spectrum[0][i, :] = _spectrum[0][i, :] * coeff_left0
+
             _spectrum[1][i, :] = _spectrum[1][i, :] * coeff_left1
 
     # Пересчет данных из относительных единиц в температуру для правой поляризации
     if np.size(spectrum[2]):
-        s_right0 = spectrum[2][n_cal0:n_cal1, :]
-        s_right1 = spectrum[3][n_cal0:n_cal1, :]
-        s_ground2 = spectrum[2][n_ground1:n_ground2, :]
-        s_ground3 = spectrum[3][n_ground1:n_ground2, :]
+        n_cal0r, n_cal1r = int(t_cal0r // delta_t), int(t_cal1r // delta_t)
+        n_ground1r, n_ground2r = int(t_ground1r // delta_t), int(t_ground2r // delta_t)
+        s_right0 = spectrum[2][n_cal0r:n_cal1r, :]
+        s_right1 = spectrum[3][n_cal0r:n_cal1r, :]
+        s_ground2 = spectrum[2][n_ground1r:n_ground2r, :]
+        s_ground3 = spectrum[3][n_ground1r:n_ground2r, :]
         _m1, _n1 = np.shape(_spectrum[2])
 
         s_right0_av = np.array([np.mean(s_right0[:, i][s_right0[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_right0_av = treatment_null_mesh(s_right0_av, 10)
         s_right1_av = np.array([np.mean(s_right1[:, i][s_right1[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_right1_av = treatment_null_mesh(s_right1_av, 10)
         s_ground_av2 = np.array([np.mean(s_ground2[:, i][s_ground2[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av2 = treatment_null_mesh(s_ground_av2, 10)
         s_ground_av3 = np.array([np.mean(s_ground3[:, i][s_ground3[:, i] > 100], dtype=np.int64) for i in range(_n)])
+        s_ground_av3 = treatment_null_mesh(s_ground_av3, 10)
         s_right0_av = s_right0_av - s_ground_av2
         s_right1_av = s_right1_av - s_ground_av3
 
@@ -391,9 +414,21 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
         coeff_right0 = temp_right0m_av / s_right0_av
         coeff_right1 = temp_right1m_av / s_right1_av
 
+        fig, ax = plt.subplots(1, figsize=(12, 6))
+        ax.plot(coeff_left0)
+        ax.plot(coeff_left1)
+        ax.plot(coeff_right0)
+        ax.plot(coeff_right1)
+        plt.grid()
+        plt.show()
+
         for i in range(_m1):
             _spectrum[2][i, :] = _spectrum[2][i, :] * coeff_right0
+            _spectrum[2][i, :][_spectrum[2][i, :] < 0] = 0
             _spectrum[3][i, :] = _spectrum[3][i, :] * coeff_right1
+            _spectrum[3][i, :][_spectrum[3][i, :] < 0] = 0
+        a = _spectrum[2]
+        b = _spectrum[3]
 
     ant_coeff = np.loadtxt(ant_coeff_path)
     len_ant_coeff = np.size(ant_coeff)
@@ -653,7 +688,7 @@ if __name__ == '__main__':
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
     current_primary_dir = '2022_06_27test'
-    current_primary_file = '2022-06-27_02'
+    current_primary_file = '2022-06-27_03'
 
     current_data_dir = '2022'
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
@@ -699,8 +734,8 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
-    black_body_calibr = 'n'
+    noise_calibr = 'n'
+    black_body_calibr = 'y'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
