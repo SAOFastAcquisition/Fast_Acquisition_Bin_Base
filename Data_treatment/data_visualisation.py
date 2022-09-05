@@ -300,10 +300,18 @@ def unite_spectrum(spec):
     else:
         spec_right = []
     if np.size(spec_left) and np.size(spec_right):
-        n_row1 = np.min([np.shape(spec_left)[0], np.shape(spec_right)[0]])
-        spec_left = spec_left[:n_row1]
-        spec_right = spec_right[:n_row1]
-        united_spec = pd.Series([spec_left, spec_right], ind)
+        # n_row1 = np.min([np.shape(spec_left)[0], np.shape(spec_right)[0]])
+        # spec_left = spec_left[:n_row1]
+        # spec_right = spec_right[:n_row1]
+        # united_spec = pd.Series([spec_left, spec_right], ind)
+        shape_l = np.shape(spec_left)
+        shape_r = np.shape(spec_right)
+        n_row1 = np.max([shape_l[0], shape_r[0]])
+        spec_left0 = np.full((n_row1, shape_l[1]), 2)
+        spec_right0 = np.full((n_row1, shape_r[1]), 2)
+        spec_left0[:shape_l[0]] = spec_left
+        spec_right0[:shape_r[0]] = spec_right
+        united_spec = pd.Series([spec_left0, spec_right0], ind)
     elif np.size(spec_left):
         united_spec = pd.Series([spec_left], ind)
     else:
@@ -378,13 +386,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_16calibr'
+    current_primary_dir = '2022_09_05test'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-16_01calibr'
+    current_primary_file = '2022-09-05_14'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -479,8 +487,8 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    time_spect_mask = [40]
+    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    # time_spect_mask = [40]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 
