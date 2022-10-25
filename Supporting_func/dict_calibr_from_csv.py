@@ -39,13 +39,15 @@ def calibration_temp(f):
 
 
 def start_stop_calibr(*args):
+    _delta_t = 8.3886e-3
     _current_file_name = args[0]
     _recording_id = _current_file_name[11:16]
     _path_to_csv = args[1]
     csv = pandas.read_csv(_path_to_csv, delimiter=',')
     idx = csv.loc[(csv.recording_id == _recording_id)].index
     n = idx[0]
-    _start_stop = [csv.begin_start[idx][n], csv.begin_stop[idx][n], csv.end_start[idx][n], csv.end_stop[idx][n]]
+    _start_stop = [int(csv.begin_start[idx][n] // _delta_t), int(csv.begin_stop[idx][n] // _delta_t),
+                   int(csv.end_start[idx][n] // _delta_t), int(csv.end_stop[idx][n] // _delta_t)]
     # s = csv.begin_start.iloc[idx[0]]
     return _start_stop
 
