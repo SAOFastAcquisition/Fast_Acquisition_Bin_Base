@@ -151,6 +151,59 @@ def freq_mask(_i):
     return _freq_mask[_i]
 
 
+def two_fig_plot():
+
+    fig, axes = plt.subplots(2, 1, figsize=(12, 12))
+    _i = 0
+    max_y2 = np.nanmax(s0[:, num_mask])
+    _i_max = len(num_mask)
+
+    for _j in num_mask:
+        f1 = freq_mask0[_i]
+        text1 = 'f = ' + str(f1) + ' MHz'
+        axes[0].plot(mean_frame_ind_pol, s0[:, _j], label=text1)
+        axes[1].plot(mean_frame_ind_pol, s3[:, _j])
+        axes[0].set_ylabel('Stocks_I')
+        axes[1].set_ylabel('Stocks_V', color='darkred')
+        axes[0].minorticks_on()
+        axes[1].minorticks_on()
+        axes[0].legend(loc='upper right')
+        _i += 1
+    axes[0].grid()
+    axes[1].grid()
+    axes[0].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+    plt.show()
+    pass
+
+
+def twin_fig_plot():
+
+    for j in num_mask:
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()  # Создание второй оси ординат (справа). Ось абсцисс общая
+        ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
+        ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
+        # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
+        # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
+        ax1.set_ylabel('Stocks_I')
+        ax2.set_ylabel('Stocks_V', color='darkred')
+        ax1.minorticks_on()
+        f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
+        max_y2 = np.nanmax(s3[:, j])
+        text1 = 'f = ' + str(f1) + ' MHz'
+        plt.text(0, max_y2 / 2, text1, fontsize=12)  # Разрешение по времени
+        ax1.grid()
+        ax2.grid()
+        ax1.grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+        plt.show()
+
+
 if __name__ == '__main__':
     align = 'n'
     channel_align = 'n'
@@ -230,7 +283,7 @@ if __name__ == '__main__':
         [s0, s3, mean_frame_ind_pol] = stocks_coeff
 
     m, n = np.shape(s0)
-    freq_res = 2 ** 9
+    freq_res = n   # Число отсчетов спектра шириной 2 ГГц по частоте
     num_mask = [int((s - 1000 * (1 + 1 / freq_res)) * freq_res / 2000) for s in freq_mask0]
     # calibration_temperature = [calibration_temp(f) for f in freq_mask0]
     # dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
@@ -245,28 +298,9 @@ if __name__ == '__main__':
     #     s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
     #     s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
-#
-    for j in num_mask:
-        fig, ax1 = plt.subplots()
-        ax2 = ax1.twinx()
-        ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
-        ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
-        # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
-        # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
-        ax1.set_ylabel('Stocks_I')
-        ax2.set_ylabel('Stocks_V', color='darkred')
-        ax1.minorticks_on()
-        f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
-        max_y2 = np.nanmax(s3[:, j])
-        text1 = 'f = ' + str(f1) + ' MHz'
-        plt.text(0, max_y2 / 2, text1, fontsize=12)  # Разрешение по времени
-        ax1.grid()
-        ax2.grid()
-        ax1.grid(which='minor',
-                 axis='x',
-                 color='k',
-                 linestyle=':')
-        plt.show()
+    two_fig_plot()
+    # twin_fig_plot()
+
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
@@ -275,6 +309,6 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
-    fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,  Path(current_treatment_path,
-                                                                                current_data_file), freq_mask0, head)
+    # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,  Path(current_treatment_path,
+    #                                                                             current_data_file), freq_mask0, head)
     pass

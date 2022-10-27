@@ -369,6 +369,22 @@ def data_poly3d_prep(_spectrum_extr):
     return _data_poly3d, _freq_mask
 
 
+def del_random_mod(_s, _s0):
+    _s = np.array(_s, dtype=np.int64)
+    _l = len(_s)
+    for _i in range(1, _l - 2):
+        a = _s[_i - 1]
+        b = _s[_i]
+        c = _s[_i + 1]
+        if abs(b - a) > 2 * abs(c - a):
+            _s[_i] = (a + c) / 2
+        if _s[_i] < 10:
+            _s[_i] = _s0
+    _s[0] = _s0
+    _s[_l - 2:] = _s0
+    return _s
+
+
 if __name__ == '__main__':
 
     # parameters = main()
@@ -386,13 +402,13 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_09_27test'
+    current_primary_dir = '2022_06_18sun'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-09-27_01'
+    current_primary_file = '2022-06-18_01+28'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -403,8 +419,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 32  # Установка разрешения по частоте в МГц
-    kt = 1024  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 4  # Установка разрешения по частоте в МГц
+    kt = 2  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
@@ -477,6 +493,10 @@ if __name__ == '__main__':
         spectrum_extr = united_spectrum[0] + united_spectrum[1]
     else:
         spectrum_extr = united_spectrum[0]
+
+    spectrum_shape = np.shape(spectrum_extr)
+    for i in range(spectrum_shape[1]):
+        spectrum_extr[:, i] = del_random_mod(spectrum_extr[:, i], 1000)
 
     # if noise_calibr == 'y':
     #     spectr_time = calibration(t_cal, spectr_time)
