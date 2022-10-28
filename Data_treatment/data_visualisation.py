@@ -6,6 +6,7 @@ import pickle
 import json as jsn
 from datetime import datetime
 from pathlib import Path
+import matplotlib.pyplot as plt
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Supporting_func.dict_calibr_from_csv import calibration_temp
@@ -88,6 +89,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     ind_time = []
     t_ng = 1
     N_col = np.shape(spectr_extr)[1]
+    _a = kt
     s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
     s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
     j = 0
@@ -371,6 +373,7 @@ def data_poly3d_prep(_spectrum_extr):
 
 def del_random_mod(_s, _s0):
     _s = np.array(_s, dtype=np.int64)
+    _s_pr = np.copy(_s)
     _l = len(_s)
     for _i in range(1, _l - 2):
         a = _s[_i - 1]
@@ -382,6 +385,11 @@ def del_random_mod(_s, _s0):
             _s[_i] = _s0
     _s[0] = _s0
     _s[_l - 2:] = _s0
+    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    # ax.plot(_s)
+    # # ax.plot(_s_pr)
+    # plt.show()
+
     return _s
 
 
@@ -408,7 +416,7 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-18_01+28'
+    current_primary_file = '2022-06-18_02+24+00'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -494,9 +502,11 @@ if __name__ == '__main__':
     else:
         spectrum_extr = united_spectrum[0]
 
-    spectrum_shape = np.shape(spectrum_extr)
-    for i in range(spectrum_shape[1]):
-        spectrum_extr[:, i] = del_random_mod(spectrum_extr[:, i], 1000)
+    # spectrum_shape = np.shape(spectrum_extr)
+    # for i in range(spectrum_shape[1]):
+    #     spectrum_extr[:, i] = del_random_mod(spectrum_extr[:, i], 1000)
+    # for i in range(spectrum_shape[0]):
+    #     spectrum_extr[i, :] = del_random_mod(spectrum_extr[i, :], 1000)
 
     # if noise_calibr == 'y':
     #     spectr_time = calibration(t_cal, spectr_time)

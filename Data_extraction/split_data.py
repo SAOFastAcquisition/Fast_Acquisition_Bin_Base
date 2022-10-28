@@ -43,5 +43,5 @@ for i in range(len_list):
     np.save(path_current, s1)
     with open(Path(converted_data_file_path, output_filename_list[i] + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
-    print ('Load file:', output_filename_list[i])
+    print('Load file:', output_filename_list[i])
     pass
