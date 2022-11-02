@@ -6,6 +6,8 @@ import sys
 import pickle
 import matplotlib.pyplot as plt
 import pandas as pd
+from tkinter import *
+from tkinter import messagebox as mb
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
 from Supporting_func.Fig_plot import fig_multi_axes
@@ -32,7 +34,7 @@ def initial_scan_cut(data):
 
     # Выбор скана (выбор хорошо заполненного отсчетами скана) для определения
     # положения центра импульса меандра с левой поляризацией в отсчетах скана
-    while np.size(time_ind) < 0.3 * data_shape[0]:
+    while np.size(time_ind) < 0.47 * data_shape[0]:
         time_row = np.array(data[:, j])
         j += 1
         # Выбор индексов ненулевых значений скана
@@ -46,10 +48,10 @@ def initial_scan_cut(data):
     # Задание первого элемента для определения скачка индекса ненулевых членов
     i_prev = int(time_ind[i + 1])
     time_ind_cut = time_ind[time_ind >= i_prev]
-
+    data_shape1 = np.shape(time_ind_cut)
     # ******************************************************************************
     # Определение центров импульсов меандра с левой поляризацией в отсчетах скана **
-    mean_frame_ind_left = np.array([])
+    _mean_frame_ind_left = np.array([])
     frame_ind0 = np.array([])
     for i in time_ind_cut:
         # Фрагмент скана с последовательно меняющимися индексами (допускается скачок индекса не более чем на 25)
@@ -62,24 +64,25 @@ def initial_scan_cut(data):
             except ValueError:
                 pass
 
-            # if mean_ind - mean_frame_ind_left[-1] < 50 or mean_ind - mean_frame_ind_left[-1] > 70:
-            #     if mean_frame_ind_left[-1] + 60 < data_shape1[0]:
-            #         mean_ind = mean_frame_ind_left[-1] + 60
-            #     else:
-            #             mean_ind = data_shape1[0] - 2
+            if len(_mean_frame_ind_left) > 1:
+                if mean_ind - _mean_frame_ind_left[-1] < 50 or mean_ind - _mean_frame_ind_left[-1] > 70:
+                    if _mean_frame_ind_left[-1] + 60 < time_ind_cut[-1]:
+                        mean_ind = _mean_frame_ind_left[-1] + 60
+                    else:
+                        mean_ind = time_ind_cut[-2]
 
-            mean_frame_ind_left = np.append(mean_frame_ind_left, mean_ind)
+            _mean_frame_ind_left = np.append(_mean_frame_ind_left, mean_ind)
             frame_ind0 = np.array([])
         i_prev = i
-    len_left = np.size(mean_frame_ind_left)
-    mean_frame_ind_right = np.zeros(len_left - 1)
+    len_left = np.size(_mean_frame_ind_left)
+    _mean_frame_ind_right = np.zeros(len_left - 1)
 
     for k in range(len_left - 1):
-        mean_frame_ind_right[k] = int((mean_frame_ind_left[k] + mean_frame_ind_left[k + 1]) / 2)
+        _mean_frame_ind_right[k] = int((_mean_frame_ind_left[k] + _mean_frame_ind_left[k + 1]) / 2)
     # Отбрасываем последний элемент вектора центров импульсов левой поляризации, чтобы выровнять
     # по размеру с вектором центров импульсов правой поляризации
-    mean_frame_ind_left0 = mean_frame_ind_left[: -1]
-    return mean_frame_ind_left0, mean_frame_ind_right
+    _mean_frame_ind_left0 = _mean_frame_ind_left[: -1]
+    return _mean_frame_ind_left0, _mean_frame_ind_right
 
 
 def pol_intensity(data, mean_time_ind):
@@ -135,52 +138,105 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 
 def freq_mask(_i):
-    _n1 = 1
-    _n2 = 6
+    _n1 = 2
+    _n2 = 9
     _freq_mask = [
-        [1350],                                                               # [0]
-        [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
-        [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],                           # [2]
-        [1000 * _n1 + 101 * _n2 + 20 * i for i in range(7)],                 # [3]
-        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
-        [1230, 1560, 2300, 2910],                                                               # [5]
-        [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
-        [1220, 1540, 1980, 2060, 2500, 2780],   # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]    # [8]
+        [1350],  # [0]
+        [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
+        [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],  # [2]
+        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],  # [3]
+        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
+        [1230, 1560, 2300, 2910],  # [5]
+        [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
+        [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
+        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
 
-def two_fig_plot():
-
+def two_fig_plot(_path_to_fig_folder):
+    _pic_name = pic_name(_path_to_fig_folder, 0, 'svg')
+    _path_to_pic = Path(_path_to_fig_folder, _pic_name)
     fig, axes = plt.subplots(2, 1, figsize=(12, 12))
-    _i = 0
-    max_y2 = np.nanmax(s0[:, num_mask])
-    _i_max = len(num_mask)
+    _fig_folder = str(_path_to_fig_folder)
+    title1, title2, title3 = title_func(_fig_folder, head)
 
+    y_max = np.nanmax(s0[:, num_mask])
+    y_min = np.nanmin(s0[:, num_mask])
+    _i_max = len(num_mask)
+    _i = 0
     for _j in num_mask:
         f1 = freq_mask0[_i]
         text1 = 'f = ' + str(f1) + ' MHz'
         axes[0].plot(mean_frame_ind_pol, s0[:, _j], label=text1)
         axes[1].plot(mean_frame_ind_pol, s3[:, _j])
-        axes[0].set_ylabel('Stocks_I')
-        axes[1].set_ylabel('Stocks_V', color='darkred')
-        axes[0].minorticks_on()
-        axes[1].minorticks_on()
         axes[0].legend(loc='upper right')
         _i += 1
+
+    axes[0].set_title('Stocks Parameters ' + title1, fontsize=20)
+    axes[0].set_ylabel('Stocks_I')
+    axes[1].set_ylabel('Stocks_V', color='darkred')
+    axes[0].minorticks_on()
+    axes[1].minorticks_on()
+
+    y1 = y_max - 2 * (y_max - y_min) / 10
+    y2 = y_max - 3 * (y_max - y_min) / 10
+    axes[0].text(0, y1, inform[0], fontsize=12)  # Разрешение по частоте
+    axes[0].text(0, y2, inform[1], fontsize=12)  # Разрешение по времени
+
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
                  axis='x',
                  color='k',
                  linestyle=':')
+    axes[1].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
     plt.show()
+    #                               ********************************
+    #                        ************ Сохранение рисунка ****************
+    fig.savefig(_path_to_pic)
+    flag_save = save_question()
+    if flag_save == 'no':
+        if os.path.isfile(_path_to_pic):
+            os.remove(_path_to_pic)
+            print('Picture is not saved')
+        else:
+            print('File not found')
+    else:
+        print('Picture is saved')
     pass
 
 
-def twin_fig_plot():
+def simplest_fig(_x, _y, _z):
+    fig, axes = plt.subplots(2, 1, figsize=(12, 12))
+    axes[0].plot(_x, _y)
+    axes[1].plot(_x, _z)
+    axes[0].set_ylabel('Stocks_I')
+    axes[1].set_ylabel('Stocks_V', color='darkred')
+    axes[0].minorticks_on()
+    axes[1].minorticks_on()
+    axes[0].legend(loc='upper right')
+    axes[0].grid()
+    axes[1].grid()
+    axes[0].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+    axes[1].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+    plt.show()
 
+
+def twin_fig_plot():
+    """
+    Строит графики на одном поле, но с разными осями по 0у
+    :return:
+    """
     for j in num_mask:
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()  # Создание второй оси ординат (справа). Ось абсцисс общая
@@ -204,21 +260,152 @@ def twin_fig_plot():
         plt.show()
 
 
+def func_path(data_dir, year='2022'):
+    """ Функция принимает имя каталога с исходными данными. Возвращает пути к директориям,
+    в которые будут записываться результаты обработки исходных данных"""
+    _current_dir = year
+    _primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
+    _converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
+    _data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
+
+    _current_primary_dir = data_dir
+    _current_primary_path = Path(_primary_data_dir, _current_primary_dir)
+    _current_converted_dir = _current_primary_dir + '_conv'
+    _current_converted_path = Path(_converted_data_dir, _current_converted_dir)
+    _current_treatment_dir = _current_primary_dir + '_treat'
+    _current_treatment_path = Path(_data_treatment_dir, _current_treatment_dir)
+
+    _primary_data_dir_path, _head_path = path_to_data(_current_primary_dir, _current_primary_path)
+    _converted_data_dir_path, _head_path = path_to_data(_current_dir, _current_converted_path)
+    _data_treatment_dir_path, _head_path = path_to_data(_current_dir, _current_treatment_path)
+    pass
+    return _primary_data_dir_path, _converted_data_dir_path, _data_treatment_dir_path, _head_path
+
+
+def pic_name(file_path, flag, format='png'):
+    """
+    Функция принимает папку в которую надо сохранить картинки с общим названием, различающиеся по номеру
+    после названия, флаг, который определяет название, формат сохранения. Возвращает название файла с номером
+    и расширением
+    :param file_path: папка сохранения
+    :param flag: название картинки (вид картинки: скан, спектр и т.п.)
+    :param format: формат сохранения
+    :return: имя файла с расширением, под которым будет сохранен рисунок
+    """
+    if flag == 1:
+        add_pass0 = 'spectrum_00'
+    elif flag == 2:
+        add_pass0 = 'colour2D_00'
+    elif flag == 3:
+        add_pass0 = 'pic3D_00'
+    else:
+        add_pass0 = 'scan_stocks_00'
+
+    l = len(add_pass0)
+    add_pass1 = add_pass0 + '.' + format
+    if not os.path.isfile(Path(file_path, add_pass1)):
+        pass
+    else:
+        while os.path.isfile(Path(file_path, add_pass1)):
+            num = int(add_pass0[l - 2:l]) + 1
+            num_str = str(num)
+            if num >= 10:
+                add_pass0 = add_pass0[:l - 2] + num_str
+            else:
+                add_pass0 = add_pass0[:l - 2] + '0' + num_str
+            add_pass1 = add_pass0 + '.' + format
+
+    return add_pass1
+
+
+def save_question():
+    root = Tk()
+    answer = mb.askquestion(
+        title="Save control",
+        message="Save picture?")
+    root.mainloop()
+    del root
+    return answer
+
+
+def title_func(file_name0, _head):
+    az = file_name0[-3:]
+    att1 = str(_head['att1'])
+    att2 = str(_head['att2'])
+    att3 = str(_head['att3'])
+    date = _head['date']
+
+    title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+    a = file_name0.find('sun', -50, -1)
+    if not file_name0.find('sun', -50, -1) == -1:
+        title2 = 'Sun intensity'
+        title02 = 'Sun spectrum '
+        if file_name0[-1:] == 'b':
+            az = file_name0[-4:-1]
+            title2 = 'Calibration'
+            title02 = 'Calibration spectrum '
+            title1 = date + ', az = ' + az + ', Black Body/Sky, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    elif not file_name0.find('crab') == -1:
+        title2 = 'Crab intensity'
+        title02 = 'Crab spectrum '
+
+    elif not file_name0.find('moon') == -1:
+        title2 = 'Moon intensity'
+        title02 = 'Moon spectrum '
+
+    elif not file_name0.find('3C84') == -1:
+        title2 = '3C84 intensity'
+        title02 = '3C84 spectrum '
+
+    elif not file_name0.find('calibration') == -1:
+        title2 = 'Calibration'
+        title02 = 'Calibration spectrum '
+        title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    elif not (file_name0.find('test') == -1):
+        kind = file_name0[-2:]
+        title2 = 'Test'
+        title02 = 'Test spectrum'
+        if kind == 'VG':
+            power_vg = 0
+            title1 = date + ', Vector Gen' + ', P = ' + str(power_vg) + 'dBm, ' \
+                'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'NG':
+            t_noise = 6300
+            title1 = date + ', Noise Gen, ' + 'T = ' + str(t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'ML':
+            title1 = date + ', Matched Load' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        elif kind == 'SC':
+            title1 = date + ', Short Cut' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+        else:
+            title1 = date + ', ' + ' , Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+
+    else:
+        title2 = 'Scan'
+        title02 = 'Spectrum'
+
+    return title1, title2, title02
+
+
 if __name__ == '__main__':
     align = 'n'
     channel_align = 'n'
 
-    current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
     current_primary_dir = '2022_06_18sun'
-    current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-06-18_05+12'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+
+    primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
+        func_path(current_primary_dir)
+
+    file_path_data = converted_data_dir_path
     path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
-    freq_mask_list = freq_mask(8)
-    freq_mask0 = np.array(freq_mask(8))
+    path_to_stocks_fig_folder = Path(data_treatment_dir_path, current_data_file)
+    freq_mask_list = freq_mask(3)
+    freq_mask0 = np.array(freq_mask_list)
 
     if not (os.path.isfile(path_to_stocks)):
 
@@ -283,8 +470,15 @@ if __name__ == '__main__':
         [s0, s3, mean_frame_ind_pol] = stocks_coeff
 
     m, n = np.shape(s0)
-    freq_res = n   # Число отсчетов спектра шириной 2 ГГц по частоте
+    freq_res = n  # Число отсчетов спектра шириной 2 ГГц по частоте
     num_mask = [int((s - 1000 * (1 + 1 / freq_res)) * freq_res / 2000) for s in freq_mask0]
+
+    # for j in range(n):
+    #     ac = s0[:, j]
+    #     bc = s3[:, j]
+    #     simplest_fig(mean_frame_ind_pol, ac, bc)
+    #     pass
+
     # calibration_temperature = [calibration_temp(f) for f in freq_mask0]
     # dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     # path_to_csv = Path(file_path_data, dict_calibr_file_name)
@@ -298,17 +492,17 @@ if __name__ == '__main__':
     #     s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
     #     s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
-    two_fig_plot()
-    # twin_fig_plot()
+    # twin_fig_plot()   # График с двумя разномасштабными осями 0у (слева и справа)
 
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
-                ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
-                ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
+              ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
+              ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
+    two_fig_plot(path_to_stocks_fig_folder)
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,  Path(current_treatment_path,
     #                                                                             current_data_file), freq_mask0, head)
     pass

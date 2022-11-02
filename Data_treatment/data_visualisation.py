@@ -7,6 +7,8 @@ import json as jsn
 from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
+from numpy import int64
+
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Supporting_func.dict_calibr_from_csv import calibration_temp
@@ -85,13 +87,14 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
     """
+    # np.array(spectr_extr, dtype=int64)
+    spectr_extr //= 100
     ind_spec = []
     ind_time = []
-    t_ng = 1
     N_col = np.shape(spectr_extr)[1]
     _a = kt
-    s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
-    s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
+    s_freq = np.zeros((len(time_spect_mask_in), N_col // kf), dtype=int64)
+    s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)), dtype=int64)
     j = 0
     for f in freq_spect_mask_in:
         if band_size_init == 'half':
@@ -106,15 +109,16 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         i = 0
         while kt * (i + 1) < N_row:
             if kf == 1:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind])
+                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind][spectr_extr[i * kt:(i + 1) * kt, ind] > 40])
                 n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind] > 100).sum()
                 if n_mesh == 0:
                     s_time[i, j] = 2
                 else:
                     s_time[i, j] /= n_mesh
             else:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)])
-                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 100).sum()
+                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)][
+                                          spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
+                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
                 if n_mesh == 0:
                     s_time[i, j] = 2
                 else:
@@ -123,6 +127,7 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_spec.append(ind)
         j += 1
     i = 0
+
     for t in time_spect_mask_in:
         ind = int(t // delta_t)
         if ind > N_row - kt / 2 - 1:
@@ -132,15 +137,16 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         j = 0
         while (j + 1) * kf < N_col:
             if kt == 1:
-                s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf])
-                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 10).sum()
+                s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf][spectr_extr[ind, j * kf:(j + 1) * kf] > 40])
+                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 40).sum()
                 if n_mesh == 0:
                     s_freq[i, j] = 2
                 else:
                     s_freq[i, j] /= n_mesh
             else:
-                s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf])
-                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 10).sum()
+                s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf][
+                                          spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
+                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
                 if n_mesh == 0:
                     s_freq[i, j] = 2
                 else:
@@ -150,14 +156,8 @@ def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    if head['att3'] == 0:
-        a = 5.27e8
-    elif head['att3'] == 5:
-        a = 6.21e8
-    else:
-        a = 5.8e8
-    a = 1
-    return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
+
+    return s_freq * (2 ** shift) * 100, s_time * (2 ** shift) * 100
 
 
 def spectr_construction(Spectr, kf, kt):
@@ -416,7 +416,7 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-18_02+24+00'
+    current_primary_file = '2022-06-18_05+12'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -427,8 +427,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 2  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 8  # Установка разрешения по частоте в МГц
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
@@ -504,9 +504,9 @@ if __name__ == '__main__':
 
     # spectrum_shape = np.shape(spectrum_extr)
     # for i in range(spectrum_shape[1]):
-    #     spectrum_extr[:, i] = del_random_mod(spectrum_extr[:, i], 1000)
+    #     spectrum_extr[:, i] = del_random_mod(spectrum_extr[:, i], 10)
     # for i in range(spectrum_shape[0]):
-    #     spectrum_extr[i, :] = del_random_mod(spectrum_extr[i, :], 1000)
+    #     spectrum_extr[i, :] = del_random_mod(spectrum_extr[i, :], 10)
 
     # if noise_calibr == 'y':
     #     spectr_time = calibration(t_cal, spectr_time)
