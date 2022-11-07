@@ -352,40 +352,14 @@ def extract_whole_band():
             # if att_1 == 31 & att_2 == 31 & att_3 == 31:
             #     break
         pass
+        spectrum_right_1, spectrum_left_1, spectrum_right_2, spectrum_left_2 = \
+            one_spectrum(one_spectrum(spectrum_right_1, spectrum_left_1,
+                                      spectrum_right_2, spectrum_left_2, antenna2_0, n_aver))
         n_right1 = len(spectrum_right_1)
         n_left1 = len(spectrum_left_1)
         n_right2 = len(spectrum_right_2)
         n_left2 = len(spectrum_left_2)
 
-        # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
-        # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
-        # то необходима следующая процедура перестановки значений переменных
-        n_right = np.max([len(spectrum_right_1), len(spectrum_right_2)])
-        if n_right == 0 and antenna2_0 == 1:
-            spectrum_right_1 = spectrum_left_1
-            spectrum_left_1 = []
-            spectrum_right_2 = spectrum_left_2
-            spectrum_left_2 = []
-            n_right1 = len(spectrum_right_1)
-            n_left1 = len(spectrum_left_1)
-            n_right2 = len(spectrum_right_2)
-            n_left2 = len(spectrum_left_2)
-
-        # Приведение длины записи к величине кратной количеству частот
-        if n_right1 > 1:
-            spectrum_right_1 = cut_spectrum(spectrum_right_1, n_aver)
-            # spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
-            spectrum_right_1 = parts_to_numpy(spectrum_right_1, n_right1)
-        if n_left1 > 1:
-            spectrum_left_1 = cut_spectrum(spectrum_left_1, n_aver)
-            spectrum_left_1 = np.array(spectrum_left_1, dtype=np.int64)
-        if n_right2 > 1:
-            spectrum_right_2 = cut_spectrum(spectrum_right_2, n_aver)
-            # spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
-            spectrum_right_2 = parts_to_numpy(spectrum_right_2, n_right2)
-        if n_left2 > 1:
-            spectrum_left_2 = cut_spectrum(spectrum_left_2, n_aver)
-            spectrum_left_2 = np.array(spectrum_left_2, dtype=np.int64)
     finally:
         f_in.close()
         pass
@@ -409,6 +383,46 @@ def extract_whole_band():
             'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
             'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
+
+
+def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2,
+                 antenna2_0, n_aver):
+    n_right1 = len(_spectrum_right_1)
+    n_left1 = len(_spectrum_left_1)
+    n_right2 = len(_spectrum_right_2)
+    n_left2 = len(_spectrum_left_2)
+
+    # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
+    # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
+    # то необходима следующая процедура перестановки значений переменных
+    n_right = np.max([len(_spectrum_right_1), len(_spectrum_right_2)])
+    if n_right == 0 and antenna2_0 == 1:
+        _spectrum_right_1 = _spectrum_left_1
+        _spectrum_left_1 = []
+        _spectrum_right_2 = _spectrum_left_2
+        _spectrum_left_2 = []
+        n_right1 = len(_spectrum_right_1)
+        n_left1 = len(_spectrum_left_1)
+        n_right2 = len(_spectrum_right_2)
+        n_left2 = len(_spectrum_left_2)
+
+    # Приведение длины записи к величине кратной количеству частот
+    if n_right1 > 1:
+        _spectrum_right_1 = cut_spectrum(_spectrum_right_1, n_aver)
+        # spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
+        _spectrum_right_1 = parts_to_numpy(_spectrum_right_1, n_right1)
+    if n_left1 > 1:
+        _spectrum_left_1 = cut_spectrum(_spectrum_left_1, n_aver)
+        _spectrum_left_1 = np.array(_spectrum_left_1, dtype=np.int64)
+    if n_right2 > 1:
+        _spectrum_right_2 = cut_spectrum(_spectrum_right_2, n_aver)
+        # spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
+        _spectrum_right_2 = parts_to_numpy(_spectrum_right_2, n_right2)
+    if n_left2 > 1:
+        _spectrum_left_2 = cut_spectrum(_spectrum_left_2, n_aver)
+        _spectrum_left_2 = np.array(_spectrum_left_2, dtype=np.int64)
+    pass
+    return _spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2
 
 
 def parts_to_numpy(list_arr, len_list):
