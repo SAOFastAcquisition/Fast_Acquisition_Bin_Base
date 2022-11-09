@@ -271,7 +271,7 @@ def extract_whole_band():
                         bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
                         bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
-                    spectr_frame.append(frame_num)
+
                 elif k == 1:
                     att_1 = frame_int & 0x3F
                     att_1 = int((63 - att_1) / 2)
@@ -284,6 +284,22 @@ def extract_whole_band():
                     if antenna == 1:
                         pass
                     noise_gen_on = (frame_int & 0x100000) >> 20
+                    if noise_gen_on - noise_gen_on_before == 1:
+                        ng_counter1 += 1
+                        if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 != ng_counter1 % 2):
+                            flag_registration = 1
+                        print('NG on, frame num: ', frame_num, ' flag_registration =', flag_registration)
+                    if noise_gen_on - noise_gen_on_before == -1:
+                        ng_counter2 += 1
+                        if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 == 0) & \
+                                (ng_counter1 % 2 == 0):
+                            flag_registration = 0
+                            pass
+                        print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
+                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
+                    if flag_registration == 1:
+                        spectr_frame.append(frame_num)
+                        #
                     band = (frame_int & 0x8000000000000000) >> 63
                     attenuators = [att_1, att_2, att_3]
                     if i == 10:
@@ -293,36 +309,26 @@ def extract_whole_band():
                     pass
 
                 else:
-                    spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF) >> shift
+                    if flag_registration == 1:
+                        spectrum_val = (frame_int & 0x7FFFFFFFFFFFFF) >> shift
 
-                    # Отбросили "shift" младших разрядов двоичного представления или 3 разряда десятичного
-                    # при "shift=10"
-                    if band:
-                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
-                    else:
-                        spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
-                    # if spectrum_val > 1000000000:
-                    #     spectrum_val = 1000000000
-                    pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    if pp_good / 256 < pp_good_bound:
-                        spectrum_val = 2
-                    spectr_frame.append(spectrum_val)
+                        # Отбросили "shift" младших разрядов двоичного представления или 3 разряда десятичного
+                        # при "shift=10"
+                        if band:
+                            spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_1]))
+                        else:
+                            spectrum_val = int((spectrum_val * att_dict[att_3] * att_dict[att_2]))
+                        # if spectrum_val > 1000000000:
+                        #     spectrum_val = 1000000000
+                        pp_good = (frame_int & 0xFF80000000000000) >> 55
+                        if pp_good / 256 < pp_good_bound:
+                            spectrum_val = 2
+                        spectr_frame.append(spectrum_val)
                     pass
 
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
-            if noise_gen_on - noise_gen_on_before == 1:
-                ng_counter1 += 1
-                if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 != ng_counter1 % 2):
-                    flag_registration = 1
-                print('NG on, frame num: ', frame_num, ' flag_registration =', flag_registration)
-            if noise_gen_on - noise_gen_on_before == -1:
-                ng_counter2 += 1
-                if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 == 0) & \
-                        (ng_counter1 % 2 == 0):
-                    flag_registration = 0
-                print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
 
             if antenna == 0 and (antenna_before - antenna == 0):
                 if band:
