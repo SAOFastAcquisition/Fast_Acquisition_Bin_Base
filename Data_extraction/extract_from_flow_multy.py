@@ -270,7 +270,6 @@ def extract_whole_band():
                         n_aver = (frame_int & 0x3F00000000) >> 32
                         bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
                         bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
-                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
 
                 elif k == 1:
                     att_1 = frame_int & 0x3F
@@ -279,10 +278,11 @@ def extract_whole_band():
                     att_2 = int((63 - att_2) / 2)
                     att_3 = (frame_int & 0x3F000) >> 12
                     att_3 = int((63 - att_3) / 2)
+
                     antenna_before = antenna
                     antenna = (frame_int & 0x80000) >> 19
-                    if antenna == 1:
-                        pass
+                    band = (frame_int & 0x8000000000000000) >> 63
+
                     noise_gen_on = (frame_int & 0x100000) >> 20
                     if noise_gen_on - noise_gen_on_before == 1:
                         ng_counter1 += 1
@@ -295,12 +295,11 @@ def extract_whole_band():
                                 (ng_counter1 % 2 == 0):
                             flag_registration = 0
                             pass
-                        print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
+                        # print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
                     if flag_registration == 1:
                         spectr_frame.append(frame_num)
-                        #
-                    band = (frame_int & 0x8000000000000000) >> 63
+
                     attenuators = [att_1, att_2, att_3]
                     if i == 10:
                         att01 = att_1
@@ -329,26 +328,27 @@ def extract_whole_band():
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
+            print('Polar = ', antenna, ' Band = ', band, ' flag_registration = ', flag_registration)
+            if flag_registration == 1:
+                if antenna == 0 and (antenna_before - antenna == 0):
+                    if band:
+                        spectrum_left_2.append(spectr_frame)
+                    else:
+                        spectrum_left_1.append(spectr_frame)
+                if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
+                    spectrum_left_1.pop(-1)
+                if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
+                    spectrum_left_2.pop(-1)
 
-            if antenna == 0 and (antenna_before - antenna == 0):
-                if band:
-                    spectrum_left_2.append(spectr_frame)
-                else:
-                    spectrum_left_1.append(spectr_frame)
-            if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_1.pop(-1)
-            if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_2.pop(-1)
-
-            if antenna == 1 and (antenna_before - antenna) == 0:
-                if band:
-                    spectrum_right_2.append(spectr_frame)
-                else:
-                    spectrum_right_1.append(spectr_frame)
-            if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_1.pop(-1)
-            if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_2.pop(-1)
+                if antenna == 1 and (antenna_before - antenna) == 0:
+                    if band:
+                        spectrum_right_2.append(spectr_frame)
+                    else:
+                        spectrum_right_1.append(spectr_frame)
+                if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
+                    spectrum_right_1.pop(-1)
+                if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
+                    spectrum_right_2.pop(-1)
 
             # print(i, frame_num, band, attenuators)
             i += 1
