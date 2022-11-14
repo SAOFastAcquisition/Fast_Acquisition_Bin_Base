@@ -221,10 +221,7 @@ def extract_whole_band():
     attenuators = []
     frame = ' '
     frame_num_before = 0
-    noise_gen_on_before = 0
-    flag_registration = 0
-    ng_counter1 = 0
-    ng_counter2 = 0
+
     try:
         if os.path.isfile(file_name) == 1:
             pass
@@ -247,10 +244,10 @@ def extract_whole_band():
                     ind = 0
 
                     # ********* Обработка сбоя приема "нулевого" байта с номером кадра *********
-                    # Из f_in байты будут
+                    # Из f_in байты будут по 8
                     # считываться до тех пор, пока число, прочитанное на месте в байте номера кадра, не
                     # будет отличаться от предыдущего на величину меньше заданной. Если на протяжении 10
-                    # кадров такой байт не найдется (1300 байт), то обработка прерывается и выводятся
+                    # кадров такой байт не найдется (1300*8 байт), то обработка прерывается и выводятся
                     # прочитанные до момента сбоя данные
                     while abs(frame_num - frame_num_before) > 1000:
                         frame = f_in.read(8)
@@ -312,18 +309,6 @@ def extract_whole_band():
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
-            if noise_gen_on - noise_gen_on_before == 1:
-                ng_counter1 += 1
-                if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 != ng_counter1 % 2):
-                    flag_registration = 1
-                print('NG on, frame num: ', frame_num, ' flag_registration =', flag_registration)
-            if noise_gen_on - noise_gen_on_before == -1:
-                ng_counter2 += 1
-                if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 == 0) & \
-                        (ng_counter1 % 2 == 0):
-                    flag_registration = 0
-                print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
-
             if antenna == 0 and (antenna_before - antenna == 0):
                 if band:
                     spectrum_left_2.append(spectr_frame)
@@ -344,11 +329,10 @@ def extract_whole_band():
             if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_2.pop(-1)
 
-            # print(i, frame_num, band, attenuators)
+            print(i, frame_num, band, attenuators)
             i += 1
 
             frame_num_before = frame_num
-            noise_gen_on_before = noise_gen_on
             # if att_1 == 31 & att_2 == 31 & att_3 == 31:
             #     break
         pass

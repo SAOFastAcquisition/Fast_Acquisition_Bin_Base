@@ -327,8 +327,8 @@ def noise_self_calibration(_scan, _polar):
 
 
 def freq_mask(_i):
-    _n1 = 1
-    _n2 = 1
+    _n1 = 2
+    _n2 = 9
     _freq_mask = [
         [1350],                                                               # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
@@ -416,7 +416,7 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
-    current_primary_file = '2022-06-18_05+12'
+    current_primary_file = '2022-06-18_07+04'
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
@@ -428,13 +428,13 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'

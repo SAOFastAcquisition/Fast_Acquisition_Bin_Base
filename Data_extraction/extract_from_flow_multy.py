@@ -281,6 +281,8 @@ def extract_whole_band():
                     att_3 = int((63 - att_3) / 2)
                     antenna_before = antenna
                     antenna = (frame_int & 0x80000) >> 19
+                    if flag_registration:
+                        print('frame_num1 = ', frame_num, 'antenna = ', antenna)
                     if antenna == 1:
                         pass
                     noise_gen_on = (frame_int & 0x100000) >> 20
@@ -329,8 +331,10 @@ def extract_whole_band():
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
+            # if flag_registration:
+            #     print('frame_num = ', frame_num, 'antenna = ', antenna)
 
-            if antenna == 0 and (antenna_before - antenna == 0):
+            if antenna == 0 and (antenna_before - antenna == 0) and flag_registration == 1:
                 if band:
                     spectrum_left_2.append(spectr_frame)
                 else:
@@ -340,7 +344,7 @@ def extract_whole_band():
             if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_left_2.pop(-1)
 
-            if antenna == 1 and (antenna_before - antenna) == 0:
+            if antenna == 1 and (antenna_before - antenna) == 0 and flag_registration == 1:
                 if band:
                     spectrum_right_2.append(spectr_frame)
                 else:
@@ -392,7 +396,7 @@ def extract_whole_band():
 
 
 def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2,
-                 antenna2_0, n_aver):
+                 antenna2_0, _n_aver):
     n_right1 = len(_spectrum_right_1)
     n_left1 = len(_spectrum_left_1)
     n_right2 = len(_spectrum_right_2)
@@ -414,18 +418,18 @@ def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectr
 
     # Приведение длины записи к величине кратной количеству частот
     if n_right1 > 1:
-        _spectrum_right_1 = cut_spectrum(_spectrum_right_1, n_aver)
+        _spectrum_right_1 = cut_spectrum(_spectrum_right_1, _n_aver)
         # spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
         _spectrum_right_1 = parts_to_numpy(_spectrum_right_1, n_right1)
     if n_left1 > 1:
-        _spectrum_left_1 = cut_spectrum(_spectrum_left_1, n_aver)
+        _spectrum_left_1 = cut_spectrum(_spectrum_left_1, _n_aver)
         _spectrum_left_1 = np.array(_spectrum_left_1, dtype=np.int64)
     if n_right2 > 1:
-        _spectrum_right_2 = cut_spectrum(_spectrum_right_2, n_aver)
+        _spectrum_right_2 = cut_spectrum(_spectrum_right_2, _n_aver)
         # spectrum_right_2 = np.array(spectrum_right_2, dtype=np.int32)
         _spectrum_right_2 = parts_to_numpy(_spectrum_right_2, n_right2)
     if n_left2 > 1:
-        _spectrum_left_2 = cut_spectrum(_spectrum_left_2, n_aver)
+        _spectrum_left_2 = cut_spectrum(_spectrum_left_2, _n_aver)
         _spectrum_left_2 = np.array(_spectrum_left_2, dtype=np.int64)
     pass
     return _spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2
@@ -610,12 +614,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_25sun'
+    current_primary_dir = '2022_06_24sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-06-25_01+28+04'
+    current_primary_file = '2022-06-24_01+28+04'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 

@@ -393,7 +393,7 @@ if __name__ == '__main__':
     channel_align = 'n'
 
     current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_05+12'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-06-18_06+08'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
