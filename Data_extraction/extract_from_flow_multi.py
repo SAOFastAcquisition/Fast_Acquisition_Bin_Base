@@ -226,6 +226,7 @@ def extract_whole_band():
     flag_registration_before = 0
     ng_counter1 = 0
     ng_counter2 = 0
+    file_ind = 0
     try:
         if os.path.isfile(file_name) == 1:
             pass
@@ -376,7 +377,29 @@ def extract_whole_band():
                 spectrum_left_1[:, 0] = spectrum_left_1[:, 0] - frame_num_start
                 spectrum_left_2[:, 0] = spectrum_left_2[:, 0] - frame_num_start
 
+                spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
+                # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
+                band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
+
+                head = {'date': date,
+                        'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+                        'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
+                        # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
+                        'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
+                        'cleaned': 'no',
+                        'n_aver': n_aver,
+                        'shift': shift,
+                        'kurtosis': bound_left,
+                        'good_bound': pp_good_bound,
+                        'att1': att01,
+                        'att2': att02,
+                        'att3': att03,
+                        'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
+                        'align_coeff_pos': 5}
+                save_spectrum(spectrum_extr, head, file_ind)
                 print(' ')
+
+                file_ind += 1
                 spectrum_right_1 = []
                 spectrum_left_1 = []
                 spectrum_left_2 = []
@@ -392,26 +415,8 @@ def extract_whole_band():
     finally:
         f_in.close()
         pass
-    spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
-    # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
-    band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
 
-    head = {'date': date,
-            'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
-            'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
-            # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
-            'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
-            'cleaned': 'no',
-            'n_aver': n_aver,
-            'shift': shift,
-            'kurtosis': bound_left,
-            'good_bound': pp_good_bound,
-            'att1': att01,
-            'att2': att02,
-            'att3': att03,
-            'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
-            'align_coeff_pos': 5}
-    return save_spectrum(spectrum_extr, head)
+    return
 
 
 def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2,
@@ -511,7 +516,7 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
     return band_size, polar, measure_kind
 
 
-def save_spectrum(spectrum_extr, head):
+def save_spectrum(spectrum_extr, head, _k):
     spectrum1 = spectrum_extr[0]
     spectrum2 = spectrum_extr[1]
     spectrum3 = spectrum_extr[2]
@@ -546,12 +551,12 @@ def save_spectrum(spectrum_extr, head):
         os.mkdir(Path(converted_data_file_path))
     # **************************************************************************
 
-    np.save(Path(converted_data_file_path, current_primary_file + '_spectrum'), spectrum_whole)
-    with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'wb') as out:
+    np.save(Path(converted_data_file_path, output_filename_list[_k] + '_spectrum'), spectrum_whole)
+    with open(Path(converted_data_file_path, output_filename_list[_k] + '_head.bin'), 'wb') as out:
         pickle.dump(head, out)
-    jsn.dump(head, open(Path(converted_data_file_path, current_primary_file + '_head.txt'), "w"))
+    jsn.dump(head, open(Path(converted_data_file_path, output_filename_list[_k] + '_head.txt'), "w"))
 
-    return print(f'Data in {current_primary_file} converted to numpy file and saved successfully')
+    return print(f'Data in {output_filename_list[_k]} converted to numpy file and saved successfully')
 
 
 def cut_spectrum(spectrum, n_aver):
@@ -631,14 +636,17 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_24sun'
+    current_primary_dir = '2022_06_26sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-06-24_01+28+04'
+    current_primary_file = '2022-06-26_01+28+04'
+    azimuth_file_name = current_primary_file + 'az.txt'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
+
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
+    path_to_azimuth = Path(primary_data_file_path, azimuth_file_name)
 
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     folder_align_path = Path(head_path, 'Alignment')
@@ -656,7 +664,8 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-
+    azimuth_list = pd.read_csv(path_to_azimuth, delimiter=',')  # Перечень времен начала записей и их идентификаторов
+    output_filename_list = [date + s for s in azimuth_list['azimuth']]
     preparing_data()
 
     stop = datetime.now()
