@@ -223,6 +223,7 @@ def extract_whole_band():
     frame_num_before = 0
     noise_gen_on_before = 0
     flag_registration = 0
+    flag_registration_before = 0
     ng_counter1 = 0
     ng_counter2 = 0
     try:
@@ -359,16 +360,34 @@ def extract_whole_band():
 
             frame_num_before = frame_num
             noise_gen_on_before = noise_gen_on
+            if flag_registration_before - flag_registration == 1:
+                spectrum_right_1, spectrum_left_1, spectrum_right_2, spectrum_left_2 = \
+                    one_spectrum(spectrum_right_1, spectrum_left_1,
+                                 spectrum_right_2, spectrum_left_2, antenna2_0, n_aver)
+                n_right1 = len(spectrum_right_1)
+                n_left1 = len(spectrum_left_1)
+                n_right2 = len(spectrum_right_2)
+                n_left2 = len(spectrum_left_2)
+                print('Data in azimuth are formed')
+                asl = (spectrum_right_1[0, 0], spectrum_right_2[0, 0], spectrum_left_1[0, 0], spectrum_left_2[0, 0])
+                frame_num_start = min(asl)
+                spectrum_right_1[:, 0] = spectrum_right_1[:, 0] - frame_num_start
+                spectrum_right_2[:, 0] = spectrum_right_2[:, 0] - frame_num_start
+                spectrum_left_1[:, 0] = spectrum_left_1[:, 0] - frame_num_start
+                spectrum_left_2[:, 0] = spectrum_left_2[:, 0] - frame_num_start
+
+                print(' ')
+                spectrum_right_1 = []
+                spectrum_left_1 = []
+                spectrum_left_2 = []
+                spectrum_right_2 = []
+            flag_registration_before = flag_registration
+
+
             # if att_1 == 31 & att_2 == 31 & att_3 == 31:
             #     break
         pass
-        spectrum_right_1, spectrum_left_1, spectrum_right_2, spectrum_left_2 = \
-            one_spectrum(one_spectrum(spectrum_right_1, spectrum_left_1,
-                                      spectrum_right_2, spectrum_left_2, antenna2_0, n_aver))
-        n_right1 = len(spectrum_right_1)
-        n_left1 = len(spectrum_left_1)
-        n_right2 = len(spectrum_right_2)
-        n_left2 = len(spectrum_left_2)
+
 
     finally:
         f_in.close()
@@ -378,7 +397,7 @@ def extract_whole_band():
     band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
 
     head = {'date': date,
-            'measure_kind': measure_kind,    # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+            'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
             'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
             # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
             'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
@@ -459,7 +478,6 @@ def parts_to_numpy(list_arr, len_list):
 
 
 def status_func(n_left1, n_left2, n_right1, n_right2):
-
     # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
     # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
     if (n_left1 > 1 and n_left2 > 1) or (n_right1 > 1 and n_right2 > 1):
@@ -566,7 +584,7 @@ def convert_to_matrix(S_total, counter, n_aver):
     rest = int(k % 100)
     s_agreed = []
 
-    for i in range(parts +1):
+    for i in range(parts + 1):
         if i == parts:
             s_auxiliary = np.array(S[int(i * 100 * n): int((i * 100 + rest) * n)])
             s_ar = np.reshape(s_auxiliary, (-1, n))
@@ -606,13 +624,12 @@ def preparing_data():
 
 
 if __name__ == '__main__':
-
     start = datetime.now()
 
     current_data_dir = '2022'
-    primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
-    converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
+    primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
+    converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
+    data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2022_06_24sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
@@ -623,7 +640,7 @@ if __name__ == '__main__':
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
-    align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
+    align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     folder_align_path = Path(head_path, 'Alignment')
 
     date = current_primary_file[0:10]
