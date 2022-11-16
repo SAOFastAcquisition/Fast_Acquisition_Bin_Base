@@ -15,196 +15,6 @@ sys.path.insert(0, Path(current_dir, 'Supporting_func'))
 sys.path.insert(0, Path(current_dir, 'Interface'))
 
 
-def extract():
-    file_name = Path(file_path_data, current_data_file + '.bin')
-    file_name_out = Path(file_path_data, current_data_file + '.txt')
-    i = 0
-    k = 0
-    spectr = []
-    frame = ' '
-
-    try:
-        if os.path.isfile(file_name) == 1:
-            pass
-        else:
-            print('\n \t', file_name, ' not found!!!\n')
-
-        f_in = open(file_name, 'rb')
-
-        while frame:
-
-            spectr_frame = []
-            # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
-            # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
-            for k in range(129):
-                frame = f_in.read(8)
-                frame_int = int.from_bytes(frame, byteorder='little')
-                if k == 0:
-                    frame_num = frame_int & 0xFFFFFFF
-
-                    # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
-                    # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
-                    if i == 0:
-                        n_aver = (frame_int & 0x3F00000000) >> 32
-                        bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
-                        bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
-                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
-                    spectr_frame.append(frame_num)
-
-                else:
-                    spectr_val = (frame_int & 0x7FFFFFFFFFFFFF)
-                    pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    spectr_frame.append(spectr_val)
-                    pass
-
-            spectr.append(spectr_frame)
-            print(i, frame_num)
-            i += 1
-
-        pass
-
-        spectr.pop(-1)
-        N = len(spectr)
-        n_frame_last = spectr[-1][0]
-        rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
-        if rest:
-            for k in range(rest):
-                spectr.pop(-1)
-        print(n_frame_last, spectr[-1][0])
-    finally:
-        f_in.close()
-        pass
-
-        spectr1 = convert_to_matrix(spectr, spectr[-1][0] + 1, n_aver)
-    np.savetxt(file_name_out, spectr1, header=(str(n_aver) + '-n_aver ' + str(bound_left) + '-kurt'))
-
-    return spectr1, n_aver
-
-
-def extract_two_polar():
-    file_name = file_name0 + '.bin'
-    # file_name_out = file_name0 + '.txt'
-    # *********** Если система работает с одной поляризацией ************
-    if not file_name0.find('Ant2') == -1:
-        antenna2_0 = 1
-    else:
-        antenna2_0 = 0
-    # *******************************************************************
-    i = 0
-    k = 0
-    spectr_left = []
-    spectr_right = []
-    attenuators = []
-    frame = ' '
-
-    try:
-        if os.path.isfile(file_name) == 1:
-            pass
-        else:
-            print('\n \t', file_name, ' not found!!!\n')
-
-        f_in = open(file_name, 'rb')
-        antenna = 0
-        while frame:
-
-            spectr_frame = []
-            # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
-            # и 128-ми значений спектра в список spectr_frame на позиции [1:128]
-            for k in range(130):
-                frame = f_in.read(8)
-                frame_int = int.from_bytes(frame, byteorder='little')
-                if k == 0:
-                    frame_num = frame_int & 0xFFFFFFF
-
-                    # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
-                    # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
-                    if i == 0:
-                        n_aver = (frame_int & 0x3F00000000) >> 32
-                        bound_left = (frame_int & 0x7FC000000000) >> (32 + 6)
-                        bound_right = (frame_int & 0xFF800000000000) >> (32 + 6 + 9)
-                    # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
-                    spectr_frame.append(frame_num)
-                elif k == 1:
-                    att_1 = frame_int & 0x3F
-                    att_2 = (frame_int & 0xFC0) >> 6
-                    att_3 = (frame_int & 0x3F000) >> 12
-                    noise_gen_on = (frame_int & 0x40000) >> 18
-                    antenna_before = antenna
-                    antenna = (frame_int & 0x80000) >> 19
-                    coupler = (frame_int & 0x100000) >> 20
-                    band = (frame_int & 0x8000000000000000) >> 63
-                    attenuators = [att_1, att_2, att_3]
-
-                    pass
-
-                else:
-                    spectr_val = (frame_int & 0x7FFFFFFFFFFFFF)
-                    pp_good = (frame_int & 0xFF80000000000000) >> 55
-                    if pp_good / 256 < 0.78125:
-                        spectr_val = 2
-                    spectr_frame.append(spectr_val)
-                    pass
-
-            if antenna == 0 and (antenna_before - antenna == 0):
-                spectr_left.append(spectr_frame)
-            elif len(spectr_left) > 1 and ((antenna_before - antenna) != 0):
-                spectr_left.pop(-1)
-
-            if antenna == 1 and (antenna_before - antenna) == 0:
-                spectr_right.append(spectr_frame)
-            elif len(spectr_right) > 1 and ((antenna_before - antenna) != 0):
-                spectr_right.pop(-1)
-            print(i, frame_num, band)
-            i += 1
-
-        pass
-        n_right = len(spectr_right)
-        n_left = len(spectr_left)
-
-        # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
-        # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
-        # то необходима следующая процедура перестановки значений переменных
-        if n_right == 0 and antenna2_0 == 1:
-            spectr_right = spectr_left
-            spectr_left = []
-            n_right = len(spectr_right)
-            n_left = len(spectr_left)
-        # **********************************************************************************
-        if n_right > 1:
-            spectr_right.pop(-1)
-            n_frame_last = spectr_right[-1][0]
-            rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
-            if rest:
-                for k in range(rest):
-                    spectr_right.pop(-1)
-            print(n_frame_last, spectr_right[-1][0])
-        if n_left > 1:
-            spectr_left.pop(-1)
-            n_frame_last = spectr_left[-1][0]
-            rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
-            if rest:
-                for k in range(rest):
-                    spectr_left.pop(-1)
-            print(n_frame_last, spectr_left[-1][0])
-    finally:
-        f_in.close()
-        pass
-
-    if n_left > 1:
-        spectr1 = convert_to_matrix(spectr_left, spectr_left[-1][0] + 1, n_aver)
-    else:
-        spectr1 = []
-    if n_right > 1:
-        spectr2 = convert_to_matrix(spectr_right, spectr_right[-1][0] + 1, n_aver)
-    else:
-        spectr2 = []
-    spectrum_extr = pd.Series([spectr1, spectr2])
-    np.save(file_name0 + '_spectrum', spectrum_extr)
-    head = np.array([n_aver, 6, 8])
-    np.savetxt(file_name0 + '_head.txt', head)
-    return spectrum_extr, n_aver
-
-
 def extract_whole_band():
     file_name = Path(primary_data_file_path, current_primary_file + '.bin')
     # *********** Если система работает с одной поляризацией ************
@@ -328,19 +138,20 @@ def extract_whole_band():
                         if pp_good / 256 < pp_good_bound:
                             spectrum_val = 2
                         spectr_frame.append(spectrum_val)
-                    pass
-
+                pass
+                #  Завершилась обработка кадра (фрейма) длиной 130 байт
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
-            # if flag_registration:
-            #     print('frame_num = ', frame_num, 'antenna = ', antenna)
 
+            # Запись результатов обработки кадра в массивы данных по признаку поляризации и полосы
             if antenna == 0 and (antenna_before - antenna == 0) and flag_registration == 1:
                 if band:
                     spectrum_left_2.append(spectr_frame)
                 else:
                     spectrum_left_1.append(spectr_frame)
+
+            # Удаление отсчетов в моменты переключения поляризации
             if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_left_1.pop(-1)
             if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
@@ -351,6 +162,8 @@ def extract_whole_band():
                     spectrum_right_2.append(spectr_frame)
                 else:
                     spectrum_right_1.append(spectr_frame)
+
+            # Удаление отсчетов в моменты переключения поляризации
             if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_1.pop(-1)
             if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
@@ -370,6 +183,8 @@ def extract_whole_band():
                 n_right2 = len(spectrum_right_2)
                 n_left2 = len(spectrum_left_2)
                 print('Data in azimuth are formed')
+
+                # Сдвиг начала отсчета выделенной записи в 0
                 asl = (spectrum_right_1[0, 0], spectrum_right_2[0, 0], spectrum_left_1[0, 0], spectrum_left_2[0, 0])
                 frame_num_start = min(asl)
                 spectrum_right_1[:, 0] = spectrum_right_1[:, 0] - frame_num_start
@@ -396,31 +211,36 @@ def extract_whole_band():
                         'att3': att03,
                         'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
                         'align_coeff_pos': 5}
+                # Сохраняем выделенную двумя импульсами ГШ запись
                 save_spectrum(spectrum_extr, head, file_ind)
                 print(' ')
-
+            # Переходим к поиску и выделению следующей записи
                 file_ind += 1
                 spectrum_right_1 = []
                 spectrum_left_1 = []
                 spectrum_left_2 = []
                 spectrum_right_2 = []
+                pass
             flag_registration_before = flag_registration
-
-
-            # if att_1 == 31 & att_2 == 31 & att_3 == 31:
-            #     break
         pass
-
-
     finally:
         f_in.close()
         pass
-
     return
 
 
-def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2,
-                 antenna2_0, _n_aver):
+def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2, antenna2_0, _n_aver):
+    """
+    Функция осуществляет первичое форматирование выделенных данных, при необходимости переставляя левую и правую
+    поляризации, приводя их к одной длине.
+    :param _spectrum_right_1:
+    :param _spectrum_left_1:
+    :param _spectrum_right_2:
+    :param _spectrum_left_2:
+    :param antenna2_0:
+    :param _n_aver:
+    :return:
+    """
     n_right1 = len(_spectrum_right_1)
     n_left1 = len(_spectrum_left_1)
     n_right2 = len(_spectrum_right_2)
@@ -522,9 +342,9 @@ def save_spectrum(spectrum_extr, head, _k):
     spectrum3 = spectrum_extr[2]
     spectrum4 = spectrum_extr[3]
     n_aver = head['n_aver']
-    band_size = head['band_size']
-    polar = head['polar']
-    measure_kind = head['measure_kind']
+    # band_size = head['band_size']
+    # polar = head['polar']
+    # measure_kind = head['measure_kind']
     print(f'len_spectrum1 = {len(spectrum1)}, len_spectrum2 ={len(spectrum2)}, len_spectrum3 ={len(spectrum3)}, '
           f'len_spectrum4 ={len(spectrum4)}')
     if len(spectrum1) > 1:
@@ -620,8 +440,6 @@ def preparing_data():
             os.path.isfile(path2)):
         if num_of_polar == 2 and band_size_init == 'whole':
             extract_whole_band()
-        if num_of_polar == 2 and band_size_init == 'half':
-            extract_two_polar()
     else:
         print(f"Data with path {str(Path(primary_data_file_path, current_primary_file))} is converted to numpy file")
 
@@ -629,6 +447,15 @@ def preparing_data():
 
 
 if __name__ == '__main__':
+    """
+    Скрипт последовательно считывает первичную запись сеанса и по признаку включения калибровочных импульсов ГШ 
+    выделяет записи в азимутах и сохраняет в каталоге 'Converted_data' в формате .numpy. Каждую запись 
+    ограничивают два импульса ГШ - в начале и конце записи. 
+    Для присвоения имени выделяемым файлам записей должен в current_primary_dir присутствовать файл 
+    azimuth_file_name с именем вида '2022-06-22_01+28-28az.txt', содержащий колонку с заголовком "azimuth" с 
+    перечислением наблюдаемых азимутов в виде csv-файла с разделителем ",". Азимут записывается в виде _хх+az, 
+    где хх - порядковый номер наблюдения, az - значение азимута со знаком + или -. 
+    """
     start = datetime.now()
 
     current_data_dir = '2022'
@@ -636,12 +463,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_26sun'
+    current_primary_dir = '2022_06_22sun'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-06-26_01+28+04'
+    current_primary_file = '2022-06-22_01+28-28'
     azimuth_file_name = current_primary_file + 'az.txt'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
 
@@ -664,9 +491,9 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    azimuth_list = pd.read_csv(path_to_azimuth, delimiter=',')  # Перечень времен начала записей и их идентификаторов
+    azimuth_list = pd.read_csv(path_to_azimuth, delimiter=',')          # Перечень номеров записей с азимутими
     output_filename_list = [date + s for s in azimuth_list['azimuth']]
-    preparing_data()
 
+    preparing_data()
     stop = datetime.now()
     print(f'Process duration = {stop - start} sec')
