@@ -322,10 +322,10 @@ def unite_spectrum(spec):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 1, 11  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 12, 22  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 1, 11  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 12, 22
+    t_cal0, t_cal1 = 31, 49  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 21, 29  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 31, 49  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 21, 29
 
 
     # Закрузка шумовой калибровочной температуры на входе приемника
@@ -687,10 +687,14 @@ if __name__ == '__main__':
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_primary_dir = '2022_06_18sun'
-    current_primary_file = '2022-06-18_08+00'
+    current_primary_dir = '2022_11_18test'
+    current_primary_file = '2022-11-18_03'
 
     current_data_dir = '2022'
+    # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
+    if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
+            or current_primary_dir.find('calibr') != -1:
+        current_data_dir = '2022/Test_and_calibration'
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков

@@ -234,11 +234,11 @@ if __name__ == '__main__':
     на входе с учетом собственных шумов приемника и записывает их в уже существующий файл align_coeff.bin в папке
      /Alignment/."""
 
-    current_data_dir = '2022'
+    current_data_dir = '2022/Test_and_calibration'
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-    current_primary_dir = '2022_06_28test'
+    current_primary_dir = '2022_11_18test'
 
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
@@ -247,8 +247,8 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature.npy'
-    current_primary_file1 = '2022-06-28_02test'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-06-28_03test'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    current_primary_file1 = '2022-11-18_16'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-11-18_17'  # Файл с КЗ и согласованной нагрузкой на входах приемника
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)

@@ -206,10 +206,10 @@ if __name__ == '__main__':
     для каждого экземпляра ГШ ***nge_temperature_base_name***, среднее значение шумовой температуры
     от этого ГШ по всем измерениям записывается в файл ***nge_temperature_file_name***'''
 
-    current_data_file = '2022-09-05_04'  # Имя файла с исходными текущими данными без расширения
-    current_primary_dir = '2022_09_05test'
+    current_data_file = '2022-11-18_01'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2022_11_18test'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_catalog = r'2022/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
+    current_catalog = r'2022/Test_and_calibration/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
 
     ngi_temperature_base_name = 'ngi_temperature_base.npy'  # Базы данных по температуре ГШ на входе МШУ
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
