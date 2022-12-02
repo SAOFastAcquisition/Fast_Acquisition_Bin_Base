@@ -327,7 +327,6 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
     t_cal0r, t_cal1r = 1, 11  # Интервал Импульса ГШ, сек
     t_ground1r, t_ground2r = 12, 22
 
-
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
         _ngi_temperature = pickle.load(_inp)
@@ -346,11 +345,11 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
     n_ground1, n_ground2 = int(t_ground1 // delta_t), int(t_ground2 // delta_t)
 
     # Пересчет данных из относительных единиц в температуру для левой поляризации
-    if np.size(spectrum[0]):
-        s_left0 = spectrum[0][n_cal0:n_cal1, :]
-        s_left1 = spectrum[1][n_cal0:n_cal1, :]
-        s_ground0 = spectrum[0][n_ground1:n_ground2, :]
-        s_ground1 = spectrum[1][n_ground1:n_ground2, :]
+    if np.size(_spectrum[0]):
+        s_left0 = _spectrum[0][n_cal0:n_cal1, :]
+        s_left1 = _spectrum[1][n_cal0:n_cal1, :]
+        s_ground0 = _spectrum[0][n_ground1:n_ground2, :]
+        s_ground1 = _spectrum[1][n_ground1:n_ground2, :]
 
         _m, _n = np.shape(_spectrum[0])
         s_left0_av = np.array([np.mean(s_left0[:, i][s_left0[:, i] > 100], dtype=np.int64) for i in range(_n)])
@@ -386,13 +385,13 @@ def noise_self_calibration(_spectrum, _ngi_temperature_path):
             _spectrum[1][i, :] = _spectrum[1][i, :] * coeff_left1
 
     # Пересчет данных из относительных единиц в температуру для правой поляризации
-    if np.size(spectrum[2]):
+    if np.size(_spectrum[2]):
         n_cal0r, n_cal1r = int(t_cal0r // delta_t), int(t_cal1r // delta_t)
         n_ground1r, n_ground2r = int(t_ground1r // delta_t), int(t_ground2r // delta_t)
-        s_right0 = spectrum[2][n_cal0r:n_cal1r, :]
-        s_right1 = spectrum[3][n_cal0r:n_cal1r, :]
-        s_ground2 = spectrum[2][n_ground1r:n_ground2r, :]
-        s_ground3 = spectrum[3][n_ground1r:n_ground2r, :]
+        s_right0 = _spectrum[2][n_cal0r:n_cal1r, :]
+        s_right1 = _spectrum[3][n_cal0r:n_cal1r, :]
+        s_ground2 = _spectrum[2][n_ground1r:n_ground2r, :]
+        s_ground3 = _spectrum[3][n_ground1r:n_ground2r, :]
         _m1, _n1 = np.shape(_spectrum[2])
 
         s_right0_av = np.array([np.mean(s_right0[:, i][s_right0[:, i] > 100], dtype=np.int64) for i in range(_n1)])

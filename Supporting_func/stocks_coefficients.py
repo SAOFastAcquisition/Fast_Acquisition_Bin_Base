@@ -94,15 +94,17 @@ def pol_intensity(data, mean_time_ind):
 
     data_shape = data.shape
     scan_len = np.size(mean_time_ind)
-    pol_spectrum = np.ones((scan_len, data_shape[1])) * 10
+    pol_spectrum = np.ones((scan_len * 2 - 1, data_shape[1])) * 10
     k2 = 0
     for j in range(data_shape[1]):
         time_row = np.array(data[:, j])
         k1 = 0
         for i in mean_time_ind:
             frame = time_row[int(i) - 15:int(i) + 14]
-            pol_spectrum[k1, k2] = np.mean(frame[frame > 100])
+            pol_spectrum[2 * k1, k2] = np.mean(frame[frame > 100])
             k1 += 1
+        for k in range(scan_len - 1):
+            pol_spectrum[2 * k + 1, k2] = (pol_spectrum[2 * k, k2] + pol_spectrum[2 * k + 2, k2]) / 2
         k2 += 1
         # plt.grid()
         # plt.plot(mean_time_ind, pol_spectrum[:, k2 - 1])
@@ -139,12 +141,12 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 def freq_mask(_i):
     _n1 = 2
-    _n2 = 9
+    _n2 = 2
     _freq_mask = [
         [1350],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],  # [2]
-        [1000 * _n1 + 100 * _n2 + 10 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 24 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -435,10 +437,10 @@ if __name__ == '__main__':
         # b = b[-1::-1][:]
         mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
 
-        c = pol_intensity(a, mean_frame_ind_left)
-        d = pol_intensity(b, mean_frame_ind_right)
-        c1 = pol_intensity(a1, mean_frame_ind_left)
-        d1 = pol_intensity(b1, mean_frame_ind_right)
+        c = pol_intensity(a, mean_frame_ind_left)[1:]
+        d = pol_intensity(b, mean_frame_ind_right)[: -1]
+        c1 = pol_intensity(a1, mean_frame_ind_left)[1:]
+        d1 = pol_intensity(b1, mean_frame_ind_right)[: -1]
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
         #                               ****************
@@ -461,7 +463,10 @@ if __name__ == '__main__':
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
-        mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008336
+        # mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008336
+        mean_frame_ind_pol = [0] * np.shape(c)[0]
+        mean_frame_ind_pol[::2] = mean_frame_ind_right[:-1] * 0.008336
+        mean_frame_ind_pol[1::2] = mean_frame_ind_left[1:] * 0.008336
         stocks_coeff = pd.Series([s0, s3, mean_frame_ind_pol])
         np.save(path_to_stocks, stocks_coeff)
 
