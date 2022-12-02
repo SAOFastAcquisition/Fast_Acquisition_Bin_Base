@@ -281,7 +281,7 @@ def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectr
 
 def parts_to_numpy(list_arr, len_list):
     """ Функция превращает список в массив numpy.
-    Разбивает файл на меньшие части и обрабатывает их поотдельности. По ходу завершинея обработки частей
+    Разбивает файл на меньшие части и обрабатывает их поотдельности. По ходу завершения обработки частей
     происходит объединение обработанных частей."""
     n = int(len_list // 1e5)
     k = int(len_list % 1e5)
@@ -322,9 +322,7 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
 
     # Определение вида измерений: наблюдение Солнца, Луны, калибровка АЧХ
     measure_kind = ''
-    # file_name0 = str(Path(file_path_data, current_data_file))
     if current_primary_dir.find('test') != -1:
-        # l = file_name0.find('test')
         measure_kind = 'test'
     if current_primary_dir.find('sun') != -1:
         measure_kind = 'Sun'
@@ -458,17 +456,22 @@ if __name__ == '__main__':
     """
     start = datetime.now()
 
-    current_data_dir = '2022'
+    current_data_dir = '2022'          # Каталог всех данных (первичных, вторичных) за год
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-    f = 2
-    current_primary_dir = '2022_06_22sun'
+
+    current_primary_dir = '2022_09_06test'
+    # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
+    if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\
+            or current_primary_dir.find('calibr') != -1:
+        current_data_dir = '2022/Test_and_calibration'
+
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-06-22_01+28-28'
+    current_primary_file = '2022-09-06_01'
     azimuth_file_name = current_primary_file + 'az.txt'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
 
