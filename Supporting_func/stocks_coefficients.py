@@ -141,12 +141,12 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 def freq_mask(_i):
     _n1 = 2
-    _n2 = 2
+    _n2 = 1
     _freq_mask = [
         [1350],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],  # [2]
-        [1000 * _n1 + 100 * _n2 + 24 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 290 * _n2 + 15 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -392,10 +392,10 @@ def title_func(file_name0, _head):
 
 if __name__ == '__main__':
     align = 'n'
-    channel_align = 'n'
+    channel_align = 'y'
 
     current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_06+08'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-06-18_08+00'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
@@ -484,18 +484,18 @@ if __name__ == '__main__':
     #     simplest_fig(mean_frame_ind_pol, ac, bc)
     #     pass
 
-    # calibration_temperature = [calibration_temp(f) for f in freq_mask0]
-    # dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    # path_to_csv = Path(file_path_data, dict_calibr_file_name)
-    # s = start_stop_calibr(current_data_file, path_to_csv)
-    # c = (s3 + s0) / 2   # левая поляризация
-    #
-    # for j in range(np.size(freq_mask0)):
-    #     temp_mass = c[s[0]:s[1], num_mask[j]]
-    #     av_c_cal = (np.mean(c[s[0]:s[1], num_mask[j]]) + np.mean(c[s[2]:s[3], num_mask[j]]))
-    #     temp_coeff = calibration_temperature[j] / av_c_cal
-    #     s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
-    #     s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
+    calibration_temperature = [calibration_temp(f) for f in freq_mask0]
+    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    path_to_csv = Path(file_path_data, dict_calibr_file_name)
+    s = start_stop_calibr(current_data_file, path_to_csv)
+    c = (s3 + s0) / 2   # левая поляризация
+
+    for j in range(np.size(freq_mask0)):
+        temp_mass = c[s[0]:s[1], num_mask[j]]
+        av_c_cal = (np.mean(c[s[0]:s[1], num_mask[j]]) + np.mean(c[s[2]:s[3], num_mask[j]]))
+        temp_coeff = calibration_temperature[j] / av_c_cal
+        s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
+        s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
     # twin_fig_plot()   # График с двумя разномасштабными осями 0у (слева и справа)
 
