@@ -1,5 +1,4 @@
 from typing import Any
-
 import numpy as np
 import os
 import sys
@@ -10,6 +9,7 @@ from tkinter import *
 from tkinter import messagebox as mb
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
+from scipy.signal import lfilter, filtfilt
 from Supporting_func.Fig_plot import fig_multi_axes
 from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
 
@@ -89,8 +89,10 @@ def pol_intensity(data, mean_time_ind):
     """ Функция принимает исходную матрицу спектров левой или правой поляризаций и вектор индексов середин
     полупериодов соответствующих поляризации. Значения усредняются по полупериоду. В усреднении принимают
     принимают участие значения больше 100. Функция отдает матрицу спектров, усредненных по полупериоду
-    переключения поляризаций. Размерность матрицы по первому индексу уменьшается примерно в 60
-    раз для периода переключения поляризаций 0.5 сек."""
+    переключения поляризаций. Размерность матрицы по первому индексу уменьшается примерно в 30
+    раз для периода переключения поляризаций 0.5 сек. В полупериоде, в котором значения данной поляризации
+    не регистрировались, среднее значение интенсивности поляризации линейно аппроксимируется по двум соседним
+    значениям этой поляризации"""
 
     data_shape = data.shape
     scan_len = np.size(mean_time_ind)
@@ -111,6 +113,17 @@ def pol_intensity(data, mean_time_ind):
         # plt.show()
         pass
     return pol_spectrum
+
+
+def micro_flame_ind(_s, _m):
+
+    shape = np.shape(_s)
+    _s1 = np.ones(shape)
+    for _i in range(shape[1]):
+        _s1[:, _i] = maf_fir(_s[:, _i], _m)
+        _s1[:, _i] = _s[:, _i] - _s1[:, _i]
+    pass
+    return _s1
 
 
 def path_to_data(current_catalog_in, current_data_dir_in):
@@ -137,6 +150,21 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
     file_path_data_out = Path(head_path_out, current_catalog_in, current_data_dir_in)
     return file_path_data_out, head_path_out
+
+
+def maf_fir(_s, m=2):
+    """
+        Calculate moving average filter as FIR
+
+        Parameters
+        ----------
+        m : int
+            moving average step
+        _s : int
+            data
+        """
+
+    return filtfilt(np.ones(m - 1), 1, _s) / (m - 1) / (m - 1)
 
 
 def freq_mask(_i):
@@ -393,6 +421,7 @@ def title_func(file_name0, _head):
 if __name__ == '__main__':
     align = 'n'
     channel_align = 'y'
+    micro_flame_finding = 'y'
 
     current_primary_dir = '2022_06_18sun'
     current_data_file = '2022-06-18_08+00'  # Имя файла с исходными текущими данными без расширения
@@ -463,7 +492,7 @@ if __name__ == '__main__':
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
-        # mean_frame_ind_pol = (mean_frame_ind_right + mean_frame_ind_left) // 2 * 0.008336
+
         mean_frame_ind_pol = [0] * np.shape(c)[0]
         mean_frame_ind_pol[::2] = mean_frame_ind_right[:-1] * 0.008336
         mean_frame_ind_pol[1::2] = mean_frame_ind_left[1:] * 0.008336
@@ -498,12 +527,16 @@ if __name__ == '__main__':
         s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
     # twin_fig_plot()   # График с двумя разномасштабными осями 0у (слева и справа)
-
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
               ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
               ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
+    # two_fig_plot(path_to_stocks_fig_folder)
+    if micro_flame_finding == 'y':
+
+        s3[:, num_mask] = micro_flame_ind(s3[:, num_mask], 31)
+        pass
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
