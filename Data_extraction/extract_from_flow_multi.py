@@ -185,12 +185,29 @@ def extract_whole_band():
                 print('Data in azimuth are formed')
 
                 # Сдвиг начала отсчета выделенной записи в 0
-                asl = (spectrum_right_1[0, 0], spectrum_right_2[0, 0], spectrum_left_1[0, 0], spectrum_left_2[0, 0])
-                frame_num_start = min(asl)
-                spectrum_right_1[:, 0] = spectrum_right_1[:, 0] - frame_num_start
-                spectrum_right_2[:, 0] = spectrum_right_2[:, 0] - frame_num_start
-                spectrum_left_1[:, 0] = spectrum_left_1[:, 0] - frame_num_start
-                spectrum_left_2[:, 0] = spectrum_left_2[:, 0] - frame_num_start
+                i_num = []
+                if n_right1 > 1:
+                    i_num_r1 = spectrum_right_1[0, 0]
+                    i_num.append(i_num_r1)
+                if n_right2 > 1:
+                    i_num_r2 = spectrum_right_2[0, 0]
+                    i_num.append(i_num_r2)
+                if n_left1 > 1:
+                    i_num_l1 = spectrum_left_1[0, 0]
+                    i_num.append(i_num_l1)
+                if n_left2 > 1:
+                    i_num_l2 = spectrum_left_2[0, 0]
+                    i_num.append(i_num_l2)
+
+                frame_num_start = min(i_num)
+                if n_right1 > 1:
+                    spectrum_right_1[:, 0] = spectrum_right_1[:, 0] - frame_num_start
+                if n_right2 > 1:
+                    spectrum_right_2[:, 0] = spectrum_right_2[:, 0] - frame_num_start
+                if n_left1 > 1:
+                    spectrum_left_1[:, 0] = spectrum_left_1[:, 0] - frame_num_start
+                if n_left2 > 1:
+                    spectrum_left_2[:, 0] = spectrum_left_2[:, 0] - frame_num_start
 
                 spectrum_extr = pd.Series([spectrum_left_1, spectrum_left_2, spectrum_right_1, spectrum_right_2])
                 # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
@@ -461,7 +478,9 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_09_06test'
+    current_primary_dir = '2022_12_22sun'
+    current_primary_file = '2022-12-22_01+08-08'
+    azimuth_file_name = current_primary_file + 'az.txt'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\
             or current_primary_dir.find('calibr') != -1:
@@ -471,8 +490,6 @@ if __name__ == '__main__':
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
 
-    current_primary_file = '2022-09-06_01'
-    azimuth_file_name = current_primary_file + 'az.txt'
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
@@ -487,7 +504,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
     band_size_init = 'whole'
     num_of_polar = 2
-    pp_good_bound = 0.99
+    pp_good_bound = 0.5
     shift = 0
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'

@@ -186,15 +186,15 @@ def spectr_construction(Spectr, kf, kt):
                     S1[i, j] = 2
                 # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
                 #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                if robust_filter == 'y':
-                    a = param_robust_filter
-                    if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                        S1[i, j] = np.sum(S1[i - 1, j])
-                    if (i > 3) & (S1[i, j] > a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                        # print(S1[i - 3:i+1, j])
-                        S1[i, j] = np.sum(S1[i - 1, j])
-                        # print(S1[i, j])
-                        pass
+                # if robust_filter == 'y':
+                #     a = param_robust_filter
+                #     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
+                #         S1[i, j] = np.sum(S1[i - 1, j])
+                #     if (i > 3) & (S1[i, j] > a * np.sum(S1[i - 3:i - 1, j]) // 2):
+                #         # print(S1[i - 3:i+1, j])
+                #         S1[i, j] = np.sum(S1[i - 1, j])
+                #         # print(S1[i, j])
+                #         pass
 
             except IndexError as allert_message:
                 print(allert_message, 'ind i = ', i, 'ind j = ', j)
@@ -322,10 +322,10 @@ def unite_spectrum(spec):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0.5, 10  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 11, 20  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 0.5, 10  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 11, 20
+    t_cal0, t_cal1 = 0, 10  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 11, 21  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 0, 10  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 11, 21
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -641,7 +641,7 @@ def freq_mask(_i):
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2710, 2800, 2920]  # [8]
+        [1200, 1380, 1465, 1600, 1700, 2265, 2510, 2710, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
@@ -686,8 +686,8 @@ if __name__ == '__main__':
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_primary_dir = '2022_06_18sun'
-    current_primary_file = '2022-06-18_08+00'
+    current_primary_dir = '2022_12_22sun'
+    current_primary_file = '2022-12-22_01+08bb'
 
     current_data_dir = '2022'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
@@ -718,16 +718,16 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 24  # Установка разрешения по частоте в МГц
-    kt = 8  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 4  # Установка разрешения по частоте в МГц
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
-    t_cal0, t_cal1 = 21, 29  # Интервал нагрузки на черное тело, сек
+    t_cal0, t_cal1 = 50, 90  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -861,7 +861,7 @@ if __name__ == '__main__':
             np.save(path_mesh, spectrum_mesh)
     # ***********************************************************************
     if lf_filter == 'y':
-        spectr_time = signal_filtering(spectr_time, 0.003)
+        spectr_time = signal_filtering(spectr_time, 0.3)
     if low_noise_spectrum == 'y':
         spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768)
         if kt == 1 & kf == 1:
@@ -880,7 +880,10 @@ if __name__ == '__main__':
     # ***            Многооконный вывод данных             ****
     # *********************************************************
     if output_picture_mode == 'no':
-        fp.fig_multi_axes(spectr_time, timeS, info_txt, Path(current_treatment_path, current_primary_file),
+        t_start, t_stop = 150, 320
+        n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
+        fp.fig_multi_axes(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
+                          path1,
                           freq_spect_mask, head)
 
     # *********************************************************
@@ -895,7 +898,11 @@ if __name__ == '__main__':
                 ('polarisation ' + polar)]
 
     if graph_3d_perm == 'y':
-        fp.graph_3d(freq, timeS, spectr_extr1, 0, current_data_file, head)
+        t_start, t_stop = 20, 120
+        n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
+        f_start = 2300
+        nf_start = int((f_start - 1000) / freq_res)
+        fp.graph_3d(freq[nf_start:], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:], 0, path1, head)
     if contour_2d_perm == 'y':
         fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
 

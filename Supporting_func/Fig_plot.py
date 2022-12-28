@@ -21,10 +21,9 @@ def save_fig(func):
     """ Функция-декоратор для сохранения в одноименную с файлом данных папку рисунков временных сканов и спектров
     в выделенные моменты времени."""
     def wrapper(*args):
-        figure, file_name, flag, format = func(*args)
-        add_pass1 = path_to_pic(file_name, flag, format)
+        figure, file_name, flag, _format = func(*args)
+        add_pass1 = path_to_pic(file_name, flag, _format)
         path = Path(file_name, add_pass1)
-        # path = file_name + add_pass1
         figure.savefig(path)
         del figure
         flag_save = save_question()
@@ -321,7 +320,7 @@ def config_fig_multi_axes(n):
     return n_col, n_row
 
 
-def path_to_pic(file_path, flag, format='png'):
+def path_to_pic(file_path, flag, _format='png'):
     if flag == 1:
         add_pass0 = 'spectrum_00'
     elif flag == 2:
@@ -332,8 +331,9 @@ def path_to_pic(file_path, flag, format='png'):
         add_pass0 = 'scan_00'
 
     l = len(add_pass0)
-    add_pass1 = add_pass0 + '.' + format
-    if not os.path.isfile(Path(file_path, add_pass1)):
+    add_pass1 = add_pass0 + '.' + _format
+    path1 = Path(file_path, add_pass1)
+    if not os.path.isfile(path1):
         pass
     else:
         while os.path.isfile(Path(file_path, add_pass1)):
@@ -343,7 +343,7 @@ def path_to_pic(file_path, flag, format='png'):
                 add_pass0 = add_pass0[:l - 2] + num_str
             else:
                 add_pass0 = add_pass0[:l - 2] + '0' + num_str
-            add_pass1 = add_pass0 + '.' + format
+            add_pass1 = add_pass0 + '.' + _format
 
     return add_pass1
 

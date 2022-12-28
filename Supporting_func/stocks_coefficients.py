@@ -420,11 +420,11 @@ def title_func(file_name0, _head):
 
 if __name__ == '__main__':
     align = 'n'
-    channel_align = 'y'
-    micro_flame_finding = 'y'
+    channel_align = 'n'
+    micro_flame_finding = 'n'
 
-    current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_08+00'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2022_12_23sun'
+    current_data_file = '2022-12-23_03+20'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
@@ -435,7 +435,7 @@ if __name__ == '__main__':
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(data_treatment_dir_path, current_data_file)
-    freq_mask_list = freq_mask(3)
+    freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
     if not (os.path.isfile(path_to_stocks)):
@@ -522,7 +522,7 @@ if __name__ == '__main__':
     for j in range(np.size(freq_mask0)):
         temp_mass = c[s[0]:s[1], num_mask[j]]
         av_c_cal = (np.mean(c[s[0]:s[1], num_mask[j]]) + np.mean(c[s[2]:s[3], num_mask[j]]))
-        temp_coeff = calibration_temperature[j] / av_c_cal
+        temp_coeff = - calibration_temperature[j] / av_c_cal
         s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
         s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
