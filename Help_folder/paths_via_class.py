@@ -7,38 +7,13 @@ sys.path.insert(0, current_dir)
 
 
 class CustomError(Exception):
-
-    def __init__(self):
-        pass
-
-
-
-class DataPaths(object):
-
-    def __init__(self, _data_file, _data_dir, _main_dir):
-        self.data_file = _data_file
-        self.data_dir = _data_dir
-        self.main_dir = _main_dir
-        self.head_path = path_to_data()[1]
-
-    def primary_catalog(self):
-
-        pass
-
-    def convert_catalog(self):
-
-        pass
-
-    def treat_catalog(self):
-
-        pass
-
     pass
 
 
-def path_to_data(current_catalog_in, current_data_dir_in):
-    """ Функция принимает текущий каталог данных (за год или период) и папку текущих данных (за выбранный день).
-    Определяет путь к папке текущих данных на конкретной машине и к корню каталога. """
+def path_to_data():
+    """
+    Определяет путь на конкретной машине к корню каталога данных.
+    """
     head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path1a = Path(r'E:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
@@ -56,14 +31,45 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     elif head_path4.is_dir():
         head_path_out = head_path4
     else:
-        raise CustomError('Path to data is not found!')
+        return 'Err'
+    return head_path_out
 
-    file_path_data_out = Path(head_path_out, current_catalog_in, current_data_dir_in)
-    return file_path_data_out, head_path_out
 
-z = 2
-x = 3
-print(x + z)
+class DataPaths(object):
+
+    def __init__(self, _data_file, _data_dir, _main_dir):
+        self.data_file_prime = _data_file + '.bin'
+        self.data_dir = _data_dir
+        self.main_dir = _main_dir
+        self.head_path = path_to_data()
+        self.primary_data_path = self.primary_paths()
+
+    def primary_paths(self):
+        if self.__check_paths():
+            _primary_data_path = Path(self.head_path, self.main_dir, 'Primary', self.data_dir, self.data_file_prime)
+        else:
+            raise CustomError('Head path not found!')
+        return _primary_data_path
+
+    def convert_catalog(self):
+
+        pass
+
+    def treat_catalog(self):
+
+        pass
+
+    def __check_paths(self):
+        return not self.head_path == 'Err'
+
+
+if __name__ == '__main__':
+    data_file_name = 'a'
+    data_dir = '2022_12_24sun'
+    main_dir = '2022'
+    adr1 = DataPaths(data_file_name, data_dir, main_dir)
+    print(adr1.head_path)
+    print(adr1.primary_data_path)
 
 # current_primary_dir = '2022_12_22sun'
 # current_primary_file = '2022-12-22_01+08bb'
