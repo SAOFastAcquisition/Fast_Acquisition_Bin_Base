@@ -33,9 +33,10 @@ def path_to_data(current_catalog_in, current_data_dir_in):
 
 
 def calibration_temp(f):
+    ff = float(f)
     p0, p1, p2, p3 = [-3551, 6.9, -2.95e-3, 3.7e-7]
 
-    temp = p0 + p1 * f + p2 * f * f + p3 * f ** 3
+    temp = p0 + p1 * ff + p2 * ff * ff + p3 * ff ** 3
     return temp
 
 

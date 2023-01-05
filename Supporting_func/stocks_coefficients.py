@@ -108,10 +108,7 @@ def pol_intensity(data, mean_time_ind):
         for k in range(scan_len - 1):
             pol_spectrum[2 * k + 1, k2] = (pol_spectrum[2 * k, k2] + pol_spectrum[2 * k + 2, k2]) / 2
         k2 += 1
-        # plt.grid()
-        # plt.plot(mean_time_ind, pol_spectrum[:, k2 - 1])
-        # plt.show()
-        pass
+
     return pol_spectrum
 
 
@@ -126,9 +123,25 @@ def micro_flame_ind(_s, _m):
     return _s1
 
 
+def frame_ind_extend():
+    """
+    Функция объединяет последовательности отсчетов, соответствующих центрам полупериодов переключения левой и
+    правой поляризаций в одну последовательность
+    :return: int
+    последовательность с чередующимися номерами отсчетов, соответствующих центрам полупериодов с левой
+    и правой поляризациями
+    """
+    _mean_frame_ind = [0] * np.shape(c)[0]
+    _mean_frame_ind[::2] = mean_frame_ind_right[:-1]
+    _mean_frame_ind[1::2] = mean_frame_ind_left[1:]
+    return _mean_frame_ind
+
+
 def path_to_data(current_catalog_in, current_data_dir_in):
-    """ Функция принимает текущий каталог данных (за год или период) и папку текущих данных (за выбранный день).
-    Определяет путь к папке текущих данных на конкретной машине и к корню каталога. """
+    """
+    Функция принимает текущий каталог данных (за год или период) и папку текущих данных (за выбранный день).
+    Определяет путь к папке текущих данных на конкретной машине и к корню каталога.
+    """
     head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path1a = Path(r'E:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
@@ -152,19 +165,19 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     return file_path_data_out, head_path_out
 
 
-def maf_fir(_s, m=2):
+def maf_fir(_s, _m=2):
     """
         Calculate moving average filter as FIR
 
         Parameters
         ----------
-        m : int
+        _m : int
             moving average step
         _s : int
             data
         """
 
-    return filtfilt(np.ones(m - 1), 1, _s) / (m - 1) / (m - 1)
+    return filtfilt(np.ones(_m - 1), 1, _s) / (_m - 1) / (_m - 1)
 
 
 def freq_mask(_i):
@@ -420,12 +433,13 @@ def title_func(file_name0, _head):
 
 if __name__ == '__main__':
     align = 'n'
-    channel_align = 'n'
-    micro_flame_finding = 'n'
+    channel_align = 'y'
+    micro_flame_finding = 'y'
 
     current_primary_dir = '2022_12_23sun'
     current_data_file = '2022-12-23_03+20'  # Имя файла с исходными текущими данными без расширения
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
         func_path(current_primary_dir)
@@ -435,18 +449,20 @@ if __name__ == '__main__':
     path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
     path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(data_treatment_dir_path, current_data_file)
+    path_to_csv = Path(file_path_data, dict_calibr_file_name)
     freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
-    if not (os.path.isfile(path_to_stocks)):
+    s = start_stop_calibr(current_data_file, path_to_csv)
 
+    if not (os.path.isfile(path_to_stocks)):
         #               **********************************************
         # ************** Загрузка матрицы спектров и установок (head) *************
         with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
             head = pickle.load(inp)
         spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
         #               **********************************************
-        channel_align = 'n'
+
         if align == 'y':
             path = Path(head_path, 'Alignment', align_file_name)
             spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
@@ -472,36 +488,33 @@ if __name__ == '__main__':
         d1 = pol_intensity(b1, mean_frame_ind_right)[: -1]
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
+        mean_frame_ind = frame_ind_extend()
+        ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
         if channel_align == 'y':
-            dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-            path_to_csv = Path(file_path_data, dict_calibr_file_name)
-            s = start_stop_calibr(current_data_file, path_to_csv)
-            av_c_cal = (np.mean(c[s[0]:s[1], :], axis=0) + np.mean(c[s[2]:s[3], :], axis=0)) / 2
-            av_d_cal = (np.mean(d[s[0]:s[1], :], axis=0) + np.mean(d[s[2]:s[3], :], axis=0)) / 2
+            av_c_cal = np.mean(c[ind_c, :], axis=0)
+            av_d_cal = np.mean(d[ind_c, :], axis=0)
             noise_coeff = av_c_cal / av_d_cal
             m, n = np.shape(c)
             for i in range(m):
                 for j in range(n):
                     d[i, j] = d[i, j] * noise_coeff[j]
-            #                               *****************
 
+            #                               *****************
         np.savetxt(path_to_stocks_left_txt, c)
         np.savetxt(path_to_stocks_right_txt, d)
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
 
-        mean_frame_ind_pol = [0] * np.shape(c)[0]
-        mean_frame_ind_pol[::2] = mean_frame_ind_right[:-1] * 0.008336
-        mean_frame_ind_pol[1::2] = mean_frame_ind_left[1:] * 0.008336
-        stocks_coeff = pd.Series([s0, s3, mean_frame_ind_pol])
+        stocks_coeff = pd.Series([s0, s3, mean_frame_ind])
         np.save(path_to_stocks, stocks_coeff)
 
     else:
         stocks_coeff = np.load(path_to_stocks, allow_pickle=True)
-        [s0, s3, mean_frame_ind_pol] = stocks_coeff
+        [s0, s3, mean_frame_ind] = stocks_coeff
+        mean_frame_ind_pol = np.copy(mean_frame_ind)
 
     m, n = np.shape(s0)
     freq_res = n  # Число отсчетов спектра шириной 2 ГГц по частоте
@@ -514,15 +527,16 @@ if __name__ == '__main__':
     #     pass
 
     calibration_temperature = [calibration_temp(f) for f in freq_mask0]
-    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     path_to_csv = Path(file_path_data, dict_calibr_file_name)
     s = start_stop_calibr(current_data_file, path_to_csv)
     c = (s3 + s0) / 2   # левая поляризация
 
+    # mean_frame_ind = frame_ind_extend()
+    ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
+
     for j in range(np.size(freq_mask0)):
-        temp_mass = c[s[0]:s[1], num_mask[j]]
-        av_c_cal = (np.mean(c[s[0]:s[1], num_mask[j]]) + np.mean(c[s[2]:s[3], num_mask[j]]))
-        temp_coeff = - calibration_temperature[j] / av_c_cal
+        av_c_cal = np.mean(c[ind_c, num_mask[j]])
+        temp_coeff = calibration_temperature[j] / av_c_cal
         s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
         s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
@@ -534,13 +548,12 @@ if __name__ == '__main__':
               ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
     # two_fig_plot(path_to_stocks_fig_folder)
     if micro_flame_finding == 'y':
-
         s3[:, num_mask] = micro_flame_ind(s3[:, num_mask], 31)
         pass
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
     two_fig_plot(path_to_stocks_fig_folder)
-    # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,  Path(current_treatment_path,
-    #                                                                             current_data_file), freq_mask0, head)
+    # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
+    #                Path(current_treatment_path, current_data_file), freq_mask0, head)
     pass

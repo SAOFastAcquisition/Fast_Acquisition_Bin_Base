@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import os
 
 
 current_dir = Path.cwd()
@@ -35,14 +36,24 @@ def path_to_data():
     return head_path_out
 
 
+def create_folder(_path):
+    if not os.path.isdir(_path):
+        os.mkdir(_path)
+
+
 class DataPaths(object):
 
     def __init__(self, _data_file, _data_dir, _main_dir):
+        if _data_dir.find('test') != -1 or _data_dir.find('calibration') != -1 or _data_dir.find('calibr') != -1:
+            _main_dir = '2022/Test_and_calibration'
+        self.data_file_name = _data_file
         self.data_file_prime = _data_file + '.bin'
         self.data_dir = _data_dir
         self.main_dir = _main_dir
         self.head_path = path_to_data()
-        self.primary_data_path = self.primary_paths()
+        self.primary_data_file_path = self.primary_paths()
+        self.converted_data_file_path = self.converted_paths()
+        self.treatment_data_file_path = self.treat_paths()
 
     def primary_paths(self):
         if self.__check_paths():
@@ -51,52 +62,41 @@ class DataPaths(object):
             raise CustomError('Head path not found!')
         return _primary_data_path
 
-    def convert_catalog(self):
+    def converted_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Converted_data', str(self.data_dir) + '_conv')
+        create_folder(_path)
+        if self.__check_paths():
+            _convert_data_path = Path(_path, self.data_file_name)
+        else:
+            raise CustomError('Head path not found!')
+        return _convert_data_path
 
-        pass
-
-    def treat_catalog(self):
-
-        pass
+    def treat_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Data_treatment', str(self.data_dir) + '_treat')
+        create_folder(_path)
+        if self.__check_paths():
+            _treatment_data_path = Path(_path, self.data_file_name)
+        else:
+            raise CustomError('Head path not found!')
+        return _treatment_data_path
 
     def __check_paths(self):
         return not self.head_path == 'Err'
 
 
 if __name__ == '__main__':
-    data_file_name = 'a'
+    data_file_name = '2022-12-24_01+08bb'
     data_dir = '2022_12_24sun'
     main_dir = '2022'
+    date = data_dir[0:10]
     adr1 = DataPaths(data_file_name, data_dir, main_dir)
-    print(adr1.head_path)
-    print(adr1.primary_data_path)
 
-# current_primary_dir = '2022_12_22sun'
-# current_primary_file = '2022-12-22_01+08bb'
-#
-# current_data_dir = '2022'
-# # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
-# if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
-#         or current_primary_dir.find('calibr') != -1:
-#     current_data_dir = '2022/Test_and_calibration'
-# primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
-# converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
-# data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-#
-# current_converted_dir = current_primary_dir + '_conv'
-# current_converted_path = Path(converted_data_dir, current_converted_dir)
-# current_treatment_dir = current_primary_dir + '_treat'
-# current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
-#
-# ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
-# receiver_temperature_file = 'receiver_temperature.npy'  #
-# ant_coeff_file = 'ant_afc.txt'
-#
-# converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
-# data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
-# ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
-# receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file)
-# folder_align_path = Path(head_path, 'Alignment')
-# ant_coeff_path = Path(folder_align_path, ant_coeff_file)
-# date = current_primary_file[0:10]
+    ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
+    receiver_temperature_file = 'receiver_temperature.npy'  #
+    ant_coeff_file = 'ant_afc.txt'
+
+    ngi_temperature_path = Path(adr1.head_path, 'Alignment', ngi_temperature_file_name)
+    receiver_temperature_path = Path(adr1.head_path, 'Alignment', receiver_temperature_file)
+    ant_coeff_path = Path(adr1.head_path, 'Alignment', ant_coeff_file)
+    pass
 

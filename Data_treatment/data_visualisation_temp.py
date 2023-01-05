@@ -15,6 +15,7 @@ from Interface.window_handler import exec_app
 from Polyphase.cic_filter import signal_filtering
 from test_statistic import low_noise_spectra_base
 from polys3d_demo import poly_graph3d
+from Help_folder.paths_via_class import DataPaths
 
 current_dir = Path.cwd()
 home_dir = Path.home()
@@ -221,9 +222,9 @@ def preparing_data():
 
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
-    _path1 = Path(converted_data_file_path, current_primary_file + '_spectrum.npy')
+    _path1 = Path(str(converted_data_file_path) + '_spectrum.npy')
     spectrum = np.load(_path1, allow_pickle=True)
-    with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
+    with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     n_aver = head['n_aver']
     band_size = head['band_size']
@@ -684,36 +685,24 @@ if __name__ == '__main__':
     # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    # current_catalog = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_primary_dir = '2022_12_22sun'
+
     current_primary_file = '2022-12-22_01+08bb'
-
-    current_data_dir = '2022'
-    # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
-    if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
-            or current_primary_dir.find('calibr') != -1:
-        current_data_dir = '2022/Test_and_calibration'
-    primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
-    converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-
-    current_converted_dir = current_primary_dir + '_conv'
-    current_converted_path = Path(converted_data_dir, current_converted_dir)
-    current_treatment_dir = current_primary_dir + '_treat'
-    current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
+    current_primary_dir = '2022_12_22sun'
+    main_dir = '2022'
+    # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
+    date = current_primary_dir[0:10]
+    adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
+    converted_data_file_path = adr1.converted_data_file_path
+    data_treatment_file_path = adr1.treatment_data_file_path
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file = 'receiver_temperature.npy'  #
     ant_coeff_file = 'ant_afc.txt'
 
-    converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
-    data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
-    ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
-    receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file)
-    folder_align_path = Path(head_path, 'Alignment')
-    ant_coeff_path = Path(folder_align_path, ant_coeff_file)
-    date = current_primary_file[0:10]
+    ngi_temperature_path = Path(adr1.head_path, 'Alignment', ngi_temperature_file_name)
+    receiver_temperature_path = Path(adr1.head_path, 'Alignment', receiver_temperature_file)
+    ant_coeff_path = Path(adr1.head_path, 'Alignment', ant_coeff_file)
 
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
@@ -755,7 +744,7 @@ if __name__ == '__main__':
     aver_param = 2 ** (6 - n_aver)
     kf = int(freq_res / delta_f * aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
     # для данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
-    with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
+    with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
 
     # Выравнивание спектров по результатам шумовых измерений АЧХ
@@ -845,9 +834,7 @@ if __name__ == '__main__':
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
                 ('polarisation ' + polar), 'align: ' + align, 'kurtosis quality = ' + str(head['good_bound'])]
-    path1 = Path(data_treatment_file_path, current_primary_file)
-    path_to_fig(data_treatment_file_path)
-    path_to_fig(path1)
+    path1 = data_treatment_file_path
     # ********************** Сохранение сканов в формате *.npy **************
     if save_data == 'y':
         np.save(path1, spectr_time)
