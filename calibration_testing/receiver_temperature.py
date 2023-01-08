@@ -36,8 +36,8 @@ def differ(_s, _num_mask):
     else:
         flag_short = 'right'
 
-    _sp_matched[0] = _sp_matched[0][-1::-1]  # Правильный порядок отсчетов
-    _sp_short[0] = _sp_short[0][-1::-1]  # Правильный порядок отсчетов для второй зоны Найквиста
+    _sp_matched[0] = _sp_matched[0][-1::-1]     # Правильный порядок отсчетов
+    _sp_short[0] = _sp_short[0][-1::-1]         # Правильный порядок отсчетов для второй зоны Найквиста
 
     _sp_m = np.hstack((_sp_matched[0], _sp_matched[1]))
     _sp_s = np.hstack((_sp_short[0], _sp_short[1]))
@@ -50,13 +50,13 @@ def differ(_s, _num_mask):
                           [date, _sp_s, flag_short, 'short']],
                          columns=columns_names)
 
-    # fig, ax = plt.subplots(1, figsize=(12, 6))
+    fig, ax = plt.subplots(1, figsize=(12, 6))
     # ax.plot(_data['spectrum'][0])
     # ax.plot(_data['spectrum'][1])
-    # # ax.plot(_data['spectrum'][2])
+    ax.plot(_sp_m)
     # # ax.plot(_data['spectrum'][3])
-    # plt.grid()
-    # plt.show()
+    plt.grid()
+    plt.show()
 
     return _data
 

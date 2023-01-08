@@ -49,7 +49,9 @@ def start_stop_calibr(*args):
     idx = csv.loc[(csv.recording_id == _recording_id)].index
     n = idx[0]
     _start_stop = [int(csv.begin_start[idx][n] // _delta_t), int(csv.begin_stop[idx][n] // _delta_t),
-                   int(csv.end_start[idx][n] // _delta_t), int(csv.end_stop[idx][n] // _delta_t)]
+                   int(csv.end_start[idx][n] // _delta_t), int(csv.end_stop[idx][n] // _delta_t),
+                   int(csv.pol_cal1[idx][n] // _delta_t), int(csv.pol_cal2[idx][n] // _delta_t)]
+
     # s = csv.begin_start.iloc[idx[0]]
     return _start_stop
 

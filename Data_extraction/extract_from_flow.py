@@ -439,7 +439,7 @@ def status_func(n_left1, n_left2, n_right1, n_right2):
 
     # Определение вида измерений: наблюдение Солнца, Луны, калибровка АЧХ
     measure_kind = ''
-    # file_name0 = str(Path(file_path_data, current_data_file))
+    # file_name0 = str(Path(converted_dir_path, current_data_file))
     if current_primary_dir.find('test') != -1:
         # l = file_name0.find('test')
         measure_kind = 'test'

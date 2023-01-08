@@ -907,11 +907,11 @@ elif band_size_init == 'whole':
 timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
 # ***************!! Вывод данных в текстовой форме !!*********************
-# path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
+# path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
 # print(path_txt)
 # np.savetxt(path_txt, spectr_freq)
 np.save(Path(file_path_data, current_data_file + '_spectrum'), spectr_time)
-# path_txt = str(Path(file_path_data, current_data_file, 'freq.txt'))
+# path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
 # print(path_txt)
 # np.savetxt(path_txt, freq)
 # ***********************************************************************
@@ -930,7 +930,7 @@ path_to_fig()
 if parameters['output_picture_mode'] == 'yes':
     fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, Path(file_path_data, current_data_file), head, line_legend_time)
     fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
-# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(file_path_data, current_data_file), head, line_legend_freq)
+# fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, Path(converted_dir_path, current_data_file), head, line_legend_freq)
 # *********************************************************
 # ***            Многооконный вывод данных             ****
 # *********************************************************

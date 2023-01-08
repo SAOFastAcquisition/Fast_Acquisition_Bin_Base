@@ -12,6 +12,7 @@ from pathlib import Path
 from scipy.signal import lfilter, filtfilt
 from Supporting_func.Fig_plot import fig_multi_axes
 from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
+from Help_folder.paths_via_class import DataPaths
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -103,7 +104,7 @@ def pol_intensity(data, mean_time_ind):
         k1 = 0
         for i in mean_time_ind:
             frame = time_row[int(i) - 15:int(i) + 14]
-            pol_spectrum[2 * k1, k2] = np.mean(frame[frame > 100])
+            pol_spectrum[2 * k1, k2] = np.nanmean(frame[frame > 100])
             k1 += 1
         for k in range(scan_len - 1):
             pol_spectrum[2 * k + 1, k2] = (pol_spectrum[2 * k, k2] + pol_spectrum[2 * k + 2, k2]) / 2
@@ -112,8 +113,7 @@ def pol_intensity(data, mean_time_ind):
     return pol_spectrum
 
 
-def micro_flame_ind(_s, _m):
-
+def stocks_v_deviation(_s, _m):
     shape = np.shape(_s)
     _s1 = np.ones(shape)
     for _i in range(shape[1]):
@@ -192,7 +192,7 @@ def freq_mask(_i):
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
-        [1171, 1380, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
+        [1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
@@ -222,6 +222,91 @@ def two_fig_plot(_path_to_fig_folder):
     axes[0].minorticks_on()
     axes[1].minorticks_on()
 
+    y1 = y_max - 2 * (y_max - y_min) / 10
+    y2 = y_max - 3 * (y_max - y_min) / 10
+    axes[0].text(0, y1, inform[0], fontsize=12)  # Разрешение по частоте
+    axes[0].text(0, y2, inform[1], fontsize=12)  # Разрешение по времени
+
+    axes[0].grid()
+    axes[1].grid()
+    axes[0].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+    axes[1].grid(which='minor',
+                 axis='x',
+                 color='k',
+                 linestyle=':')
+    plt.show()
+    #                               ********************************
+    #                        ************ Сохранение рисунка ****************
+    fig.savefig(_path_to_pic)
+    flag_save = save_question()
+    if flag_save == 'no':
+        if os.path.isfile(_path_to_pic):
+            os.remove(_path_to_pic)
+            print('Picture is not saved')
+        else:
+            print('File not found')
+    else:
+        print('Picture is saved')
+    pass
+
+
+def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv):
+    """
+    Функция принимает путь сохранения рисунка и три возможных последовательности для построения двух или трех
+    графиков с общим аргументом mean_frame_ind_pol, который приходит от вызывающей функции. При этом наличие
+    двух отображаемых на рис. последовательностей обязательно, последовательность _s_i присутствует всегда.
+    :param _path_to_fig_folder: Путь к папке для сохранения рисунка
+    :param _s_i:
+    :param _s_v:
+    :param _s_dv:
+    :return:
+    """
+    _pic_name = pic_name(_path_to_fig_folder, 0, 'svg')
+    _path_to_pic = Path(_path_to_fig_folder, _pic_name)
+    if _s_v is None or _s_dv is None:
+        fig, axes = plt.subplots(2, 1, figsize=(12, 12))
+    else:
+        fig, axes = plt.subplots(3, 1, figsize=(12, 15))
+    _fig_folder = str(_path_to_fig_folder)
+    title1, title2, title3 = title_func(_fig_folder, head)
+
+    y_max = np.nanmax(_s_i)
+    y_min = np.nanmin(_s_i)
+    _i_max = len(num_mask)
+    _i = 0
+    for _j in range(np.shape(_s_i)[1]):
+        f1 = freq_mask0[_i]
+        text1 = 'f = ' + str(f1) + ' MHz'
+        axes[0].plot(mean_frame_ind_pol, _s_i[:, _j], label=text1)
+        if _s_v is not None and _s_dv is not None:
+            axes[1].plot(mean_frame_ind_pol, _s_v[:, _j])
+            axes[2].plot(mean_frame_ind_pol, _s_dv[:, _j])
+        elif _s_v is not None and _s_dv is None:
+            axes[1].plot(mean_frame_ind_pol, _s_v[:, _j])
+        else:
+            axes[1].plot(mean_frame_ind_pol, _s_dv[:, _j])
+        axes[0].legend(loc='upper right')
+        _i += 1
+
+    axes[0].set_title('Stocks Parameters ' + title1, fontsize=20)
+    axes[0].set_ylabel('Stocks_I')
+    if _s_v is not None:
+        axes[1].set_ylabel('Stocks_V', color='darkred')
+    else:
+        axes[1].set_ylabel('Stocks_V Deviation', color='darkred')
+    axes[0].minorticks_on()
+    axes[1].minorticks_on()
+    if _s_v is not None and _s_dv is not None:
+        axes[2].set_ylabel('Stocks_V Deviation', color='darkred')
+        axes[2].minorticks_on()
+        axes[2].grid()
+        axes[2].grid(which='minor',
+                     axis='x',
+                     color='k',
+                     linestyle=':')
     y1 = y_max - 2 * (y_max - y_min) / 10
     y2 = y_max - 3 * (y_max - y_min) / 10
     axes[0].text(0, y1, inform[0], fontsize=12)  # Разрешение по частоте
@@ -413,10 +498,11 @@ def title_func(file_name0, _head):
         if kind == 'VG':
             power_vg = 0
             title1 = date + ', Vector Gen' + ', P = ' + str(power_vg) + 'dBm, ' \
-                'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+                                                                        'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'NG':
             t_noise = 6300
-            title1 = date + ', Noise Gen, ' + 'T = ' + str(t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+            title1 = date + ', Noise Gen, ' + 'T = ' + str(
+                t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'ML':
             title1 = date + ', Matched Load' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'SC':
@@ -434,22 +520,24 @@ def title_func(file_name0, _head):
 if __name__ == '__main__':
     align = 'n'
     channel_align = 'y'
-    micro_flame_finding = 'y'
+    v_deviation = 'y'
 
     current_primary_dir = '2022_12_23sun'
-    current_data_file = '2022-12-23_03+20'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-12-23_07+04'  # Имя файла с исходными текущими данными без расширения
+    main_dir = '2022'
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла таймингом калибровок по ГШ и по поляризации
 
-    primary_data_dir_path, converted_data_dir_path, data_treatment_dir_path, head_path = \
-        func_path(current_primary_dir)
+    path_obj = DataPaths(current_data_file, current_primary_dir, main_dir)
+    converted_dir_path = path_obj.converted_dir_path
+    treatment_dir_path = path_obj.treatment_dir_path
+    head_path = path_obj.head_path
 
-    file_path_data = converted_data_dir_path
-    path_to_stocks = Path(file_path_data, current_data_file + '_stocks.npy')
-    path_to_stocks_left_txt = Path(file_path_data, current_data_file + '_left.txt')
-    path_to_stocks_right_txt = Path(file_path_data, current_data_file + '_right.txt')
-    path_to_stocks_fig_folder = Path(data_treatment_dir_path, current_data_file)
-    path_to_csv = Path(file_path_data, dict_calibr_file_name)
+    path_to_stocks = Path(converted_dir_path, current_data_file + '_stocks.npy')
+    path_to_stocks_left_txt = Path(converted_dir_path, current_data_file + '_left.txt')
+    path_to_stocks_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
+    path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
+    path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
     freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
@@ -458,9 +546,9 @@ if __name__ == '__main__':
     if not (os.path.isfile(path_to_stocks)):
         #               **********************************************
         # ************** Загрузка матрицы спектров и установок (head) *************
-        with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
+        with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
             head = pickle.load(inp)
-        spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
+        spectrum = np.load(Path(converted_dir_path, current_data_file + '_spectrum.npy'), allow_pickle=True)
         #               **********************************************
 
         if align == 'y':
@@ -489,17 +577,16 @@ if __name__ == '__main__':
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
         mean_frame_ind = frame_ind_extend()
-        ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
+        ind_c1 = [s[4] <= el <= s[5] for el in mean_frame_ind]
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
         if channel_align == 'y':
-            av_c_cal = np.mean(c[ind_c, :], axis=0)
-            av_d_cal = np.mean(d[ind_c, :], axis=0)
+            av_c_cal = np.nanmean(c[ind_c1, :], axis=0)
+            av_d_cal = np.nanmean(d[ind_c1, :], axis=0)
             noise_coeff = av_c_cal / av_d_cal
             m, n = np.shape(c)
-            for i in range(m):
-                for j in range(n):
-                    d[i, j] = d[i, j] * noise_coeff[j]
+            for j in range(n):
+                d[:, j] = d[:, j] * noise_coeff[j]
 
             #                               *****************
         np.savetxt(path_to_stocks_left_txt, c)
@@ -510,50 +597,47 @@ if __name__ == '__main__':
 
         stocks_coeff = pd.Series([s0, s3, mean_frame_ind])
         np.save(path_to_stocks, stocks_coeff)
+        print('Stocks parameters are saved successfully')
 
     else:
         stocks_coeff = np.load(path_to_stocks, allow_pickle=True)
         [s0, s3, mean_frame_ind] = stocks_coeff
-        mean_frame_ind_pol = np.copy(mean_frame_ind)
 
+    mean_frame_ind_pol = np.copy(mean_frame_ind)
     m, n = np.shape(s0)
     freq_res = n  # Число отсчетов спектра шириной 2 ГГц по частоте
     num_mask = [int((s - 1000 * (1 + 1 / freq_res)) * freq_res / 2000) for s in freq_mask0]
 
-    # for j in range(n):
-    #     ac = s0[:, j]
-    #     bc = s3[:, j]
-    #     simplest_fig(mean_frame_ind_pol, ac, bc)
-    #     pass
-
     calibration_temperature = [calibration_temp(f) for f in freq_mask0]
-    path_to_csv = Path(file_path_data, dict_calibr_file_name)
-    s = start_stop_calibr(current_data_file, path_to_csv)
-    c = (s3 + s0) / 2   # левая поляризация
-
-    # mean_frame_ind = frame_ind_extend()
+    c = (s3 + s0) / 2  # левая поляризация
     ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
 
     for j in range(np.size(freq_mask0)):
-        av_c_cal = np.mean(c[ind_c, num_mask[j]])
+        av_c_cal = np.nanmean(c[ind_c, num_mask[j]])
         temp_coeff = calibration_temperature[j] / av_c_cal
         s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
         s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
 
-    # twin_fig_plot()   # График с двумя разномасштабными осями 0у (слева и справа)
-    with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
+    with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
               ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
               ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
-    # two_fig_plot(path_to_stocks_fig_folder)
-    if micro_flame_finding == 'y':
-        s3[:, num_mask] = micro_flame_ind(s3[:, num_mask], 31)
-        pass
+
+    if v_deviation == 'y':
+        s3_dv = stocks_v_deviation(s3[:, num_mask], 31)
+    else:
+        s3_dv = None
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
-    two_fig_plot(path_to_stocks_fig_folder)
+    mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
+    #                   **********************************************
+    #                       ****** Графический вывод данных ******
+    #                   **********************************************
+    # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
+    # two_fig_plot(path_to_stocks_fig_folder)       # Картинка с двумя графиками (I & V)
+    some_fig_plot(path_to_stocks_fig_folder, s0[:, num_mask], s3[:, num_mask], s3_dv)
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
     #                Path(current_treatment_path, current_data_file), freq_mask0, head)
     pass

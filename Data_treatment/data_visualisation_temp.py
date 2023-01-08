@@ -686,9 +686,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-
-    current_primary_file = '2022-12-22_01+08bb'
-    current_primary_dir = '2022_12_22sun'
+    current_primary_file = '2022-12-23_10-08'
+    current_primary_dir = '2022_12_23sun'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -819,10 +818,10 @@ if __name__ == '__main__':
     timeS = np.linspace(0, delta_t * N_row, N_row // kt)
 
     # ***************!! Вывод данных в текстовой форме !!*********************
-    # path_txt = str(Path(file_path_data, current_data_file, '_scan.txt'))
+    # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
     # print(path_txt)
     # np.savetxt(path_txt, spectr_freq)
-    # path_txt = str(Path(file_path_data, current_data_file, 'freq.txt'))
+    # path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
     # print(path_txt)
     # np.savetxt(path_txt, freq)
     # ***********************************************************************

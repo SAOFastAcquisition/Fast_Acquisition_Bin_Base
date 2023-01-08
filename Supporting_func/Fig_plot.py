@@ -24,6 +24,8 @@ def save_fig(func):
         figure, file_name, flag, _format = func(*args)
         add_pass1 = path_to_pic(file_name, flag, _format)
         path = Path(file_name, add_pass1)
+        if not os.path.exists(file_name):
+            os.makedirs(file_name)
         figure.savefig(path)
         del figure
         flag_save = save_question()

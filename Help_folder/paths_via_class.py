@@ -51,16 +51,18 @@ class DataPaths(object):
         self.data_dir = _data_dir
         self.main_dir = _main_dir
         self.head_path = path_to_data()
-        self.primary_data_file_path = self.primary_paths()
-        self.converted_data_file_path = self.converted_paths()
-        self.treatment_data_file_path = self.treat_paths()
+        self.primary_dir_path, self.primary_data_file_path = self.primary_paths()
+        self.converted_dir_path, self.converted_data_file_path = self.converted_paths()
+        self.treatment_dir_path, self.treatment_data_file_path = self.treat_paths()
 
     def primary_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Primary_data', self.data_dir)
+        create_folder(_path)
         if self.__check_paths():
-            _primary_data_path = Path(self.head_path, self.main_dir, 'Primary', self.data_dir, self.data_file_prime)
+            _primary_data_path = Path(_path, self.data_file_prime)
         else:
             raise CustomError('Head path not found!')
-        return _primary_data_path
+        return _path, _primary_data_path
 
     def converted_paths(self):
         _path = Path(self.head_path, self.main_dir, 'Converted_data', str(self.data_dir) + '_conv')
@@ -69,7 +71,7 @@ class DataPaths(object):
             _convert_data_path = Path(_path, self.data_file_name)
         else:
             raise CustomError('Head path not found!')
-        return _convert_data_path
+        return _path, _convert_data_path
 
     def treat_paths(self):
         _path = Path(self.head_path, self.main_dir, 'Data_treatment', str(self.data_dir) + '_treat')
@@ -78,7 +80,7 @@ class DataPaths(object):
             _treatment_data_path = Path(_path, self.data_file_name)
         else:
             raise CustomError('Head path not found!')
-        return _treatment_data_path
+        return _path, _treatment_data_path
 
     def __check_paths(self):
         return not self.head_path == 'Err'
