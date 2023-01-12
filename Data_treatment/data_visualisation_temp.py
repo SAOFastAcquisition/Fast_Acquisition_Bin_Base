@@ -686,7 +686,7 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-23_10-08'
+    current_primary_file = '2022-12-23_01+28'
     current_primary_dir = '2022_12_23sun'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
@@ -727,7 +727,7 @@ if __name__ == '__main__':
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'y'
     black_body_calibr = 'n'
-    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
+    save_data = 'y'  # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'

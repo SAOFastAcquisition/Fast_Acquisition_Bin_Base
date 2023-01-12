@@ -184,7 +184,7 @@ def freq_mask(_i):
     _n1 = 2
     _n2 = 1
     _freq_mask = [
-        [1350],  # [0]
+        [2412],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],  # [2]
         [1000 * _n1 + 290 * _n2 + 15 * i for i in range(10)],  # [3]
@@ -522,8 +522,8 @@ if __name__ == '__main__':
     channel_align = 'y'
     v_deviation = 'y'
 
-    current_primary_dir = '2022_12_23sun'
-    current_data_file = '2022-12-23_07+04'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2022_06_18sun'
+    current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2022'
     align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла таймингом калибровок по ГШ и по поляризации
@@ -538,7 +538,7 @@ if __name__ == '__main__':
     path_to_stocks_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(8)
+    freq_mask_list = freq_mask(0)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)
@@ -631,7 +631,7 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
-    mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
+    mean_frame_ind_pol = mean_frame_ind_pol #* 8.3886e-3
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************
