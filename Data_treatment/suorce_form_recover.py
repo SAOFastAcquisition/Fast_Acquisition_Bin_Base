@@ -48,13 +48,25 @@ if __name__ == "__main__":
 
     n_freq = shape_spectrum[1]
     delta_f = 2000/n_freq   # unit = 'MHz'
-    time_to_angle_coeff = 180 / 1920
     time = [i * delta_t for i in range(shape_spectrum[0])]
-    a1 = [1.1 - np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2) for i in range(int(shape_spectrum[0] / 2))]
-    a2 = [0.1 + np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2) for i in range(int(shape_spectrum[0] / 2))]
+
+    center = 215                                    # sec time
+    sun_wide = 190                                  # sec time
+    center_arc = 0
+    sun_wide_arc = 1920                             # arcsec
+    time_to_angle_coeff = sun_wide_arc / sun_wide   # arcsec/sec
+    delta_angle = delta_t * time_to_angle_coeff
+    n_time_center = int(center / delta_t - 1)
+    n_wide = int(150 / delta_t)
+    sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
+    time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
+    angle = [t * time_to_angle_coeff for t in time_centered]
+
+    a1 = [1.01 - (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
+    a2 = [0.01 + (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
     a = np.array(a2 + a1)
 
-    spectrum_ft = fft(spectrum_one)
-    spectrum_ift = ifft(spectrum_ft / a)
-    simplest_fig(time, spectrum_one, spectrum_ift)
+    spectrum_ft = fft(sun_centered)
+    spectrum_ift = ifft(spectrum_ft)
+    simplest_fig(angle, sun_centered, spectrum_ift)
     pass
