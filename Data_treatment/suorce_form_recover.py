@@ -27,6 +27,10 @@ def simplest_fig(_x, _y, _z):
     plt.show()
 
 
+def gauss(_x, _s, _a=1, _x0=0):
+    return _a*np.exp(-((_x-_x0)/_s)**2)
+
+
 if __name__ == "__main__":
     current_primary_file = '2022-12-23_01+28'
     current_primary_dir = '2022_12_23sun'
@@ -60,13 +64,17 @@ if __name__ == "__main__":
     n_wide = int(150 / delta_t)
     sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
     time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
-    angle = [t * time_to_angle_coeff for t in time_centered]
+    angle = np.array([t * time_to_angle_coeff for t in time_centered])
 
     a1 = [1.01 - (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
     a2 = [0.01 + (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
-    a = np.array(a2 + a1)
-
+    main_lobe = gauss(angle, 130, 300, 0)
+    for i in range(len(main_lobe)):
+        if main_lobe[i] < 1e-4:
+            main_lobe[i] = 1e-4
+    # a = np.array(a2 + a1)
+    a = fft(main_lobe)
     spectrum_ft = fft(sun_centered)
-    spectrum_ift = ifft(spectrum_ft)
-    simplest_fig(angle, sun_centered, spectrum_ift)
+    spectrum_ift = ifft(spectrum_ft / a)
+    simplest_fig(angle, sun_centered, main_lobe)
     pass
