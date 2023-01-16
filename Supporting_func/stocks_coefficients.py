@@ -9,6 +9,7 @@ from tkinter import *
 from tkinter import messagebox as mb
 from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
+from scipy.fftpack import fft, ifft
 from scipy.signal import lfilter, filtfilt
 from Supporting_func.Fig_plot import fig_multi_axes
 from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
@@ -631,7 +632,7 @@ if __name__ == '__main__':
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
-    mean_frame_ind_pol = mean_frame_ind_pol #* 8.3886e-3
+    mean_frame_ind_pol = mean_frame_ind_pol     # * 8.3886e-3
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************

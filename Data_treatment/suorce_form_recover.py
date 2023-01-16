@@ -68,13 +68,26 @@ if __name__ == "__main__":
 
     a1 = [1.01 - (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
     a2 = [0.01 + (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
-    main_lobe = gauss(angle, 130, 300, 0)
-    for i in range(len(main_lobe)):
-        if main_lobe[i] < 1e-4:
-            main_lobe[i] = 1e-4
+    main_lobe1 = gauss(angle, 160, 300, 0)
+    main_lobe2 = gauss(angle, 70, 300, 0)
+    for i in range(len(main_lobe1)):
+        if main_lobe1[i] < 1e-4:
+            main_lobe1[i] = 1e-4
+    for i in range(len(main_lobe2)):
+        if main_lobe2[i] < 1e-4:
+            main_lobe2[i] = 1e-4
     # a = np.array(a2 + a1)
-    a = fft(main_lobe)
+    a_1 = fft(main_lobe1)
+    a_2 = fft(main_lobe2)
+    for i in range(len(main_lobe1)):
+        if abs(a_1[i]) < 1e-4:
+            a_1[i] = 1e-4
+    for i in range(len(main_lobe2)):
+        if abs(a_2[i]) < 1e-4:
+            a_2[i] = 1e-4
+    r = a_2 / a_1
+    main_lobe_ift = ifft(a_2)
     spectrum_ft = fft(sun_centered)
-    spectrum_ift = ifft(spectrum_ft / a)
-    simplest_fig(angle, sun_centered, main_lobe)
+    spectrum_ift = ifft(spectrum_ft * r)
+    simplest_fig(angle, a_1, a_2)
     pass
