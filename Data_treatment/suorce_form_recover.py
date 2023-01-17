@@ -67,12 +67,17 @@ if __name__ == "__main__":
     n_wide = int(150 / delta_t)
     # sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
     sun_centered = [0] * n_angle
-    # sun_centered[n_angle_center - n_wide - 1:n_angle_center + n_wide] = \
-    #     spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
-    sun_centered[0:n_wide] = \
-        spectrum_one[n_time_center:n_time_center + n_wide]
-    sun_centered[n_angle - n_wide:-1] = \
-        spectrum_one[n_time_center - n_wide + 1:n_time_center]
+    sun_centered[n_angle_center - n_wide - 1:n_angle_center + n_wide] = \
+        spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
+    for i in range(n_angle_center - n_wide):
+        sun_centered[i] = sun_centered[n_angle_center - n_wide + 1]
+        sun_centered[n_angle_center + n_wide + i] = sun_centered[n_angle_center + n_wide - 1]
+    # sun_centered[0:n_angle_center - n_wide - 1] = [sun_centered[n_angle_center - n_wide]] * n_wide
+    # sun_centered[n_angle_center + n_wide:-1] = [sun_centered[n_angle_center + n_wide - 1]] * n_wide
+    # sun_centered[0:n_wide] = \
+    #     spectrum_one[n_time_center:n_time_center + n_wide]
+    # sun_centered[n_angle - n_wide - 1:-1] = \
+    #     spectrum_one[n_time_center - n_wide:n_time_center]
 
     time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
     angle = np.array([t * angle_per_sample for t in range(n_angle)])
@@ -86,8 +91,8 @@ if __name__ == "__main__":
         if main_lobe2[i] < 1e-4:
             main_lobe2[i] = 1e-4
     # a = np.array(a2 + a1)
-    a_1 = fft(main_lobe1)
-    a_2 = fft(main_lobe2)
+    a_1 = fft(main_lobe1)   # Передаточная функция 1 телескопа (имеется)
+    a_2 = fft(main_lobe2)   # Передаточная функция 2 телескопа (желательная)
     for i in range(len(main_lobe1)):
         if abs(a_1[i]) < 1e-4:
             a_1[i] = 1e-4
@@ -95,8 +100,16 @@ if __name__ == "__main__":
         if abs(a_2[i]) < 1e-4:
             a_2[i] = 1e-4
     r = a_2 / a_1
-    main_lobe_ift = ifft(a_2)
+    for i in range(n_angle):
+        if abs(r[i]) > 10:
+            r[i:-i] = 0
+            r_inv = [0] * i
+            r_inv = r[i:0:-1]
+            r[n_angle - i - 1:-1] = r_inv
+            break
+
+    main_lobe_ift2 = ifft(a_2)
     spectrum_ft = fft(sun_centered)
-    spectrum_ift = ifft(spectrum_ft)
-    simplest_fig(angle, spectrum_ift, r)
+    spectrum_ift = ifft(spectrum_ft * r)
+    simplest_fig(angle, abs(spectrum_ift), sun_centered)
     pass
