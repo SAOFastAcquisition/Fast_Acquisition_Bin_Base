@@ -57,19 +57,28 @@ if __name__ == "__main__":
     center = 215                                    # sec time
     sun_wide = 190                                  # sec time
     center_arc = 0
-    sun_wide_arc = 1920                             # arcsec
-    time_to_angle_coeff = sun_wide_arc / sun_wide   # arcsec/sec
+    sun_wide_arc = 1920                                             # arcsec
+    time_to_angle_coeff = sun_wide_arc / sun_wide                   # arcsec/sec
+    angle_per_sample = time_to_angle_coeff * delta_t / 3600 / 57.2  # rad
+    n_angle = int(6.28 / angle_per_sample)
+    n_angle_center = int(n_angle // 2)
     delta_angle = delta_t * time_to_angle_coeff
     n_time_center = int(center / delta_t - 1)
     n_wide = int(150 / delta_t)
-    sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
-    time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
-    angle = np.array([t * time_to_angle_coeff for t in time_centered])
+    # sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
+    sun_centered = [0] * n_angle
+    # sun_centered[n_angle_center - n_wide - 1:n_angle_center + n_wide] = \
+    #     spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
+    sun_centered[0:n_wide] = \
+        spectrum_one[n_time_center:n_time_center + n_wide]
+    sun_centered[n_angle - n_wide:-1] = \
+        spectrum_one[n_time_center - n_wide + 1:n_time_center]
 
-    a1 = [1.01 - (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
-    a2 = [0.01 + (np.sin((i * 2 / shape_spectrum[0]) * 3.14 / 2)) ** 4 for i in range(int(shape_spectrum[0] / 2))]
-    main_lobe1 = gauss(angle, 160, 300, 0)
-    main_lobe2 = gauss(angle, 70, 300, 0)
+    time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
+    angle = np.array([t * angle_per_sample for t in range(n_angle)])
+
+    main_lobe1 = gauss(angle, 160 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe2 = gauss(angle, 70 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     for i in range(len(main_lobe1)):
         if main_lobe1[i] < 1e-4:
             main_lobe1[i] = 1e-4
@@ -88,6 +97,6 @@ if __name__ == "__main__":
     r = a_2 / a_1
     main_lobe_ift = ifft(a_2)
     spectrum_ft = fft(sun_centered)
-    spectrum_ift = ifft(spectrum_ft * r)
-    simplest_fig(angle, a_1, a_2)
+    spectrum_ift = ifft(spectrum_ft)
+    simplest_fig(angle, spectrum_ift, r)
     pass
