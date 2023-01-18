@@ -47,7 +47,7 @@ if __name__ == "__main__":
     delta_t = delta_t0 * kt
 
     spectrum = np.load(data_saved_path)
-    spectrum_one = spectrum[:, 24]
+    spectrum_one = spectrum[:, 492]
     shape_spectrum = np.shape(spectrum)
 
     n_freq = shape_spectrum[1]
@@ -67,23 +67,19 @@ if __name__ == "__main__":
     n_wide = int(150 / delta_t)
     # sun_centered = spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
     sun_centered = [0] * n_angle
+    #           *** Совмещение точки кульминации с центральным отсчетом ***
+    #                размещение скана Солнца посередине зоны Найквиста
     sun_centered[n_angle_center - n_wide - 1:n_angle_center + n_wide] = \
         spectrum_one[n_time_center - n_wide - 1:n_time_center + n_wide]
+    #           *** Заполнение "хвостов" зоны Найквиста со сканом  ***
     for i in range(n_angle_center - n_wide):
         sun_centered[i] = sun_centered[n_angle_center - n_wide + 1]
         sun_centered[n_angle_center + n_wide + i] = sun_centered[n_angle_center + n_wide - 1]
-    # sun_centered[0:n_angle_center - n_wide - 1] = [sun_centered[n_angle_center - n_wide]] * n_wide
-    # sun_centered[n_angle_center + n_wide:-1] = [sun_centered[n_angle_center + n_wide - 1]] * n_wide
-    # sun_centered[0:n_wide] = \
-    #     spectrum_one[n_time_center:n_time_center + n_wide]
-    # sun_centered[n_angle - n_wide - 1:-1] = \
-    #     spectrum_one[n_time_center - n_wide:n_time_center]
 
-    time_centered = [t - 215 for t in time[n_time_center - n_wide - 1:n_time_center + n_wide]]
     angle = np.array([t * angle_per_sample for t in range(n_angle)])
 
-    main_lobe1 = gauss(angle, 160 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
-    main_lobe2 = gauss(angle, 70 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe1 = gauss(angle, 60 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe2 = gauss(angle, 40 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     for i in range(len(main_lobe1)):
         if main_lobe1[i] < 1e-4:
             main_lobe1[i] = 1e-4
