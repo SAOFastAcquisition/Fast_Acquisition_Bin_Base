@@ -72,7 +72,8 @@ def receiver_temp_update(_s, _columns_names):
             _data = pickle.load(inp)
 
     idx_r = _data.loc[(_data['date'] == _s['date'])
-                      & (_data['polar'] == _s['polar'])].index
+                      & (_data['polar'] == _s['polar'])
+                      & (_data['att3'] == _s['att3'])].index
     if not len(idx_r):
         _data = _data.append(_s, ignore_index=True)
         with open(receiver_temperature_path, 'wb') as _out:
@@ -144,14 +145,15 @@ def receiver_temperature_calc(_data):
     b2 = np.array(_data['spectrum'][_data['polar'] == 'right'][_data['load'] == 'short'].iloc[0])
 
     # Расчет и сохранение в файл шумовой температуры приемника
+    collumns = ['date', 'temperature', 'polar', 'att3']
     temp_left = b1 / (2 * a1 - b1) * temp0
     temp_left = del_random_mod(temp_left, 100)
-    temp1 = pd.Series((date, temp_left, 'left'), index=['date', 'temperature', 'polar'])
-    receiver_temp_update(temp1, ['date', 'temperature', 'polar'])
+    temp1 = pd.Series((date, temp_left, 'left', att3), index=collumns)
+    receiver_temp_update(temp1, collumns)
     temp_right = b2 / (2 * a2 - b2) * temp0
     temp_right = del_random_mod(temp_right, 100)
-    temp2 = pd.Series((date, temp_right, 'right'), index=['date', 'temperature', 'polar'])
-    receiver_temp_update(temp2, ['date', 'temperature', 'polar'])
+    temp2 = pd.Series((date, temp_right, 'right', att3), index=collumns)
+    receiver_temp_update(temp2, collumns)
 
     #       ***** Вызов функции расчета выравнивающих АЧХ коэффициентов *****
     align_coefficients_calc(a1, a2, b1, b2)
@@ -246,9 +248,9 @@ if __name__ == '__main__':
     current_treatment_path = Path(data_treatment_dir, current_treatment_dir)
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
-    receiver_temperature_file_name = 'receiver_temperature.npy'
-    current_primary_file1 = '2022-11-18_16'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-11-18_17'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    receiver_temperature_file_name = 'receiver_temperature1.npy'
+    current_primary_file1 = '2022-11-18_13'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-11-18_14'  # Файл с КЗ и согласованной нагрузкой на входах приемника
 
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
