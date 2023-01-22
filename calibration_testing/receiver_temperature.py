@@ -145,15 +145,15 @@ def receiver_temperature_calc(_data):
     b2 = np.array(_data['spectrum'][_data['polar'] == 'right'][_data['load'] == 'short'].iloc[0])
 
     # Расчет и сохранение в файл шумовой температуры приемника
-    collumns = ['date', 'temperature', 'polar', 'att3']
+    column = ['date', 'case_id', 'temperature', 'polar', 'att3']
     temp_left = b1 / (2 * a1 - b1) * temp0
     temp_left = del_random_mod(temp_left, 100)
-    temp1 = pd.Series((date, temp_left, 'left', att3), index=collumns)
-    receiver_temp_update(temp1, collumns)
+    temp1 = pd.Series((date, case_id, temp_left, 'left', att3), index=column)
+    receiver_temp_update(temp1, column)
     temp_right = b2 / (2 * a2 - b2) * temp0
     temp_right = del_random_mod(temp_right, 100)
-    temp2 = pd.Series((date, temp_right, 'right', att3), index=collumns)
-    receiver_temp_update(temp2, collumns)
+    temp2 = pd.Series((date, case_id, temp_right, 'right', att3), index=column)
+    receiver_temp_update(temp2, column)
 
     #       ***** Вызов функции расчета выравнивающих АЧХ коэффициентов *****
     align_coefficients_calc(a1, a2, b1, b2)
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     receiver_temperature_file_name = 'receiver_temperature1.npy'
     current_primary_file1 = '2022-11-18_13'  # Файл с согласованной нагрузкой и КЗ на входах приемника
     current_primary_file2 = '2022-11-18_14'  # Файл с КЗ и согласованной нагрузкой на входах приемника
-
+    case_id = '01'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
