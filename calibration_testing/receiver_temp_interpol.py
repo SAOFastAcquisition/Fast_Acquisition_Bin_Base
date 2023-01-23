@@ -35,7 +35,7 @@ if __name__ == '__main__':
     case_id_add = '01'
     with open(receiver_temperature_path, 'rb') as inp:
         data = pickle.load(inp)
-    data_sample = data['temperature']    # Массив температур [data['case_id'] == case_id]
+    data_sample = data['temperature'][data['case_id'] == case_id]    # Массив температур [data['case_id'] == case_id]
     ind_data = data_sample.index
     ind_len = len(ind_data)
     temp_arr = data_sample.iloc[0]
@@ -61,23 +61,18 @@ if __name__ == '__main__':
     # y_calc2 = np.polyval(arr2, x_new)
     # arr3 = np.polyfit(x_s, y_s[3, :], 25)
     # y_calc3 = np.polyval(arr3, x_new)
-    arr_av = np.polyfit(x_s, temp_aver_s, 37)
+    arr_av = np.polyfit(x_s, temp_aver_s, 11)
     temp_interp = np.polyval(arr_av, x_new)
 
-    # plt.plot(x_new, y_calc0, label='Polynomial0')
-    # plt.plot(x_new, y_calc1, label='Polynomial1')
-    # plt.plot(x_new, y_calc2, label='Polynomial2')
-    # plt.plot(x_new, y_calc3, label='Polynomial3')
-    plt.plot(x_new, temp_interp, label='Polynomial_av')
+    plt.plot(x_new, temp_interp, label='Polynomial interpolation, rank = 15')
     for i in range(ind_len):
         plt.scatter(x_s, y_s[i, :], label='data')
-
-    # plt.scatter(x_s, temp_aver_s, label='data')
+    plt.scatter(x_s, temp_aver_s, label='data')
     plt.legend()
     plt.grid()
     plt.show()
     column = ['case_id', 'polyval_coeff', 'note']
-    series_to_data = pd.Series(('03', arr_av, '2022_11_18-24'), index=column)
+    series_to_data = pd.Series((case_id, arr_av, '2022_11_18-24'), index=column)
     if not os.path.isfile(receiver_temperature_interpol_path):
         data_saved = pd.DataFrame(columns=column)
     else:
