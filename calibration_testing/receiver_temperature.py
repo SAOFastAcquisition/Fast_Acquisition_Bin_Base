@@ -80,10 +80,9 @@ def receiver_temp_update(_s, _columns_names):
             pickle.dump(_data, _out)
 
     _fig, _ax = plt.subplots(1, figsize=(12, 6))
-    _ax.plot(_data['temperature'][0])
-    _ax.plot(_data['temperature'][1])
-    _ax.plot(_data['temperature'][2])
-    _ax.plot(_data['temperature'][3])
+    for i in range(len(_data)):
+        _ax.plot(_data['temperature'][i])
+
     plt.grid()
     plt.show()
     pass
@@ -240,7 +239,7 @@ if __name__ == '__main__':
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-    current_primary_dir = '2022_11_18test'
+    current_primary_dir = '2022_11_24test'
 
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
@@ -249,9 +248,9 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature1.npy'
-    current_primary_file1 = '2022-11-18_13'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-11-18_14'  # Файл с КЗ и согласованной нагрузкой на входах приемника
-    case_id = '01'
+    current_primary_file1 = '2022-11-24_15'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-11-24_17'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    case_id = '02'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 

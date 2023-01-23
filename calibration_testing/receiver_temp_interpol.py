@@ -7,6 +7,23 @@ from pathlib import Path
 from Help_folder.paths_via_class import path_to_data
 
 
+def plot_RTI(_data, _x):
+    _d = _data['polyval_coeff']
+    _date = _data['note']
+    _len = len(_d)
+    _coeff_array = _d.iloc[0]
+    for _i in range(1, _len):
+        _coeff_array = np.vstack([_coeff_array, _d.iloc[_i]])
+    for _i in range(_len):
+        _temp_interp = np.polyval(_coeff_array[_i, :], _x)
+        _legend = _date.iloc[_i]
+        plt.plot(x_new, _temp_interp, label=_legend)
+    plt.grid()
+    plt.legend()
+    plt.show()
+    pass
+
+
 if __name__ == '__main__':
 
     receiver_temperature_file_name = 'receiver_temperature1.npy'
@@ -14,13 +31,17 @@ if __name__ == '__main__':
     head_path = path_to_data()
     receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file_name)
     receiver_temperature_interpol_path = Path(head_path, 'Alignment', receiver_temperature_interpol_name)
+    case_id = '02'
+    case_id_add = '01'
     with open(receiver_temperature_path, 'rb') as inp:
         data = pickle.load(inp)
-
-    len_series = len(data['temperature'])
-    temp_arr = data['temperature'][0]                   # Массив температур
-    for i in range(1, len_series):
-        temp_arr = np.vstack([temp_arr, data['temperature'][i]])
+    data_sample = data['temperature']    # Массив температур [data['case_id'] == case_id]
+    ind_data = data_sample.index
+    ind_len = len(ind_data)
+    temp_arr = data_sample.iloc[0]
+    # ind_temp.pop(0)
+    for i in range(1, ind_len):
+        temp_arr = np.vstack([temp_arr, data_sample.iloc[i]])
     temp_aver = np.mean(temp_arr, axis=0)               # Средняя температура по результатам измерений
     log_y = [not s == 100 for s in temp_arr[0, :]]      # Лог, по которому вырезаются отсчеты в зоне действия фильтров
     y_s = temp_arr[:, log_y]                            # Из массива температур удалили отсчеты зоны действия фильтров
@@ -40,7 +61,7 @@ if __name__ == '__main__':
     # y_calc2 = np.polyval(arr2, x_new)
     # arr3 = np.polyfit(x_s, y_s[3, :], 25)
     # y_calc3 = np.polyval(arr3, x_new)
-    arr_av = np.polyfit(x_s, temp_aver_s, 25)
+    arr_av = np.polyfit(x_s, temp_aver_s, 37)
     temp_interp = np.polyval(arr_av, x_new)
 
     # plt.plot(x_new, y_calc0, label='Polynomial0')
@@ -48,23 +69,23 @@ if __name__ == '__main__':
     # plt.plot(x_new, y_calc2, label='Polynomial2')
     # plt.plot(x_new, y_calc3, label='Polynomial3')
     plt.plot(x_new, temp_interp, label='Polynomial_av')
-    plt.scatter(x_s, y_s[0, :], label='data')
-    plt.scatter(x_s, y_s[1, :], label='data')
-    plt.scatter(x_s, y_s[2, :], label='data')
-    plt.scatter(x_s, y_s[3, :], label='data')
+    for i in range(ind_len):
+        plt.scatter(x_s, y_s[i, :], label='data')
+
     # plt.scatter(x_s, temp_aver_s, label='data')
     plt.legend()
+    plt.grid()
     plt.show()
     column = ['case_id', 'polyval_coeff', 'note']
-    _s = pd.Series(('01', arr_av, '2022_11_18-24'), index=column)
+    series_to_data = pd.Series(('03', arr_av, '2022_11_18-24'), index=column)
     if not os.path.isfile(receiver_temperature_interpol_path):
-        _data = pd.DataFrame(columns=column)
+        data_saved = pd.DataFrame(columns=column)
     else:
         with open(receiver_temperature_interpol_path, 'rb') as inp:
-            _data = pickle.load(inp)
-
-    idx_r = _data.loc[(_data['case_id'] == _s['case_id'])].index
+            data_saved = pickle.load(inp)
+    plot_RTI(data_saved, x_new)
+    idx_r = data_saved.loc[(data_saved['case_id'] == series_to_data['case_id'])].index
     if not len(idx_r):
-        _data = _data.append(_s, ignore_index=True)
+        data_saved = data_saved.append(series_to_data, ignore_index=True)
         with open(receiver_temperature_interpol_path, 'wb') as _out:
-            pickle.dump(_data, _out)
+            pickle.dump(data_saved, _out)
