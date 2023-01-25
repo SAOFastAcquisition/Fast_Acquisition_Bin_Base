@@ -39,17 +39,24 @@ def temperature_ngi(_spectrum, polarization, time_borders):
     temperature_scale0 = (av_gni0 - av_ml0) / av_gne0
     temperature_scale1 = (av_gni1 - av_ml1) / av_gne1
 
-    # Исключение зон действия режекторных фильтров
+    # Исключение зон действия режекторных и антиэлайзинговых фильтров
+    # Третья зона Найквиста
+    # _s[0:20] = 100
+    # _s[1024:1058] = 100
+    # _s[-46:] = 100
     k1 = int((90 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k2 = int((220 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k3 = int((540 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k4 = int((700 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     temperature_scale1[k1:k2] = 0
     temperature_scale1[k3:k4] = 0
-
+    temperature_scale1[0:32] = 0
+    temperature_scale1[-46:] = 0
     k5 = 0
     k6 = int((230 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     temperature_scale0[k5:k6] = 0
+    temperature_scale0[-20:] = 0
+
     temperature_scale0[0:] = temperature_scale0[-1::-1]  # Правильный порядок отсчетов
     # для второй зоны Найквиста
 
@@ -65,6 +72,7 @@ def temperature_ngi(_spectrum, polarization, time_borders):
 
     plt.plot(f0, temp_ngi0)
     plt.plot(f1, temp_ngi1)
+    plt.grid()
     plt.show()
 
     return temp_ngi0, temp_ngi1
@@ -104,7 +112,7 @@ def average_ngi(_data):
     av_data_y[0:34] = 0
     av_data_y[-34:] = 0
 
-    return av_data_x, av_data_y
+    return np.hstack([av_data_x, av_data_y])
 
 
 def del_random_mod(_s, _s0):
@@ -119,26 +127,27 @@ def del_random_mod(_s, _s0):
     return _s
 
 
-def ngi_temperature_update(_ngi_selected, _ngi_id):
+def ngi_temperature_update(_ngi_selected, _ngi_id, _case_id):
     if not os.path.isfile(ngi_temperature_path):
-        ngi_temperature = pd.DataFrame(columns=columns_names)
+        _ngi_temperature = pd.DataFrame(columns=columns_names)
     else:
         with open(ngi_temperature_path, 'rb') as inp:
-            ngi_temperature = pickle.load(inp)
+            _ngi_temperature = pickle.load(inp)
 
-    ngi_temperature_low, ngi_temperature_upper = average_ngi(_ngi_selected)
-    ngi_average_row = {'ngi_id': ngi_id, 'polar': head['polar'],
-                       'low_band': ngi_temperature_low, 'upper_band': ngi_temperature_upper}
+    _temperature = average_ngi(_ngi_selected)
+    ngi_average_row = {'ngi_id': ngi_id, 'case_id': _case_id, 'polar': head['polar'],
+                       'temperature': _temperature, 'note': note}
 
-    idx_r = ngi_temperature.loc[(ngi_temperature.ngi_id == '01')
-                                & (ngi_temperature.polar == head['polar'])].index
+    idx_r = _ngi_temperature.loc[(_ngi_temperature.ngi_id == '01')
+                                 & (_ngi_temperature.polar == head['polar'])
+                                 & (_ngi_temperature.case_id == _case_id)].index
 
     if len(idx_r):
-        ngi_temperature = ngi_temperature.drop(idx_r).append(ngi_average_row, ignore_index=True)
+        _ngi_temperature = _ngi_temperature.drop(idx_r).append(ngi_average_row, ignore_index=True)
     else:
-        ngi_temperature = ngi_temperature.append(ngi_average_row, ignore_index=True)
+        _ngi_temperature = _ngi_temperature.append(ngi_average_row, ignore_index=True)
     with open(ngi_temperature_path, 'wb') as _out:
-        pickle.dump(ngi_temperature, _out)
+        pickle.dump(_ngi_temperature, _out)
     pass
 
 
@@ -149,7 +158,7 @@ def plot_ngi(_data):
     df0 = _delta_f / aver_param_noise
     f0 = np.array([1000 + df0 / 2 + i * df0 for i in range(1024)])
     f1 = np.array([2000 + df0 / 2 + i * df0 for i in range(1024)])
-
+    f = np.hstack([f0,f1])
     x, y = _data['low_band'][_data['polar'] == 'left'], _data['upper_band'][_data['polar'] == 'left']
     index_x, index_y = x.index, y.index
     array_x, array_y = x[index_x[0]], y[index_y[0]]
@@ -174,21 +183,17 @@ def plot_ngi(_data):
 
     with open(ngi_temperature_path, 'rb') as _in:
         ngi_temperature = pickle.load(_in)
-
-    ngi_left0 = ngi_temperature['low_band'][ngi_temperature['polar'] == 'left'][1]
-    ngi_left1 = ngi_temperature['upper_band'][ngi_temperature['polar'] == 'left'][1]
-    ngi_right0 = ngi_temperature['low_band'][ngi_temperature['polar'] == 'right'][0]
-    ngi_right1 = ngi_temperature['upper_band'][ngi_temperature['polar'] == 'right'][0]
+    idx_case = ngi_temperature[ngi_temperature.case_id == case_id].index
+    ngi_left = ngi_temperature['temperature'][ngi_temperature['polar'] == 'left'][idx_case[1]]
+    ngi_right = ngi_temperature['temperature'][ngi_temperature['polar'] == 'right'][idx_case[0]]
 
     fig, ax = plt.subplots(1, figsize=(12, 6))
-    ax.plot(f0, ngi_left0)
-    ax.plot(f1, ngi_left1)
-    ax.plot(f0, ngi_right0)
-    ax.plot(f1, ngi_right1)
-    # ax.scatter(f01, array_x)
-    # ax.scatter(f11, array_y)
-    # ax.scatter(f02, array_x1)
-    # ax.scatter(f12, array_y1)
+    ax.plot(f, ngi_left)
+    ax.plot(f, ngi_right)
+    ax.scatter(f01, array_x)
+    ax.scatter(f11, array_y)
+    ax.scatter(f02, array_x1)
+    ax.scatter(f12, array_y1)
     # line_minor = plt.plot(inp_scale / 1000)
     # plt.plot(inp_scale, inp_data, 'r--*', inp_scale, 'g:+')  # В кавычках компактно заданы цвет, стиль линии и маркеры
     # plt.setp(fig_main, linestyle=':', color='r')
@@ -211,18 +216,20 @@ if __name__ == '__main__':
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
     current_catalog = r'2022/Test_and_calibration/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
 
-    ngi_temperature_base_name = 'ngi_temperature_base.npy'  # Базы данных по температуре ГШ на входе МШУ
-    ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
+    ngi_temperature_base_name = 'ngi_temperature_base1.npy'  # Базы данных по температуре ГШ на входе МШУ
+    ngi_temperature_file_name = 'ngi_temperature1.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
     #                           ***********************
     # Создание или загрузка файла с шумовой температурой встроенного генератора шума
     ngi_id = '01'  # Идентификатор встроенного генератора шума
+    case_id = '03'
+    note = '2022_11_18-24'
     timing = [0, 20, 30, 50]
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     columns_names_base = ['nge_id', 'date', 'att1', 'att2', 'att3',
                           'polar', 'attempt_num', 'low_band', 'upper_band']
-    columns_names = ['ngi_id', 'polar', 'low_band', 'upper_band']
+    columns_names = ['ngi_id', 'polar', 'temperature', 'case_id', 'note']
     if not os.path.isfile(ngi_temperature_base_path):
         ngi_temperature_base = pd.DataFrame(columns=columns_names_base)
     else:
@@ -266,16 +273,18 @@ if __name__ == '__main__':
         for n in idx_drop:
             ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
-        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]
+        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
+                                                                                           # == '2022-11-24']
         head['polar'] = 'right'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
-        ngi_temperature_update(ngi_selected1l, ngi_id)
+        ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
         head['polar'] = 'left'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
-        ngi_temperature_update(ngi_selected1l, ngi_id)
+        ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
 
     #               *** Picture ***
-    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]
+    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
+                                                                                       # == '2022-11-24']
     plot_ngi(ngi_selected1)
     # plt.plot(ngi_selected1l['low_band'][1])
     # plt.plot(ngi_selected1l['upper_band'][1])
