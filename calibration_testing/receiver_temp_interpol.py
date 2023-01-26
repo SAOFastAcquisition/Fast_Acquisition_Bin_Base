@@ -8,6 +8,14 @@ from Help_folder.paths_via_class import path_to_data
 
 
 def plot_RTI(_data, _x):
+    """
+    Отображает результаты Receiver Temperature Interpolation по наборам интерполяционных коэффициентов, полученных
+    для шумовой температуры приемника по результатам серий измерений в разные дни.
+    :param _data:   фрейм, включающий идентификатор case_id коэффициентов 'polyval_coeff', расчитанных np.polyfit( )
+                    для различных наборов измеренных шумовых температур приемника
+    :param _x:  вектор аргументов
+    :return:    рисунок набора аппроксимационных кривых
+    """
     _d = _data['polyval_coeff']
     _date = _data['note']
     _len = len(_d)
@@ -31,7 +39,7 @@ if __name__ == '__main__':
     head_path = path_to_data()
     receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file_name)
     receiver_temperature_interpol_path = Path(head_path, 'Alignment', receiver_temperature_interpol_name)
-    case_id = '02'
+    case_id = '04'
     case_id_add = '01'
     with open(receiver_temperature_path, 'rb') as inp:
         data = pickle.load(inp)
@@ -61,23 +69,25 @@ if __name__ == '__main__':
     # y_calc2 = np.polyval(arr2, x_new)
     # arr3 = np.polyfit(x_s, y_s[3, :], 25)
     # y_calc3 = np.polyval(arr3, x_new)
-    arr_av = np.polyfit(x_s, temp_aver_s, 11)
+    polynomial_rank = 11
+    arr_av = np.polyfit(x_s, temp_aver_s, polynomial_rank)
     temp_interp = np.polyval(arr_av, x_new)
 
-    plt.plot(x_new, temp_interp, label='Polynomial interpolation, rank = 15')
+    plt.plot(x_new, temp_interp, label=f'Polynomial interpolation, rank = {polynomial_rank}')
     for i in range(ind_len):
-        plt.scatter(x_s, y_s[i, :], label='data')
-    plt.scatter(x_s, temp_aver_s, label='data')
+        plt.scatter(x_s, y_s[i, :], label=f'data {i}')
+    plt.scatter(x_s, temp_aver_s, label='data averaged')
     plt.legend()
     plt.grid()
     plt.show()
     column = ['case_id', 'polyval_coeff', 'note']
-    series_to_data = pd.Series((case_id, arr_av, '2022_11_18-24'), index=column)
+    series_to_data = pd.Series((case_id, arr_av, '2022_06_27-28'), index=column)
     if not os.path.isfile(receiver_temperature_interpol_path):
         data_saved = pd.DataFrame(columns=column)
     else:
         with open(receiver_temperature_interpol_path, 'rb') as inp:
             data_saved = pickle.load(inp)
+    # data_saved.drop(index=[3], axis=0, inplace=True)
     plot_RTI(data_saved, x_new)
     idx_r = data_saved.loc[(data_saved['case_id'] == series_to_data['case_id'])].index
     if not len(idx_r):

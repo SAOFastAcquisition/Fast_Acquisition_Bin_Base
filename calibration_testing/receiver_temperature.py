@@ -61,33 +61,6 @@ def differ(_s, _num_mask):
     return _data
 
 
-def receiver_temp_update(_s, _columns_names):
-    """ Принимает объект Series, и, если в данных файла нет среза идентичного принимаемому,
-    добавляет принимаемый объект в конец файла"""
-
-    if not os.path.isfile(receiver_temperature_path):
-        _data = pd.DataFrame(columns=_columns_names)
-    else:
-        with open(receiver_temperature_path, 'rb') as inp:
-            _data = pickle.load(inp)
-
-    idx_r = _data.loc[(_data['date'] == _s['date'])
-                      & (_data['polar'] == _s['polar'])
-                      & (_data['att3'] == _s['att3'])].index
-    if not len(idx_r):
-        _data = _data.append(_s, ignore_index=True)
-        with open(receiver_temperature_path, 'wb') as _out:
-            pickle.dump(_data, _out)
-
-    _fig, _ax = plt.subplots(1, figsize=(12, 6))
-    for i in range(len(_data)):
-        _ax.plot(_data['temperature'][i])
-
-    plt.grid()
-    plt.show()
-    pass
-
-
 def zone_deletion(_s, _flag):
     # Исключение зон действия режекторных фильтров
     k1 = int((1090 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
@@ -167,6 +140,33 @@ def receiver_temperature_calc(_data):
     return
 
 
+def receiver_temp_update(_s, _columns_names):
+    """ Принимает объект Series, и, если в данных файла нет среза идентичного принимаемому,
+    добавляет принимаемый объект в конец файла"""
+
+    if not os.path.isfile(receiver_temperature_path):
+        _data = pd.DataFrame(columns=_columns_names)
+    else:
+        with open(receiver_temperature_path, 'rb') as inp:
+            _data = pickle.load(inp)
+
+    idx_r = _data.loc[(_data['date'] == _s['date'])
+                      & (_data['polar'] == _s['polar'])
+                      & (_data['att3'] == _s['att3'])].index
+    if not len(idx_r):
+        _data = _data.append(_s, ignore_index=True)
+        with open(receiver_temperature_path, 'wb') as _out:
+            pickle.dump(_data, _out)
+
+    _fig, _ax = plt.subplots(1, figsize=(12, 6))
+    for i in range(len(_data)):
+        _ax.plot(_data['temperature'][i])
+
+    plt.grid()
+    plt.show()
+    pass
+
+
 def align_coefficients_calc(_a1, _a2, _b1, _b2):
     left_term_noise = _a1 - _b1 / 2
     right_term_noise = _a2 - _b2 / 2
@@ -239,7 +239,7 @@ if __name__ == '__main__':
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
-    current_primary_dir = '2022_11_24test'
+    current_primary_dir = '2022_06_28test'
 
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
@@ -248,9 +248,9 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file_name = 'receiver_temperature1.npy'
-    current_primary_file1 = '2022-11-24_15'  # Файл с согласованной нагрузкой и КЗ на входах приемника
-    current_primary_file2 = '2022-11-24_17'  # Файл с КЗ и согласованной нагрузкой на входах приемника
-    case_id = '02'
+    current_primary_file1 = '2022-06-28_02test'  # Файл с согласованной нагрузкой и КЗ на входах приемника
+    current_primary_file2 = '2022-06-28_03test'  # Файл с КЗ и согласованной нагрузкой на входах приемника
+    case_id = '04'
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     data_treatment_file_path, head_path = path_to_data(current_data_dir, current_treatment_path)
 
