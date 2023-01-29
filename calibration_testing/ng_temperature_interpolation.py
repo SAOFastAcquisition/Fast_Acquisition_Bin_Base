@@ -63,6 +63,7 @@ if __name__ == '__main__':
     ng_temperature_interpol_path = Path(head_path, 'Alignment', ng_temperature_interpol_name)
 
     case_id = '03'
+    note = '2022_11_18-24'
     polynomial_rank = 80
 
     with open(ng_temperature_path, 'rb') as inp:
@@ -92,9 +93,9 @@ if __name__ == '__main__':
     #                        ***** Запись коэффициентов полинома в файл *****
     #                                       ******************
     column = ['case_id', 'polyval_coeff', 'polar', 'note']
-    series_to_data_left = pd.Series((case_id, arr_av_left, 'left', '2022_11_18-24'), index=column)
+    series_to_data_left = pd.Series((case_id, arr_av_left, 'left', note), index=column)
     update_ng_temp(series_to_data_left)
-    series_to_data_right = pd.Series((case_id, arr_av_right, 'right', '2022_11_18-24'), index=column)
+    series_to_data_right = pd.Series((case_id, arr_av_right, 'right', note), index=column)
     update_ng_temp(series_to_data_right)
     #                                       ******************
     #                               ***** Визуализация результатов *****

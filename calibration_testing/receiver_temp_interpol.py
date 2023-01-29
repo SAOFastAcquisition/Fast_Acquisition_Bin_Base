@@ -32,6 +32,20 @@ def plot_RTI(_data, _x):
     pass
 
 
+def plot_rnt():
+    fig, ax = plt.subplots(1, figsize=(12, 6))
+    ax.plot(x_new, temp_interp, label=f'Polynomial interpolation, rank = {polynomial_rank}')
+    for _i in range(ind_len):
+        ax.scatter(x_s, y_s[_i, :], label=f'data {_i}')
+    ax.scatter(x_s, temp_aver_s, label='data averaged')
+    ax.set_title('Receiver Noise Temperature', fontsize=20)
+    ax.set_xlabel('Frequency, MHz', fontsize=18)
+    ax.set_ylabel('Temperature, K', fontsize=18)
+    ax.legend(fontsize=10)
+    plt.grid()
+    plt.show()
+
+
 if __name__ == '__main__':
 
     receiver_temperature_file_name = 'receiver_temperature1.npy'
@@ -39,15 +53,16 @@ if __name__ == '__main__':
     head_path = path_to_data()
     receiver_temperature_path = Path(head_path, 'Alignment', receiver_temperature_file_name)
     receiver_temperature_interpol_path = Path(head_path, 'Alignment', receiver_temperature_interpol_name)
-    case_id = '04'
-    case_id_add = '01'
+    case_id = '01'
+    case_id_add = '02'
     with open(receiver_temperature_path, 'rb') as inp:
         data = pickle.load(inp)
-    data_sample = data['temperature'][data['case_id'] == case_id]    # Массив температур [data['case_id'] == case_id]
-    ind_data = data_sample.index
-    ind_len = len(ind_data)
+    _ind1 = data[data.case_id == case_id].index
+    if case_id_add:
+        _ind1 = _ind1.append(data[data.case_id == case_id_add].index)
+    data_sample = data.temperature.loc[_ind1]
+    ind_len = len(_ind1)
     temp_arr = data_sample.iloc[0]
-    # ind_temp.pop(0)
     for i in range(1, ind_len):
         temp_arr = np.vstack([temp_arr, data_sample.iloc[i]])
     temp_aver = np.mean(temp_arr, axis=0)               # Средняя температура по результатам измерений
@@ -61,25 +76,11 @@ if __name__ == '__main__':
 
     x_new = np.arange(1000, 3000, 1)                    # Вектор-аргумент для расчета интерполированной кривой
 
-    # arr0 = np.polyfit(x_s, y_s[0, :], 25)
-    # y_calc0 = np.polyval(arr0, x_new)
-    # arr1 = np.polyfit(x_s, y_s[1, :], 25)
-    # y_calc1 = np.polyval(arr1, x_new)
-    # arr2 = np.polyfit(x_s, y_s[2, :], 25)
-    # y_calc2 = np.polyval(arr2, x_new)
-    # arr3 = np.polyfit(x_s, y_s[3, :], 25)
-    # y_calc3 = np.polyval(arr3, x_new)
     polynomial_rank = 11
     arr_av = np.polyfit(x_s, temp_aver_s, polynomial_rank)
     temp_interp = np.polyval(arr_av, x_new)
+    plot_rnt()
 
-    plt.plot(x_new, temp_interp, label=f'Polynomial interpolation, rank = {polynomial_rank}')
-    for i in range(ind_len):
-        plt.scatter(x_s, y_s[i, :], label=f'data {i}')
-    plt.scatter(x_s, temp_aver_s, label='data averaged')
-    plt.legend()
-    plt.grid()
-    plt.show()
     column = ['case_id', 'polyval_coeff', 'note']
     series_to_data = pd.Series((case_id, arr_av, '2022_06_27-28'), index=column)
     if not os.path.isfile(receiver_temperature_interpol_path):

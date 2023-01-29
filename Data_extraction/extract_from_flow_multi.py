@@ -478,8 +478,8 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_12_23_3C273'
-    current_primary_file = '2022-12-23_01+20+08'
+    current_primary_dir = '2022_12_18crab'
+    current_primary_file = '2022-12-18_01+20+08'
     azimuth_file_name = current_primary_file + 'az.txt'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\

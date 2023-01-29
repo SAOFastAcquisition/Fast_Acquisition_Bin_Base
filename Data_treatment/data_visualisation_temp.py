@@ -321,12 +321,24 @@ def unite_spectrum(spec):
     return united_spec
 
 
+def ngi_temperature(_f, _case_id, _path):
+
+    with open(_path, 'rb') as _inp:
+        _data_saved = pickle.load(_inp)
+    _arr_av_left = _data_saved['polyval_coeff'][data['case_id'] == _case_id][data['polar'] == 'left'].iloc[0]
+    _arr_av_right = _data_saved['polyval_coeff'][data['case_id'] == _case_id][data['polar'] == 'right'].iloc[0]
+    _temp_interp_left = np.polyval(_arr_av_left, _f)
+    _temp_interp_right = np.polyval(_arr_av_right, _f)
+
+    return _temp_interp_left, _temp_interp_right
+
+
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0, 8  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 11, 21  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 0, 8  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 11, 21
+    t_cal0, t_cal1 = 0, 5.5  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 7, 12  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 0, 5.5  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 7, 12
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -520,9 +532,9 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
         _receiver_temperature = pickle.load(_inp)
 
     temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
-                                                     '2022-06-28'][_receiver_temperature['polar'] == 'left'].iloc[0]
+                                                     '2022-11-18'][_receiver_temperature['polar'] == 'left'].iloc[0]
     temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
-                                                      '2022-06-28'][_receiver_temperature['polar'] == 'right'].iloc[0]
+                                                      '2022-11-18'][_receiver_temperature['polar'] == 'right'].iloc[0]
     _l = np.size(temp_left)
     _l1 = int(_l / 2)
     temp_left0 = temp_left[0: _l1]
@@ -686,8 +698,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-23_05+12'
-    current_primary_dir = '2022_12_23_3C273'
+    current_primary_file = '2022-12-18_07+08bb'
+    current_primary_dir = '2022_12_18crab'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -706,11 +718,11 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 32  # Установка разрешения по частоте в МГц
-    kt = 512  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 8  # Установка разрешения по частоте в МГц
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
-    t_cal0, t_cal1 = 50, 90  # Интервал нагрузки на черное тело, сек
+    t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
 
     att_val = [i * 0.5 for i in range(64)]
@@ -725,9 +737,9 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
-    black_body_calibr = 'n'
-    save_data = 'y'  # Сохранение сканов в формате *.npy: 'y' / 'n'
+    noise_calibr = 'n'
+    black_body_calibr = 'y'
+    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'

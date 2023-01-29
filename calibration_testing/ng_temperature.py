@@ -286,11 +286,7 @@ if __name__ == '__main__':
     ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
                                                                                        # == '2022-11-24']
     plot_ngi(ngi_selected1)
-    # plt.plot(ngi_selected1l['low_band'][1])
-    # plt.plot(ngi_selected1l['upper_band'][1])
-    # plt.plot(ngi_temperature_low_r)
-    # plt.plot(ngi_temperature_upper_r)
-    # plt.show()
+
     # *******************************************
     #       *** Запись новых данных или обновление старых ***
 
