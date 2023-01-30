@@ -528,19 +528,26 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
     n_av_loc = 10   # Половина длины последовательности отсчетов для усреднения функцией treatment_null_mesh(,_s0,)
     _s_threshold = 1e6  # Порог для значений исходного массива _spectrum для функции del_random_mod(,_n,)
     # Закрузка температуры собственных шумов приемника
-    with open(_receiver_temperature_path, 'rb') as _inp:
-        _receiver_temperature = pickle.load(_inp)
+    _s = _spectrum.iloc(0)
+    if len(_spectrum.iloc(0)):
+        _l1 = len(_spectrum.iloc(0))
 
-    temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
-                                                     '2022-11-18'][_receiver_temperature['polar'] == 'left'].iloc[0]
-    temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
-                                                      '2022-11-18'][_receiver_temperature['polar'] == 'right'].iloc[0]
-    _l = np.size(temp_left)
-    _l1 = int(_l / 2)
-    temp_left0 = temp_left[0: _l1]
-    temp_left1 = temp_left[_l1: _l]
-    temp_right0 = temp_right[0: _l1]
-    temp_right1 = temp_right[_l1: _l]
+    # temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+    #                                                  '2022-11-18'][_receiver_temperature['polar'] == 'left'].iloc[0]
+    # temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+    #                                                  '2022-11-18'][_receiver_temperature['polar'] == 'right'].iloc[0]
+    # _l = np.size(temp_left)
+    # temp_left0 = temp_left[0: _l1]
+    # temp_left1 = temp_left[_l1: _l]
+    # temp_right0 = temp_right[0: _l1]
+    # temp_right1 = temp_right[_l1: _l]
+
+    _receiver_temp = receiver_noise_temperature(receiver_polyval_coeff_path, int(_l1 * 2), '01')
+
+    temp_left0 = _receiver_temp[0: _l1]
+    temp_left1 = _receiver_temp[_l1: _l]
+    temp_right0 = _receiver_temp[0: _l1]
+    temp_right1 = _receiver_temp[_l1: _l]
 
     # Интервалы в отсчетах для калибровки по внутреннему ГШ
     n_cal0, n_cal1 = int(t_cal0 // delta_t), int(t_cal1 // delta_t)
@@ -642,6 +649,16 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
     return _spectrum
 
 
+def receiver_noise_temperature(_path, _n, _case):
+    with open(_path, 'rb') as _inp:
+        _interpol_coefficients = pickle.load(_inp)
+    _polinom_array = _interpol_coefficients.polyval_coeff[_interpol_coefficients.case_id == _case].iloc(0)
+    _df = 2000 / _n
+    _freq = [1000 + df / 2 + df * i for i in range(_n)]
+    _receiver_temp = np.polyval(_polinom_array, _freq)
+    return _receiver_temp
+
+
 def freq_mask(_i):
     _n1 = 2
     _n2 = 2
@@ -709,17 +726,19 @@ if __name__ == '__main__':
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file = 'receiver_temperature.npy'  #
+    receiver_polyval_file = 'receiver_temp_interpol.npy'
     ant_coeff_file = 'ant_afc.txt'
 
     ngi_temperature_path = Path(adr1.head_path, 'Alignment', ngi_temperature_file_name)
     receiver_temperature_path = Path(adr1.head_path, 'Alignment', receiver_temperature_file)
+    receiver_polyval_coeff_path = Path(adr1.head_path, 'Alignment', receiver_polyval_file)
     ant_coeff_path = Path(adr1.head_path, 'Alignment', ant_coeff_file)
 
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 64  # Установка разрешения по частоте в МГц
+    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
