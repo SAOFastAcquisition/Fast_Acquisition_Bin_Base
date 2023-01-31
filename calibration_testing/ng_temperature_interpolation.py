@@ -5,7 +5,7 @@ import pickle
 import os
 from pathlib import Path
 from Help_folder.paths_via_class import path_to_data
-from scipy.interpolate import splrep, BSpline
+# from scipy.interpolate import splrep, BSpline
 
 
 def plot_RTI(_data, _x):

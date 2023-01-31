@@ -62,12 +62,12 @@ def differ(_s, _num_mask):
 
 
 def zone_deletion(_s, _flag):
-    # Исключение зон действия режекторных фильтров
+    # Исключение зон действия режекторных фильтров при обратном порядке отсчетов частоты во второй зоне Найквиста
     k1 = int((1090 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k2 = int((1220 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k3 = int((1520 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
     k4 = int((1700 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
-    k6 = 1024
+    k6 = int(1000 / _delta_f * aver_param_noise)
     k5 = int((770 - _delta_f / 2 / aver_param_noise) // (_delta_f / aver_param_noise))
 
     if _flag == 'matched':

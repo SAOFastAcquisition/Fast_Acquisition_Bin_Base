@@ -527,11 +527,24 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
 
     n_av_loc = 10   # Половина длины последовательности отсчетов для усреднения функцией treatment_null_mesh(,_s0,)
     _s_threshold = 1e6  # Порог для значений исходного массива _spectrum для функции del_random_mod(,_n,)
-    # Закрузка температуры собственных шумов приемника
-    _s = _spectrum.iloc(0)
-    if len(_spectrum.iloc(0)):
-        _l1 = len(_spectrum.iloc(0))
-
+    #                   *** Загрузка температуры собственных шумов приемника ***
+    #              **** Через интерполяцию средней температуры по серии измерений ****
+    #
+    _s = _spectrum.iloc[0][0, :]
+    if len(_s):
+        _l1 = len(_s)
+    else:
+        _l1 = len(_spectrum.iloc[0][2, :])
+    _l = int(2 * _l1)
+    _receiver_temp = receiver_noise_temperature(receiver_polyval_coeff_path, _l, '03')
+    temp_left0 = _receiver_temp[0: _l1]
+    temp_left1 = _receiver_temp[_l1: _l]
+    temp_right0 = _receiver_temp[0: _l1]
+    temp_right1 = _receiver_temp[_l1: _l]
+    #           *** Загрузка температуры собственныхшумов непосредственно ***
+    #                  *** из результатов измерений ***
+    # with open(_receiver_temperature_path, 'rb') as _inp:
+    #     _receiver_temperature = pickle.load(_inp)
     # temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
     #                                                  '2022-11-18'][_receiver_temperature['polar'] == 'left'].iloc[0]
     # temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
@@ -542,14 +555,7 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
     # temp_right0 = temp_right[0: _l1]
     # temp_right1 = temp_right[_l1: _l]
 
-    _receiver_temp = receiver_noise_temperature(receiver_polyval_coeff_path, int(_l1 * 2), '01')
-
-    temp_left0 = _receiver_temp[0: _l1]
-    temp_left1 = _receiver_temp[_l1: _l]
-    temp_right0 = _receiver_temp[0: _l1]
-    temp_right1 = _receiver_temp[_l1: _l]
-
-    # Интервалы в отсчетах для калибровки по внутреннему ГШ
+    # Интервалы в отсчетах для калибровки по черному телу
     n_cal0, n_cal1 = int(t_cal0 // delta_t), int(t_cal1 // delta_t)
 
     # Пересчет данных из относительных единиц в температуру для левой поляризации
@@ -650,11 +656,19 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
 
 
 def receiver_noise_temperature(_path, _n, _case):
+    """
+    Функция принимает путь к коэффициентам полинома аппроксимации температуры собственных шумов радиометра,
+    длину вектора-аргумента частот и идентификатор серии измерений, по которой аппроксимируется температура.
+    :param _path:   путь к коэффициентам полинома аппроксимации
+    :param _n:      длина вектора-аргумента частот
+    :param _case:   идентификатор серии измерений
+    :return: расчетные значения температуры собственных шумов для вектора аргументов (по частоте)
+    """
     with open(_path, 'rb') as _inp:
         _interpol_coefficients = pickle.load(_inp)
-    _polinom_array = _interpol_coefficients.polyval_coeff[_interpol_coefficients.case_id == _case].iloc(0)
+    _polinom_array = _interpol_coefficients.polyval_coeff[_interpol_coefficients.case_id == _case].iloc[0]
     _df = 2000 / _n
-    _freq = [1000 + df / 2 + df * i for i in range(_n)]
+    _freq = [1000 + _df / 2 + _df * i for i in range(_n)]
     _receiver_temp = np.polyval(_polinom_array, _freq)
     return _receiver_temp
 
@@ -756,10 +770,10 @@ if __name__ == '__main__':
     # *****************************************************
     output_picture_mode = 'y'
     align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'n'
-    black_body_calibr = 'y'
+    noise_calibr = 'y'
+    black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    lf_filter = 'y'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
