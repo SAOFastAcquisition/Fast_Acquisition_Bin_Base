@@ -403,15 +403,15 @@ if __name__ == '__main__':
     # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_data_dir = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
+    # current_data_dir = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    # current_data_dir = '2022'
+    current_data_dir = '2022'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2021_12_22sun'
-    current_primary_file = '2021-12-22_07+00'
+    current_primary_dir = '2022_10_24test'
+    current_primary_file = '2022-10-24_01'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
@@ -431,13 +431,13 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -446,11 +446,11 @@ if __name__ == '__main__':
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
     output_picture_mode = 'y'
-    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
+    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    low_noise_spectrum = 'y'    # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     robust_filter = 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
@@ -471,15 +471,17 @@ if __name__ == '__main__':
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
         if head['att3'] == 5:
-            pos = 3
+            pos = 8
         elif head['att3'] == 0:
-            pos = 3
+            pos = 6
         else:
             pos = 3
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
                            head, path_output, pos)
+        spectr_extr_left1 = spectr_extr_left1 / 140000
+        spectr_extr_left2 = spectr_extr_left2 / 140000
         print('spectrum is aligned')
 
     # Приведение порядка следования отсчетов по частоте к нормальному
@@ -572,8 +574,11 @@ if __name__ == '__main__':
     # ***********************************************************************
     if lf_filter == 'y':
         spectr_time = signal_filtering(spectr_time, 0.003)
+
+    # ***********************************************************************
+    #               ****** Low noise spectra ******
     if low_noise_spectrum == 'y':
-        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768)
+        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768 // 2)
         if kt == 1 & kf == 1:
             m, n = spectrum_signal_av.shape
             f_max = 1 / delta_t / 2
@@ -581,6 +586,7 @@ if __name__ == '__main__':
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
         plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
+    #                       *****************************
 
     if output_picture_mode == 'y':
         fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)

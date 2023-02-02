@@ -675,17 +675,17 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 2
-    _n2 = 2
+    _n2 = 8
     _freq_mask = [
         [1350],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 24 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 15 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
-        [1200, 1380, 1465, 1600, 1700, 2265, 2510, 2710, 2800, 2920]  # [8]
+        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2860]  # [8]
     ]
     return _freq_mask[_i]
 
@@ -729,14 +729,15 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-18_07+08bb'
-    current_primary_dir = '2022_12_18crab'
+    current_primary_file = '2022-10-24_02'
+    current_primary_dir = '2022_10_24test'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
     converted_data_file_path = adr1.converted_data_file_path
     data_treatment_file_path = adr1.treatment_data_file_path
+    folder_align_path = Path(adr1.head_path, 'Alignment')
 
     ngi_temperature_file_name = 'ngi_temperature.npy'  # Файл усредненной по базе шумовой температуры для ГШ
     receiver_temperature_file = 'receiver_temperature.npy'  #
@@ -752,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 64  # Установка разрешения по частоте в МГц
-    kt = 128  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -769,12 +770,12 @@ if __name__ == '__main__':
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
     output_picture_mode = 'y'
-    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
+    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    noise_calibr = 'n'
     black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'y'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    low_noise_spectrum = 'y'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
     poly3d_perm = 'n'
@@ -794,15 +795,17 @@ if __name__ == '__main__':
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
         if head['att3'] == 5:
-            pos = 2
+            pos = 8
         elif head['att3'] == 0:
-            pos = 2
+            pos = 6
         else:
             pos = 2
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
                            head, path_output, pos)
+        spectr_extr_left1 = spectr_extr_left1 / 140000
+        spectr_extr_left2 = spectr_extr_left2 / 140000
         print('spectrum is aligned')
 
     # Приведение порядка следования отсчетов по частоте к нормальному
@@ -893,8 +896,11 @@ if __name__ == '__main__':
     # ***********************************************************************
     if lf_filter == 'y':
         spectr_time = signal_filtering(spectr_time, 0.3)
+
+    # ***********************************************************************
+    #               ****** Low noise spectra ******
     if low_noise_spectrum == 'y':
-        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768)
+        spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768 // 4)
         if kt == 1 & kf == 1:
             m, n = spectrum_signal_av.shape
             f_max = 1 / delta_t / 2
@@ -902,6 +908,7 @@ if __name__ == '__main__':
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
         plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
+    #                       *****************************
 
     if output_picture_mode == 'y':
         fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)

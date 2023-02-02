@@ -118,13 +118,13 @@ def convert_to_txt(path_to_align, _index):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2022-03-19_RP'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2022_03_18calibr_conv'  # Папка с текущими данными
+current_data_file = '2022-10-24_03'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2022_10_24test_conv'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 if current_data_file[0:4] == '2021':
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 if current_data_file[0:4] == '2022':
-    current_catalog = r'2022/Converted_data'
+    current_catalog = r'2022/Test_and_calibration/Converted_data'
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
@@ -244,6 +244,7 @@ with open(Path(folder_align_path, align_file_name), 'wb') as out:
 
 with open(Path(folder_align_path, align_file_name), 'rb') as inp:
     calibration_frame_inp = pickle.load(inp)
+    pass
 
 pass
 # convert_to_txt(Path(folder_align_path, align_file_name), 0)
