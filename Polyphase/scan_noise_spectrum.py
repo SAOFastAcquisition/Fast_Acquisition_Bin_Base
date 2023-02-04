@@ -41,7 +41,7 @@ def plot_low_freq_spec(_spectrum, _delta_t, _path_to_picture_folder, _line_legen
     axes.set_yscale('log')
     axes.set_xscale('log')
     axes.set_xlabel('Freq, Hz', fontsize=18)
-    axes.set_ylabel('Spectral Density, K*K/Hz', fontsize=20)
+    axes.set_ylabel('Spectral Density, $K^2/Hz$', fontsize=20)
     for i in range(m):
         axes.plot(arg[0:n//2], _spectrum[i, 0:n//2], label=_line_legend[i])
     axes.legend()

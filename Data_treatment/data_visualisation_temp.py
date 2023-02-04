@@ -680,9 +680,9 @@ def freq_mask(_i):
         [1350],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 15 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 20 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
-        [1230, 1560, 2300, 2910],  # [5]
+        [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
         [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2860]  # [8]
@@ -729,8 +729,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-10-24_02'
-    current_primary_dir = '2022_10_24test'
+    current_primary_file = '2022-12-17_01+24'
+    current_primary_dir = '2022_12_17sun'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -752,7 +752,7 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 64  # Установка разрешения по частоте в МГц
+    freq_res = 32  # Установка разрешения по частоте в МГц
     kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(5)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -769,15 +769,15 @@ if __name__ == '__main__':
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'y'
+    output_picture_mode = 'т'
     align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
     black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'y'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'n'
+    contour_2d_perm = 'y'
     poly3d_perm = 'n'
 
     # *****************************************************
@@ -838,8 +838,8 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    # time_spect_mask = [110, 123, 181, 210, 232]
+    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    time_spect_mask = [0.5, 2, 4, 6, 8, 10, 13, 19]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 
@@ -864,6 +864,7 @@ if __name__ == '__main__':
     elif band_size_init == 'whole':
         freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
     timeS = np.linspace(0, delta_t * N_row, N_row // kt)
+    # timeS = []
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
@@ -895,7 +896,7 @@ if __name__ == '__main__':
             np.save(path_mesh, spectrum_mesh)
     # ***********************************************************************
     if lf_filter == 'y':
-        spectr_time = signal_filtering(spectr_time, 0.3)
+        spectr_time = signal_filtering(spectr_time, 1.0)
 
     # ***********************************************************************
     #               ****** Low noise spectra ******
@@ -918,7 +919,7 @@ if __name__ == '__main__':
     # ***            Многооконный вывод данных             ****
     # *********************************************************
     if output_picture_mode == 'no':
-        t_start, t_stop = 150, 320
+        t_start, t_stop = 175, 215
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
         fp.fig_multi_axes(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
                           path1,
@@ -942,7 +943,7 @@ if __name__ == '__main__':
         nf_start = int((f_start - 1000) / freq_res)
         fp.graph_3d(freq[nf_start:], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:], 0, path1, head)
     if contour_2d_perm == 'y':
-        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
+        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt)
 
     if poly3d_perm == 'y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)

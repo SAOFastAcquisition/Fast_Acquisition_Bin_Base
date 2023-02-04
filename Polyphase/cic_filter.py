@@ -95,18 +95,19 @@ class MafFilter:
 
 
 def signal_filtering(_signal, delta_f):
+    _p = 7
     _f = MafFilter(_signal)
-    _filt = _f.maf_fir(3)
+    _filt = _f.maf_fir(_p)
     _signal1 = _signal.copy()
     _std = np.std(_signal - _filt)
     _f = MafFilter(_signal)
     _signal[abs(_signal[:] - _filt[:]) > 2 * _std] = _filt[abs(_signal[:] - _filt[:]) > 2 * _std]
     _std1 = np.std(_signal - _filt)
-    _filt = _f.maf_fir(3)
+    _filt = _f.maf_fir(_p)
     _signal[abs(_signal[:] - _filt[:]) > 2 * _std] = _filt[abs(_signal[:] - _filt[:]) > 2 * _std]
     _std2 = np.std(_signal - _filt)
     _f = MafFilter(_signal)
-    return _f.maf_fir(3)
+    return _f.maf_fir(_p)
 
 
 def model_signal():
