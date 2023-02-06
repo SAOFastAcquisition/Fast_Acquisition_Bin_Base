@@ -352,7 +352,7 @@ def path_to_pic(file_path, flag, _format='png'):
 
 def graph_contour_2d(*args):
     import matplotlib.font_manager as font_manager
-    xval, yval, z, s, _info_txt = args
+    xval, yval, z, s, _info_txt, _current_file = args
     x, y = np.meshgrid(xval, yval)
     z = np.log10(z)
 
@@ -364,7 +364,7 @@ def graph_contour_2d(*args):
     fig, ax1 = plt.subplots(1, figsize=(12, 6))
 
     cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
-
+    fig.suptitle('Sun spectrum ' + _current_file, y=1.0, fontsize=24)
     x_min = xval[1]
     y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
     y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
