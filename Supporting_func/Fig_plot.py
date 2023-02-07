@@ -201,6 +201,14 @@ def title_func(file_name0, head):
         title2 = '3C84 intensity'
         title02 = '3C84 spectrum '
 
+    elif not file_name0.find('3C273') == -1:
+        title2 = '3C273 intensity'
+        title02 = '3C273 spectrum '
+
+    elif not file_name0.find('crab') == -1:
+        title2 = 'Crab_Nebula intensity'
+        title02 = 'Crab_Nebula spectrum '
+
     elif not file_name0.find('calibration') == -1:
         title2 = 'Calibration'
         title02 = 'Calibration spectrum '
