@@ -125,7 +125,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
         if flag:
             set_zoom = 1600, 1750, 4e8, 2.5e9
         else:
-            set_zoom = 85, 100, 0, 2500
+            set_zoom = 190, 195, 0, 35000
         axins = insert_zoom(ax, argument, spectr1, line_color, line_legend, set_zoom)
         ax.indicate_inset_zoom(axins, edgecolor="black")
 
@@ -145,7 +145,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     return fig, file_name0, flag, format
 
 
-def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.53, 0.6, 0.35, 0.3]):
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.55, 0.45, 0.33, 0.48]):
     """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
     родительского рисунка, тот же массив
     аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
@@ -167,6 +167,7 @@ def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_p
     axins.set_ylim(y1, y2)
     axins.set_xticklabels('')
     axins.yaxis.set_major_formatter(sf)
+    axins.xaxis.set_major_formatter(sf)
     # axins.set_yticklabels('')
     return axins
 
@@ -190,8 +191,8 @@ def title_func(file_name0, head):
             title1 = date + ', az = ' + az + ', Black Body/Sky, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
 
     elif not file_name0.find('crab') == -1:
-        title2 = 'Crab intensity'
-        title02 = 'Crab spectrum '
+        title2 = 'Crab Nebula intensity'
+        title02 = 'Crab Nebula spectrum '
 
     elif not file_name0.find('moon') == -1:
         title2 = 'Moon intensity'
@@ -261,7 +262,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
     # line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen',
     # 'magenta', 'dodgerblue']
 
-    fig.suptitle(title2 + ' scan' + title1, y=1.0, fontsize=24)
+    fig.suptitle(title2 + ' scan ' + title1, y=1.0, fontsize=24)
 
     for i_freq in range(freq_line_sp1):
         axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2])
