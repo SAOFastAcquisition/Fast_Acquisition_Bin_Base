@@ -119,7 +119,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     if flag:
         logic = False
     else:
-        logic = True
+        logic = False
 
     if logic:
         if flag:

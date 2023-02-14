@@ -729,8 +729,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-17_01+24'
-    current_primary_dir = '2022_12_17sun'
+    current_primary_file = '2022-11-24_06'
+    current_primary_dir = '2022_11_24test'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -797,15 +797,21 @@ if __name__ == '__main__':
         if head['att3'] == 5:
             pos = 8
         elif head['att3'] == 0:
-            pos = 6
+            pos = 7
         else:
-            pos = 2
+            pos = 8
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
                            head, path_output, pos)
-        spectr_extr_left1 = spectr_extr_left1 / 140000
-        spectr_extr_left2 = spectr_extr_left2 / 140000
+        if len(spectr_extr_left1):
+            spectr_extr_left1 = spectr_extr_left1 / 140000
+        if len(spectr_extr_left2):
+            spectr_extr_left2 = spectr_extr_left2 / 140000
+        if len(spectr_extr_right1):
+            spectr_extr_right1 = spectr_extr_right1 / 140000
+        if len(spectr_extr_right2):
+            spectr_extr_right2 = spectr_extr_right2 / 140000
         print('spectrum is aligned')
 
     # Приведение порядка следования отсчетов по частоте к нормальному

@@ -28,7 +28,8 @@ def noise_kp(file_name, n_nyq, diff='n'):
 
 
 def align_func(calibr_file_name: object, diff: object = 'n', aver_param: object = 2) -> object:
-    """ Функция возвращает коэффициенты, выравнивающие исходную АЧХ
+    """
+    Функция возвращает коэффициенты, выравнивающие исходную АЧХ
 
     """
     # Исходные данные
@@ -137,7 +138,6 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibr
         # file_name_calibr2: str = path_calibration + r'\Calibr_Ant1_3.txt'
         # file_name_calibr3: str = path_calibration + r'\Calibr_Ant2_2.txt'
         # file_name_calibr4: str = path_calibration + r'\Calibr_Ant2_3.txt'
-
 
     if l1:
         spectrum1 = spectrum1 * align_coeff_matched[0]
