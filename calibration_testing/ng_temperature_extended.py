@@ -73,11 +73,12 @@ def temperature_ngi(_spectrum, polarization, time_borders):
     temp_rec1 = temp_nge1 * temperature_scale_rt1 - 300
     temp_rec0 = del_random_mod(temp_rec0, 20)
     temp_rec1 = del_random_mod(temp_rec1, 20)
+    c0, c1 = ant_calibr_coeff(av_gne0, av_gne1, temp_nge0, temp_nge1, k_zone)
 
-    plt.plot(f0, temp_ngi0)
-    plt.plot(f1, temp_ngi1)
-    plt.plot(f0, temp_rec0)
-    plt.plot(f1, temp_rec1)
+    plt.plot(f0, c0)
+    plt.plot(f1, c1)
+    # plt.plot(f0, temp_rec0)
+    # plt.plot(f1, temp_rec1)
 
     plt.grid()
     plt.show()
@@ -105,11 +106,82 @@ def filter_zone(_scale0, _scale1, _k):
     return _scale0, _scale1
 
 
-def ant_calibr_coeff(_s0, _s1, _t_nge0, _t_nge1, _k, _polar):
-    _c0 = [1] * 1024
-    _c1 = [1] * 1024
-
+def ant_calibr_coeff(_s0, _s1, _t_nge0, _t_nge1, _k):
+    _c0 = [0] * 1024
+    _c1 = [0] * 1024
+    _t_nge0 = _t_nge0[-1::-1]
+    _c0[_k[5]:-20] = _t_nge0[_k[5]:-20] / _s0[_k[5]:-20]
+    _c1[32:_k[0]] = _t_nge1[32:_k[0]] / _s1[32:_k[0]]
+    _c1[_k[1]:_k[2]] = _t_nge1[_k[1]:_k[2]] / _s1[_k[1]:_k[2]]
+    _c1[_k[3]:-46] = _t_nge1[_k[3]:-46] / _s1[_k[3]:-46]
+    _c0 = _c0[-1::-1]
     pass
+    return _c0, _c1
+
+
+def save_ant_calibr_coeff(_c0, _c1, _polarisation):
+
+    _columns_names = ['date', 'att1', 'att2', 'att3',
+                     'spectrum_left1', 'polar', 'spectrum_left2', 'spectrum_right1',
+                     'spectrum_right2', 'flag_align']
+    if not os.path.isfile(Path(folder_align_path, align_file_name)):
+        calibration_frame = pd.DataFrame(columns=columns_names)
+    else:
+        with open(Path(folder_align_path, align_file_name), 'rb') as inp:
+            calibration_frame = pickle.load(inp)
+
+    align_coeff = [] * 4
+    if _polarisation == 'left':
+        align_coeff[0] = _c0
+        align_coeff[1] = _c1
+    else:
+        align_coeff[2] = _c0
+        align_coeff[3] = _c1
+    flag_align = 0
+    # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
+    # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
+    calibrate_row = {'date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
+                     'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
+                     'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
+                     'flag_align': flag_align}  # 'flag_align' - признак выравнивания по всему диапазону : 1 - сделано
+    calibrate_row_ser = pd.Series(calibrate_row)
+
+    # Определяем, есть ли в сводной таблице данные с такими же исходными параметрами. Если есть, то будет их
+    # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
+    # вставлен в таблицу (объект DataFrame)
+
+    if not 'polar' in calibration_frame.columns:
+        calibration_frame.polar = ''
+    idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+                                & (calibration_frame.att1 == head['att1'])
+                                & (calibration_frame.att2 == head['att2'])
+                                & (calibration_frame.att3 == head['att3'])
+                                & (calibration_frame.polar == head['polar'])].index  #
+
+    if len(idx):
+        r = calibration_frame.iloc[idx[0]]
+        # Определяем, есть ли пустые поля в выделенной из таблицы строке. Если есть, то эти поля будут
+        # заполнены из имеющегося объекта  Series
+        ax_bool = r.isnull()
+        r[ax_bool] = calibrate_row_ser[ax_bool]
+        # Остались ли в r незаполненные поля
+        ax_bool = r.isnull()
+
+        if ('True' not in ax_bool) and (r['flag_align']) == 0:
+            # Выравнивание коэффициентов по каналам (левой и правой поляризаций)
+            channels_align = r['max_left1'] / r['max_right1']
+            r['spectrum_right1'] = r['spectrum_right1'] * channels_align
+            r['spectrum_right2'] = r['spectrum_right2'] * channels_align
+            r['flag_align'] = 1
+            # Если пустые поля заполнились ('True' not in ax_bool) и ранее эта строчка не была полностью сформирована
+            # ('flag_align': 0), то строка с номером idx[0] будет удалена из объекта DataFrame и вставлена новая,
+            # полностью заполненная r
+            calibration_frame = calibration_frame.drop(idx).append(r, ignore_index=True)
+    else:
+        calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
+    # calibration_frame = calibration_frame.drop(axis=0, index=[2, 3])
+    with open(Path(folder_align_path, align_file_name), 'wb') as out:
+        pickle.dump(calibration_frame, out)
 
 
 def temperature_nge(_f, t0=300):
