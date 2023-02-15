@@ -519,9 +519,9 @@ def title_func(file_name0, _head):
 
 
 if __name__ == '__main__':
-    align = 'n'
+    align = 'y'
     channel_align = 'y'
-    v_deviation = 'y'
+    v_deviation = 'n'
 
     current_primary_dir = '2022_06_18sun'
     current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения

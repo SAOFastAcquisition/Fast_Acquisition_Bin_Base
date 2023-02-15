@@ -8,7 +8,17 @@ from pathlib import Path
 from Supporting_func.stocks_coefficients import path_to_data
 
 
-def temperature_ngi(_spectrum, polarization, time_borders):
+def temperature_ngi(_spectrum, polarization, time_borders, _path):
+    '''
+
+    :param _spectrum:    Калибровочные данные с участием эталонного ГШ
+    :param polarization: Поляризация калибровочных данных _spectrum
+    :param time_borders: Времена включения/переключения/выключения источников шума на входе приемника:
+                         эталонный ГШ, согласованная нагрузка, внутренний ГШ (time0, time1, time2, time3)
+    :param _path: Путь для сохранения калибровочных по эталонному ГШ коэффициентов перехода к
+                  антенным температурам
+    :return:
+    '''
     _delta_t = 8.3886e-3
     _delta_f = 7.8125
     aver_param_noise = 8
@@ -73,7 +83,15 @@ def temperature_ngi(_spectrum, polarization, time_borders):
     temp_rec1 = temp_nge1 * temperature_scale_rt1 - 300
     temp_rec0 = del_random_mod(temp_rec0, 20)
     temp_rec1 = del_random_mod(temp_rec1, 20)
+
+    #                   ***********************************************
+    #          ******* Калибровка антенной температуры по эталонному ГШ *******
+    #                   ***********************************************
+    #   Определение коэффициентов пересчета произвольных единиц в антенную температуру
     c0, c1 = ant_calibr_coeff(av_gne0, av_gne1, temp_nge0, temp_nge1, k_zone)
+    #   Запись коэффициентов пересчета в файл
+    save_ant_calibr_coeff(c0, c1, polarization, _path)
+    #                   ***********************************************
 
     plt.plot(f0, c0)
     plt.plot(f1, c1)
@@ -97,9 +115,9 @@ def filter_zone(_scale0, _scale1, _k):
     _scale1[_k[0]:_k[1]] = 0
     _scale1[_k[2]:_k[3]] = 0
     _scale0[_k[4]:_k[5]] = 0
-    _scale1[0:32] = 0       # Антиэлайзинговый фильтр
-    _scale1[-46:] = 0       # Антиэлайзинговый фильтр
-    _scale0[-20:] = 0       # Антиэлайзинговый фильтр
+    _scale1[0:32] = 0  # Антиэлайзинговый фильтр
+    _scale1[-46:] = 0  # Антиэлайзинговый фильтр
+    _scale0[-20:] = 0  # Антиэлайзинговый фильтр
 
     _scale0[0:] = _scale0[-1::-1]  # Правильный порядок отсчетов для второй зоны Найквиста
 
@@ -107,6 +125,17 @@ def filter_zone(_scale0, _scale1, _k):
 
 
 def ant_calibr_coeff(_s0, _s1, _t_nge0, _t_nge1, _k):
+    """
+    Функция отдает коэффициенты перехода к антенным температурам. Отсчет частоты во второй зоне - обратный.
+    Принимает усредненные по времени наблюдения значения спектра эталонного ГШ в произвольных единицах во второй и
+    третьей зонах Найквиста и шумовую температуру ГШ. Отсчет частоты во второй зоне - обратный.
+    :param _s0:     Усредненный спектр во второй зоне Найквиста
+    :param _s1:     Усредненный спектр в третьей зоне Найквиста
+    :param _t_nge0: Шумовая температура эталонного ГШ во второй зоне
+    :param _t_nge1: Шумовая температура эталонного ГШ в первой зоне
+    :param _k:      Границы действия режекторных фильтров в отсчетах по зонам Найквиста
+    :return:        Коэффициенты перехода к антенным температурам
+    """
     _c0 = [0] * 1024
     _c1 = [0] * 1024
     _t_nge0 = _t_nge0[-1::-1]
@@ -114,23 +143,32 @@ def ant_calibr_coeff(_s0, _s1, _t_nge0, _t_nge1, _k):
     _c1[32:_k[0]] = _t_nge1[32:_k[0]] / _s1[32:_k[0]]
     _c1[_k[1]:_k[2]] = _t_nge1[_k[1]:_k[2]] / _s1[_k[1]:_k[2]]
     _c1[_k[3]:-46] = _t_nge1[_k[3]:-46] / _s1[_k[3]:-46]
-    _c0 = _c0[-1::-1]
+    # _c0 = _c0[-1::-1]
     pass
     return _c0, _c1
 
 
-def save_ant_calibr_coeff(_c0, _c1, _polarisation):
+def save_ant_calibr_coeff(_c0, _c1, _polarisation, _path):
+    """
+    Функция сохраняет в файл atc_file_name = 'antenna_temperature_coefficients.npy' коэффициенты перехода к
+    антенным температурам с учетом поляризации _c0, _c1
+    :param _c0:             Коэффициенты для второй зоны Найквиста
+    :param _c1:             Коэффициенты для первой зоны Найквиста
+    :param _polarisation:   Поляризация коэффициентов
+    :param _path:           Путь для сохранения
+    :return:
+    """
 
-    _columns_names = ['date', 'att1', 'att2', 'att3',
-                     'spectrum_left1', 'polar', 'spectrum_left2', 'spectrum_right1',
-                     'spectrum_right2', 'flag_align']
-    if not os.path.isfile(Path(folder_align_path, align_file_name)):
-        calibration_frame = pd.DataFrame(columns=columns_names)
+    _columns_names = ['date', 'att1', 'att2', 'att3', 'polar',
+                      'spectrum_left1', 'spectrum_left2', 'spectrum_right1',
+                      'spectrum_right2', 'flag_align']
+    if not os.path.isfile(_path):
+        calibration_frame = pd.DataFrame(columns=_columns_names)
     else:
-        with open(Path(folder_align_path, align_file_name), 'rb') as inp:
-            calibration_frame = pickle.load(inp)
+        with open(_path, 'rb') as _inp:
+            calibration_frame = pickle.load(_inp)
 
-    align_coeff = [] * 4
+    align_coeff = [None, None, None, None]
     if _polarisation == 'left':
         align_coeff[0] = _c0
         align_coeff[1] = _c1
@@ -150,16 +188,14 @@ def save_ant_calibr_coeff(_c0, _c1, _polarisation):
     # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
     # вставлен в таблицу (объект DataFrame)
 
-    if not 'polar' in calibration_frame.columns:
-        calibration_frame.polar = ''
-    idx = calibration_frame.loc[(calibration_frame.date == head['date'])
-                                & (calibration_frame.att1 == head['att1'])
-                                & (calibration_frame.att2 == head['att2'])
-                                & (calibration_frame.att3 == head['att3'])
-                                & (calibration_frame.polar == head['polar'])].index  #
+    _idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+                                 & (calibration_frame.att1 == head['att1'])
+                                 & (calibration_frame.att2 == head['att2'])
+                                 & (calibration_frame.att3 == head['att3'])
+                                 ].index  # & (calibration_frame.polar == head['polar'])
 
-    if len(idx):
-        r = calibration_frame.iloc[idx[0]]
+    if len(_idx):
+        r = calibration_frame.iloc[_idx[0]]
         # Определяем, есть ли пустые поля в выделенной из таблицы строке. Если есть, то эти поля будут
         # заполнены из имеющегося объекта  Series
         ax_bool = r.isnull()
@@ -168,20 +204,18 @@ def save_ant_calibr_coeff(_c0, _c1, _polarisation):
         ax_bool = r.isnull()
 
         if ('True' not in ax_bool) and (r['flag_align']) == 0:
-            # Выравнивание коэффициентов по каналам (левой и правой поляризаций)
-            channels_align = r['max_left1'] / r['max_right1']
-            r['spectrum_right1'] = r['spectrum_right1'] * channels_align
-            r['spectrum_right2'] = r['spectrum_right2'] * channels_align
             r['flag_align'] = 1
+            r['polar'] = 'both'
             # Если пустые поля заполнились ('True' not in ax_bool) и ранее эта строчка не была полностью сформирована
             # ('flag_align': 0), то строка с номером idx[0] будет удалена из объекта DataFrame и вставлена новая,
             # полностью заполненная r
-            calibration_frame = calibration_frame.drop(idx).append(r, ignore_index=True)
+            calibration_frame = calibration_frame.drop(_idx).append(r, ignore_index=True)
     else:
         calibration_frame = calibration_frame.append(calibrate_row_ser, ignore_index=True)
     # calibration_frame = calibration_frame.drop(axis=0, index=[2, 3])
-    with open(Path(folder_align_path, align_file_name), 'wb') as out:
-        pickle.dump(calibration_frame, out)
+    with open(_path, 'wb') as _out:
+        pickle.dump(calibration_frame, _out)
+        print('Коэффициенты перехода к антенным температурам сохранены')
 
 
 def temperature_nge(_f, t0=300):
@@ -264,7 +298,7 @@ def plot_ngi(_data):
     df0 = _delta_f / aver_param_noise
     f0 = np.array([1000 + df0 / 2 + i * df0 for i in range(1024)])
     f1 = np.array([2000 + df0 / 2 + i * df0 for i in range(1024)])
-    f = np.hstack([f0,f1])
+    f = np.hstack([f0, f1])
     x, y = _data['low_band'][_data['polar'] == 'left'], _data['upper_band'][_data['polar'] == 'left']
     index_x, index_y = x.index, y.index
     array_x, array_y = x[index_x[0]], y[index_y[0]]
@@ -317,27 +351,35 @@ if __name__ == '__main__':
     Создаем базу данных по измеренным шумовым температурам от внутреннего ГШ на входе радиометра
     для каждого экземпляра ГШ ***nge_temperature_base_name***, среднее значение шумовой температуры
     от этого ГШ по всем измерениям записывается в файл ***nge_temperature_file_name***
-    Этот скрипт расширен расчетом температуры собственных шумов приемника по шумовой температуре на 
+        Этот скрипт расширен расчетом температуры собственных шумов приемника по шумовой температуре на 
     нагруженном на согласованное сопротивление входе. Эталонным ГШ устанавливаем цену шкалы и из шумовой 
     температуры на входе вычитаем 300К
+        Создана база коэффициентов пересчета спектров в произвольных единицах к антенным температурам с помощью
+    эталонного ГШ, подключаемого ко входу приемника. Функция расчета: ant_calibr_coeff()
+    функция создания файла и сохранения коэффициентов: save_ant_calibr_coeff()
+        Все измерения выполняются с разрешением 1 МГц
     '''
 
-    current_data_file = '2022-11-24_05'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-11-24_08'                        # Имя файла с исходными текущими данными без расширения
     current_primary_dir = '2022_11_24test'
-    current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
-    current_catalog = r'2022/Test_and_calibration/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
+    current_data_dir = current_primary_dir + '_conv'               # Папка с текущими данными
+    current_catalog = r'2022/Test_and_calibration/Converted_data'  # Текущий каталог (за определенный период,
+    # здесь - год)
 
-    ngi_temperature_base_name = 'ngi_temperature_base1.npy'  # Базы данных по температуре ГШ на входе МШУ
-    ngi_temperature_file_name = 'ngi_temperature1.npy'  # Файл усредненной по базе шумовой температуры для ГШ
+    ngi_temperature_base_name = 'ngi_temperature_base1.npy' # Базы данных по температуре ГШ на входе МШУ
+    ngi_temperature_file_name = 'ngi_temperature1.npy'      # Файл усредненной по базе шумовой температуры для ГШ
+    atc_file_name = 'antenna_temperature_coefficients.npy'  # Файл коэффициентов пересчета к антенной температуре
     file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
+
     #                           ***********************
     # Создание или загрузка файла с шумовой температурой встроенного генератора шума
-    ngi_id = '01'  # Идентификатор встроенного генератора шума
-    case_id = '03'
-    note = '2022_11_18-24'
+    ngi_id = '01'                                           # Идентификатор встроенного генератора шума
+    case_id = '03'      # Идентификатор набора данных, по которым усредняется температура собств. шумов приемника
+    note = '2022_11_18-24'                                  # Дата или период измерений набора данных
     timing = [0, 20, 30, 50]
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
+    atc_path = Path(head_path, 'Alignment', atc_file_name)  # atc - antenna temperature coefficients
     columns_names_base = ['nge_id', 'date', 'att1', 'att2', 'att3',
                           'polar', 'attempt_num', 'low_band', 'upper_band']
     columns_names = ['ngi_id', 'polar', 'temperature', 'case_id', 'note']
@@ -352,7 +394,7 @@ if __name__ == '__main__':
     spectrum = np.load(Path(file_path_data, current_data_file + '_spectrum.npy'), allow_pickle=True)
     with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
-    r = temperature_ngi(spectrum, head['polar'], timing)
+    r = temperature_ngi(spectrum, head['polar'], timing, atc_path)
     attempt_num = current_data_file[11:13]
     idx = ngi_temperature_base.loc[(ngi_temperature_base.nge_id == ngi_id)
                                    & (ngi_temperature_base.date == head['date'])
@@ -384,8 +426,9 @@ if __name__ == '__main__':
         for n in idx_drop:
             ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
-        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
-                                                                                           # == '2022-11-24']
+        ngi_selected1 = ngi_temperature_base[
+            ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['date']
+        # == '2022-11-24']
         head['polar'] = 'right'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
@@ -394,8 +437,8 @@ if __name__ == '__main__':
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
 
     #               *** Picture ***
-    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
-                                                                                       # == '2022-11-24']
+    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['date']
+    # == '2022-11-24']
     plot_ngi(ngi_selected1)
 
     # *******************************************

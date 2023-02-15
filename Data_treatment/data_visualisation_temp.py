@@ -727,9 +727,9 @@ if __name__ == '__main__':
     # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения
     # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
-    align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-11-24_06'
+    current_primary_file = '2022-11-24_05'
     current_primary_dir = '2022_11_24test'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -777,7 +777,7 @@ if __name__ == '__main__':
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'n'
+    contour_2d_perm = 'y'
     poly3d_perm = 'n'
 
     # *****************************************************
@@ -794,24 +794,20 @@ if __name__ == '__main__':
 
     # Выравнивание спектров по результатам шумовых измерений АЧХ
     if align == 'y':
-        if head['att3'] == 5:
-            pos = 8
-        elif head['att3'] == 0:
-            pos = 7
+        if head['att3'] == 0:
+            pos = 0
+        elif head['att3'] == 5:
+            pos = 1
+        elif head['att3'] == 10:
+            pos = 2
+        elif head['att3'] == 15:
+            pos = 3
         else:
-            pos = 8
+            pos = 0
         path_output = Path(folder_align_path, align_file_name)
         spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
             align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
                            head, path_output, pos)
-        if len(spectr_extr_left1):
-            spectr_extr_left1 = spectr_extr_left1 / 140000
-        if len(spectr_extr_left2):
-            spectr_extr_left2 = spectr_extr_left2 / 140000
-        if len(spectr_extr_right1):
-            spectr_extr_right1 = spectr_extr_right1 / 140000
-        if len(spectr_extr_right2):
-            spectr_extr_right2 = spectr_extr_right2 / 140000
         print('spectrum is aligned')
 
     # Приведение порядка следования отсчетов по частоте к нормальному
@@ -844,8 +840,8 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    time_spect_mask = [0.5, 2, 4, 6, 8, 10, 13, 19]
+    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    # time_spect_mask = [0.5, 2, 4, 6, 8, 10, 13, 19]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 
