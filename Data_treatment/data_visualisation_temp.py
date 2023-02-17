@@ -674,13 +674,13 @@ def receiver_noise_temperature(_path, _n, _case):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 4
+    _n1 = 1
+    _n2 = 0
     _freq_mask = [
         [1350],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 40 + 10 * i for i in range(4)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 20 + 4 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -729,9 +729,9 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-11-24_05'
-    current_primary_dir = '2022_11_24test'
-    main_dir = '2022'
+    current_primary_file = '2023-02-10_01+20'
+    current_primary_dir = '2023_02_10sun'
+    main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 4       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 64       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -777,7 +777,7 @@ if __name__ == '__main__':
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'y'
+    contour_2d_perm = 'n'
     poly3d_perm = 'n'
 
     # *****************************************************
@@ -840,14 +840,19 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    # time_spect_mask = [0.5, 2, 4, 6, 8, 10, 13, 19]
+    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    time_spect_mask = [179.9, 180.6, 184.5, 185.1, 187.8, 188.1, 190.3, 190.7]
     # if band_size == 'whole':
     #   freq_spect_mask = []
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
     shift = head['shift']
     spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
+    line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
+    for i in range(4):
+        spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
+        line_legend_time[i] = line_legend_time[2 * i + 1]
+    spectr_freq = spectr_freq[0:4, :]
     n_freq = len(time_spect_mask)
     n_time = len(freq_spect_mask)
     for i in range(n_freq):
@@ -878,7 +883,7 @@ if __name__ == '__main__':
     # ***********************************************************************
 
     # ************************** !!! Вывод данных !!! ***********************
-    line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
+    # line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     if not 'good_bound' in head:
         head['good_bound'] = 0.1
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
