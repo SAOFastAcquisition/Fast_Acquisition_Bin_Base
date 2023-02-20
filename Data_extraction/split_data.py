@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from pathlib import Path
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 current_data_dir = '2022'
 converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков

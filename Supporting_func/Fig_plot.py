@@ -173,50 +173,51 @@ def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_p
 
 
 def title_func(file_name0, head):
-    az = file_name0[-3:]
+    az = str(file_name0)[-3:]
     att1 = str(head['att1'])
     att2 = str(head['att2'])
     att3 = str(head['att3'])
     date = head['date']
 
     title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
-    a = file_name0.find('sun', -50, -1)
-    if not file_name0.find('sun', -50, -1) == -1:
+    # a = str(file_name0).find('sun', -50, -1)
+    file_name01 = str(file_name0)
+    if not str(file_name0).find('sun', -50, -1) == -1:
         title2 = 'Sun intensity'
         title02 = 'Sun spectrum '
-        if file_name0[-1:] == 'b':
-            az = file_name0[-4:-1]
+        if str(file_name0)[-1:] == 'b':
+            az = file_name01[-4:-1]
             title2 = 'Calibration'
             title02 = 'Calibration spectrum '
             title1 = date + ', az = ' + az + ', Black Body/Sky, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
 
-    elif not file_name0.find('crab') == -1:
+    elif not file_name01.find('crab') == -1:
         title2 = 'Crab Nebula intensity'
         title02 = 'Crab Nebula spectrum '
 
-    elif not file_name0.find('moon') == -1:
+    elif not file_name01.find('moon') == -1:
         title2 = 'Moon intensity'
         title02 = 'Moon spectrum '
 
-    elif not file_name0.find('3C84') == -1:
+    elif not file_name01.find('3C84') == -1:
         title2 = '3C84 intensity'
         title02 = '3C84 spectrum '
 
-    elif not file_name0.find('3C273') == -1:
+    elif not file_name01.find('3C273') == -1:
         title2 = '3C273 intensity'
         title02 = '3C273 spectrum '
 
-    elif not file_name0.find('crab') == -1:
+    elif not file_name01.find('crab') == -1:
         title2 = 'Crab_Nebula intensity'
         title02 = 'Crab_Nebula spectrum '
 
-    elif not file_name0.find('calibration') == -1:
+    elif not file_name01.find('calibration') == -1:
         title2 = 'Calibration'
         title02 = 'Calibration spectrum '
         title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
 
-    elif not (file_name0.find('test') == -1):
-        kind = file_name0[-2:]
+    elif not (file_name01.find('test') == -1):
+        kind = file_name01[-2:]
         title2 = 'Test'
         title02 = 'Test spectrum'
         if kind == 'VG':
@@ -359,9 +360,10 @@ def path_to_pic(file_path, flag, _format='png'):
     return add_pass1
 
 
+@save_fig
 def graph_contour_2d(*args):
     import matplotlib.font_manager as font_manager
-    xval, yval, z, s, _info_txt, _current_file = args
+    xval, yval, z, s, _info_txt, _current_file, _head = args
     x, y = np.meshgrid(xval, yval)
     z = np.log10(z)
 
@@ -373,7 +375,8 @@ def graph_contour_2d(*args):
     fig, ax1 = plt.subplots(1, figsize=(12, 6))
 
     cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
-    fig.suptitle('Sun spectrum ' + _current_file, y=1.0, fontsize=24)
+    title1, title2, title3 = title_func(_current_file, _head)
+    fig.suptitle(title2 + ' ' + title1, y=1.0, fontsize=24)
     x_min = xval[1]
     y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
     y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
@@ -394,40 +397,38 @@ def graph_contour_2d(*args):
     # adjust spacing between subplots so `ax1` title and `ax0` tick labels
     # don't overlap
     fig.tight_layout()
-    # add_path0 = fp.path_to_pic(file_name0 + '\\', 2, 'png')
+    # add_path0 = path_to_pic(_current_file + '\\', 2, 'png')
     # fig.savefig(file_name0 + '\\' + add_path0)
     plt.show()
-    return
+    return fig, _current_file, 2, 'png'
 
     # Модуль проверки: формировалась ли ранее матрица спектра по времени и частоте
     # если - нет, то идем в extract(file_name0), если - да, то загружаем
 
 
+@save_fig
 def graph_3d(*args):
-    from mpl_toolkits.mplot3d import Axes3D
+
     from matplotlib import cm
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(1, 1, 1, projection='3d')
     xval, yval, z, s, file_name, head = args
     x, y = np.meshgrid(xval, yval)
     ax.zaxis._set_scale('log')  # Расставляет tiks логарифмически
-    # title1, title2, title3 = title_func(file_name, head)
-    # ax.set_title(title2 + ' ' + title1, fontsize=20)
+    title1, title2, title3 = title_func(file_name, head)
+    ax.set_title(title2 + ' ' + title1, fontsize=20)
     # ax.text2D(0.05, 0.75, info_txt[0], transform=ax.transAxes, fontsize=16)
     # ax.text2D(0.05, 0.65, info_txt[1], transform=ax.transAxes, fontsize=16)
     ax.set_xlabel('Frequency, MHz', fontsize=16)
     ax.set_ylabel('Time, s', fontsize=16)
-    plt.tick_params(axis='both', which='major', labelsize=14)
-    # cmap = plt.get_cmap('jet')
-    if s:
-        surf = ax.plot_surface(x, y, z, rstride=2, cstride=2, cmap=cm.plasma)
-        plt.savefig(file_name + '_wK' + '.png', format='png', dpi=100)
-        return
-    surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
-    # add_path0 = path_to_pic(file_name + '\\', 3)
-    # plt.savefig(file_name + '\\' + add_path0, format='png', dpi=100)
+    ax.set_zlabel('Antenna temperature, K', fontsize=16)
+    plt.tick_params(axis='both', which='major', labelsize=10)
+
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.jet)
+
+    _format = 'png'
     plt.show()
-    return
+    return fig, file_name, 0, _format
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pickle
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 
 def head_creator(head_fits, head_data):

@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -840,19 +840,27 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    time_spect_mask = [179.9, 180.6, 184.5, 185.1, 187.8, 188.1, 190.3, 190.7]
+    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    # time_spect_mask = [179.9, 180.6, 184.5, 185.1, 187.8, 188.1, 190.3, 190.7]
+    # time_spect_mask = [179.5, 180.5, 182]   # Первая вспышка
+    # time_spect_mask = [184, 185.1, 186.5]   # Вторая вспышка
+    # time_spect_mask = [187.5, 188.1, 189]  # Третья вспышка
+    # time_spect_mask = [190, 190.7, 191.5]  # Четвертая вспышка
     # if band_size == 'whole':
-    #   freq_spect_mask = []
+    #      freq_spect_mask = []
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
     shift = head['shift']
     spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
     line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
-    for i in range(4):
-        spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
-        line_legend_time[i] = line_legend_time[2 * i + 1]
-    spectr_freq = spectr_freq[0:4, :]
+    # for i in range(4):
+    #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
+    #     line_legend_time[i] = line_legend_time[2 * i + 1]
+    # spectr_freq[0, :] = (spectr_freq[0, :] + spectr_freq[2, :]) / 2
+    # spectr_freq[1, :] = spectr_freq[1, :] - spectr_freq[0, :]
+    # spectr_freq[0, :] = spectr_freq[0, :] / 1000
+    # line_legend_time = line_legend_time[0:2]
+    # spectr_freq = spectr_freq[0:2, :]
     n_freq = len(time_spect_mask)
     n_time = len(freq_spect_mask)
     for i in range(n_freq):
@@ -944,26 +952,20 @@ if __name__ == '__main__':
                 ('polarisation ' + polar)]
 
     if graph_3d_perm == 'y':
-        t_start, t_stop = 20, 120
+        t_start, t_stop = 175, 195
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
-        f_start = 2300
+        f_start = 1000
+        f_stop = 1400
         nf_start = int((f_start - 1000) / freq_res)
-        fp.graph_3d(freq[nf_start:], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:], 0, path1, head)
+        nf_stop = int((f_stop - 1000) / freq_res)
+        fp.graph_3d(freq[nf_start:nf_stop], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:nf_stop],
+                    3, path1, head)
     if contour_2d_perm == 'y':
-        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt, current_primary_file)
+        fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
 
     if poly3d_perm == 'y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
         poly_graph3d(timeS, data_poly3d, freq_mask)
-
-    # if align == 'y':
-    #     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
-    #     spectr_extr = spectr_extr * align_coeff1
-
-    # if graph_3d_perm == 'y':
-    #     graph_3d(freq, timeS[n_start_flame:n_stop_flame], spectr_extr1[n_start_flame:n_stop_flame, :], 0)
-    # fp.fig_multi_axes(spectr_time[:10, n_start_flame:n_stop_flame], timeS[n_start_flame:n_stop_flame],
-    #                   info_txt, file_name0, freq_spect_mask[:10])
 
     stop = datetime.now()
     print('\n Total time = ', stop - start)

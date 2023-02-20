@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 
 def del_random_mod(_s, _s0):

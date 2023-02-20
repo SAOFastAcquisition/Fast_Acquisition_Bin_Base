@@ -5,9 +5,9 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 import json as jsn
-from Supporting_func.stocks_coefficients import initial_scan_cut
+from Supporting_func.stokes_coefficients import initial_scan_cut
 from pathlib import Path
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)

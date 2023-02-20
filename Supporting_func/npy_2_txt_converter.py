@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 from pathlib import Path
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 """Скрипт обращается к записанному файлу в формате *.npy и записывает его в формате *.txt, создавая при этом для 
 него папку, если таковой не существовало. Исходный файл является массивом *.npy и должен формально содержать все 

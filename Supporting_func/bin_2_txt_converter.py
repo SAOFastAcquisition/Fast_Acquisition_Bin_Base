@@ -3,7 +3,7 @@ import os
 import sys
 import pickle
 from pathlib import Path
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 """Скрипт обращается к записанному файлу в формате *.bin и записывает его в формате *.txt, создавая при этом для 
 него папку, если таковой не существовало. Исходный файл является массивом *.bin и должен формально содержать все 

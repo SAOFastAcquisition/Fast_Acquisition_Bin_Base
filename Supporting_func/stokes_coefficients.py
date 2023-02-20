@@ -90,7 +90,7 @@ def initial_scan_cut(data):
 def pol_intensity(data, mean_time_ind):
     """ Функция принимает исходную матрицу спектров левой или правой поляризаций и вектор индексов середин
     полупериодов соответствующих поляризации. Значения усредняются по полупериоду. В усреднении принимают
-    принимают участие значения больше 100. Функция отдает матрицу спектров, усредненных по полупериоду
+    принимают участие значения больше 20. Функция отдает матрицу спектров, усредненных по полупериоду
     переключения поляризаций. Размерность матрицы по первому индексу уменьшается примерно в 30
     раз для периода переключения поляризаций 0.5 сек. В полупериоде, в котором значения данной поляризации
     не регистрировались, среднее значение интенсивности поляризации линейно аппроксимируется по двум соседним
@@ -114,7 +114,14 @@ def pol_intensity(data, mean_time_ind):
     return pol_spectrum
 
 
-def stocks_v_deviation(_s, _m):
+def stokes_v_deviation(_s, _m):
+    """
+    Функция Вычисляет отклонение параметра Стокса V от тенденции. Тенденция получается в результате
+    фильтрации с постоянной времени порядка 10 сек. Отдает отклонение
+    :param _s:
+    :param _m:
+    :return:
+    """
     shape = np.shape(_s)
     _s1 = np.ones(shape)
     for _i in range(shape[1]):
@@ -182,18 +189,18 @@ def maf_fir(_s, _m=2):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 1
+    _n1 = 1
+    _n2 = 3
     _freq_mask = [
         [2412],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
-        [1020, 1260, 1340, 1430, 1540, 1670, 1750, 1930],  # [2]
-        [1000 * _n1 + 290 * _n2 + 15 * i for i in range(10)],  # [3]
+        [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
+        [1000 * _n1 + 100 * _n2 + 80 + 4 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
-        [1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
+        [1200, 1300, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
@@ -217,9 +224,9 @@ def two_fig_plot(_path_to_fig_folder):
         axes[0].legend(loc='upper right')
         _i += 1
 
-    axes[0].set_title('Stocks Parameters ' + title1, fontsize=20)
-    axes[0].set_ylabel('Stocks_I')
-    axes[1].set_ylabel('Stocks_V', color='darkred')
+    axes[0].set_title('Stokes Parameters ' + title1, fontsize=20)
+    axes[0].set_ylabel('Stokes_I')
+    axes[1].set_ylabel('Stokes_V', color='darkred')
     axes[0].minorticks_on()
     axes[1].minorticks_on()
 
@@ -265,7 +272,7 @@ def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv):
     :param _s_dv:
     :return:
     """
-    _pic_name = pic_name(_path_to_fig_folder, 0, 'svg')
+    _pic_name = pic_name(_path_to_fig_folder, 0, 'png')
     _path_to_pic = Path(_path_to_fig_folder, _pic_name)
     if _s_v is None or _s_dv is None:
         fig, axes = plt.subplots(2, 1, figsize=(12, 12))
@@ -278,6 +285,7 @@ def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv):
     y_min = np.nanmin(_s_i)
     _i_max = len(num_mask)
     _i = 0
+
     for _j in range(np.shape(_s_i)[1]):
         f1 = freq_mask0[_i]
         text1 = 'f = ' + str(f1) + ' MHz'
@@ -292,16 +300,16 @@ def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv):
         axes[0].legend(loc='upper right')
         _i += 1
 
-    axes[0].set_title('Stocks Parameters ' + title1, fontsize=20)
-    axes[0].set_ylabel('Stocks_I')
+    axes[0].set_title('Stokes Parameters ' + title1, fontsize=20)
+    axes[0].set_ylabel('Stokes_I')
     if _s_v is not None:
-        axes[1].set_ylabel('Stocks_V', color='darkred')
+        axes[1].set_ylabel('Stokes_V', color='darkred')
     else:
-        axes[1].set_ylabel('Stocks_V Deviation', color='darkred')
+        axes[1].set_ylabel('Stokes_V Deviation', color='darkred')
     axes[0].minorticks_on()
     axes[1].minorticks_on()
     if _s_v is not None and _s_dv is not None:
-        axes[2].set_ylabel('Stocks_V Deviation', color='darkred')
+        axes[2].set_ylabel('Stokes_V Deviation', color='darkred')
         axes[2].minorticks_on()
         axes[2].grid()
         axes[2].grid(which='minor',
@@ -343,8 +351,8 @@ def simplest_fig(_x, _y, _z):
     fig, axes = plt.subplots(2, 1, figsize=(12, 12))
     axes[0].plot(_x, _y)
     axes[1].plot(_x, _z)
-    axes[0].set_ylabel('Stocks_I')
-    axes[1].set_ylabel('Stocks_V', color='darkred')
+    axes[0].set_ylabel('Stokes_I')
+    axes[1].set_ylabel('Stokes_V', color='darkred')
     axes[0].minorticks_on()
     axes[1].minorticks_on()
     axes[0].legend(loc='upper right')
@@ -373,8 +381,8 @@ def twin_fig_plot():
         ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
         # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
         # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
-        ax1.set_ylabel('Stocks_I')
-        ax2.set_ylabel('Stocks_V', color='darkred')
+        ax1.set_ylabel('Stokes_I')
+        ax2.set_ylabel('Stokes_V', color='darkred')
         ax1.minorticks_on()
         f1 = int(1000 + 1000 / (n + 1) + j * 2000 / 1025)
         max_y2 = np.nanmax(s3[:, j])
@@ -428,7 +436,7 @@ def pic_name(file_path, flag, format='png'):
     elif flag == 3:
         add_pass0 = 'pic3D_00'
     else:
-        add_pass0 = 'scan_stocks_00'
+        add_pass0 = 'scan_stokes_00'
 
     l = len(add_pass0)
     add_pass1 = add_pass0 + '.' + format
@@ -521,12 +529,14 @@ def title_func(file_name0, _head):
 if __name__ == '__main__':
     align = 'y'
     channel_align = 'y'
+    noise_int_calibration = 'y'
     v_deviation = 'n'
 
-    current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения
-    main_dir = '2022'
-    align_file_name: Any = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    current_primary_dir = '2023_02_10sun'
+    current_data_file = '2023-02-10_01+20'  # Имя файла с исходными текущими данными без расширения
+    main_dir = '2023'
+    align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
+    # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла таймингом калибровок по ГШ и по поляризации
 
     path_obj = DataPaths(current_data_file, current_primary_dir, main_dir)
@@ -534,17 +544,17 @@ if __name__ == '__main__':
     treatment_dir_path = path_obj.treatment_dir_path
     head_path = path_obj.head_path
 
-    path_to_stocks = Path(converted_dir_path, current_data_file + '_stocks.npy')
-    path_to_stocks_left_txt = Path(converted_dir_path, current_data_file + '_left.txt')
-    path_to_stocks_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
+    path_to_stokes = Path(converted_dir_path, current_data_file + '_stocks.npy')
+    path_to_stokes_left_txt = Path(converted_dir_path, current_data_file + '_left.txt')
+    path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(0)
+    freq_mask_list = freq_mask(2)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)
 
-    if not (os.path.isfile(path_to_stocks)):
+    if not (os.path.isfile(path_to_stokes)):
         #               **********************************************
         # ************** Загрузка матрицы спектров и установок (head) *************
         with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
@@ -555,20 +565,20 @@ if __name__ == '__main__':
         if align == 'y':
             path = Path(head_path, 'Alignment', align_file_name)
             spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
-                                       path, 0)
+                                       path, 2)
 
-        input_data_upper = {'left': spectrum[1],
-                            'right': spectrum[3]}
-        input_data_lower = {'left': spectrum[0],
-                            'right': spectrum[2]}
+        input_data_upper = {'left': spectrum1[1],
+                            'right': spectrum1[3]}
+        input_data_lower = {'left': spectrum1[0],
+                            'right': spectrum1[2]}
 
         a1 = input_data_upper['left']
         b1 = input_data_upper['right']
 
         a = input_data_lower['left']
-        # a = a[-1::-1][:]
+        a = a[:, -1::-1]
         b = input_data_lower['right']
-        # b = b[-1::-1][:]
+        b = b[:, -1::-1]
         mean_frame_ind_left, mean_frame_ind_right = initial_scan_cut(a)
 
         c = pol_intensity(a, mean_frame_ind_left)[1:]
@@ -590,19 +600,19 @@ if __name__ == '__main__':
                 d[:, j] = d[:, j] * noise_coeff[j]
 
             #                               *****************
-        np.savetxt(path_to_stocks_left_txt, c)
-        np.savetxt(path_to_stocks_right_txt, d)
+        np.savetxt(path_to_stokes_left_txt, c)
+        np.savetxt(path_to_stokes_right_txt, d)
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
 
-        stocks_coeff = pd.Series([s0, s3, mean_frame_ind])
-        np.save(path_to_stocks, stocks_coeff)
+        stokes_coeff = pd.Series([s0, s3, mean_frame_ind])
+        np.save(path_to_stokes, stokes_coeff)
         print('Stocks parameters are saved successfully')
 
     else:
-        stocks_coeff = np.load(path_to_stocks, allow_pickle=True)
-        [s0, s3, mean_frame_ind] = stocks_coeff
+        stokes_coeff = np.load(path_to_stokes, allow_pickle=True)
+        [s0, s3, mean_frame_ind] = stokes_coeff
 
     mean_frame_ind_pol = np.copy(mean_frame_ind)
     m, n = np.shape(s0)
@@ -611,13 +621,18 @@ if __name__ == '__main__':
 
     calibration_temperature = [calibration_temp(f) for f in freq_mask0]
     c = (s3 + s0) / 2  # левая поляризация
-    ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
 
-    for j in range(np.size(freq_mask0)):
-        av_c_cal = np.nanmean(c[ind_c, num_mask[j]])
-        temp_coeff = calibration_temperature[j] / av_c_cal
-        s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
-        s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
+    #                         *************************************
+    #   *************** Калибровка антенной температуры по внутреннему ГШ *************
+    #                         *************************************
+    if noise_int_calibration == 'y':
+        ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
+        for j in range(np.size(freq_mask0)):
+            av_c_cal = np.nanmean(c[ind_c, num_mask[j]])
+            temp_coeff = calibration_temperature[j] / av_c_cal
+            s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
+            s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
+    #                                   ******************
 
     with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
@@ -626,18 +641,19 @@ if __name__ == '__main__':
               ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
 
     if v_deviation == 'y':
-        s3_dv = stocks_v_deviation(s3[:, num_mask], 31)
+        s3_dv = stokes_v_deviation(s3[:, num_mask], 31)
     else:
         s3_dv = None
     current_treatment_dir = current_primary_dir + '_treat'
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
-    mean_frame_ind_pol = mean_frame_ind_pol     # * 8.3886e-3
+    mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************
     # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
     # two_fig_plot(path_to_stocks_fig_folder)       # Картинка с двумя графиками (I & V)
+    # mean_frame_ind_pol = mean_frame_ind_pol[670:770]
     some_fig_plot(path_to_stocks_fig_folder, s0[:, num_mask], s3[:, num_mask], s3_dv)
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
     #                Path(current_treatment_path, current_data_file), freq_mask0, head)

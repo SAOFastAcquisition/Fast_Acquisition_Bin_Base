@@ -7,7 +7,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 from scipy.signal import lfilter, filtfilt, butter, freqs, remez, freqz
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 current_catalog = Path.cwd()
 sys.path.insert(0, current_catalog)

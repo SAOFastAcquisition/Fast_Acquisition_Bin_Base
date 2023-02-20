@@ -6,7 +6,7 @@ from scipy import signal
 
 from pathlib import Path
 from scipy.fftpack import fft, fftshift
-from Supporting_func.stocks_coefficients import path_to_data
+from Supporting_func.stokes_coefficients import path_to_data
 
 
 def random_signal(n):

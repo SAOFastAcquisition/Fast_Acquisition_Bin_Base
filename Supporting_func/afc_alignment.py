@@ -123,11 +123,6 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibr
     if int(len_calibr) != int(len_freq_spectrum):
         s = int(len_calibr / len_freq_spectrum)
         print(f"Вам надо уменьшить разрешение по частоте в {s} раз")
-        # consent = str(input('Продолжить выполнение без выравнивания АЧХ (y/n)?'))
-        # if consent == 'y':
-        #     return spectrum1, spectrum2, spectrum3, spectrum4
-        # else:
-        #     pass
         j = 0
 
         for obj in align_coeff:
@@ -135,9 +130,6 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, head, path_calibr
             j += 1
     else:
         align_coeff_matched = align_coeff
-        # file_name_calibr2: str = path_calibration + r'\Calibr_Ant1_3.txt'
-        # file_name_calibr3: str = path_calibration + r'\Calibr_Ant2_2.txt'
-        # file_name_calibr4: str = path_calibration + r'\Calibr_Ant2_3.txt'
 
     if l1:
         spectrum1 = spectrum1 * align_coeff_matched[0]
