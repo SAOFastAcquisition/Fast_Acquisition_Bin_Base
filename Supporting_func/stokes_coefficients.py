@@ -105,7 +105,7 @@ def pol_intensity(data, mean_time_ind):
         k1 = 0
         for i in mean_time_ind:
             frame = time_row[int(i) - 15:int(i) + 14]
-            pol_spectrum[2 * k1, k2] = np.nanmean(frame[frame > 100])
+            pol_spectrum[2 * k1, k2] = np.nanmean(frame[frame > 10])
             k1 += 1
         for k in range(scan_len - 1):
             pol_spectrum[2 * k + 1, k2] = (pol_spectrum[2 * k, k2] + pol_spectrum[2 * k + 2, k2]) / 2
@@ -526,18 +526,26 @@ def title_func(file_name0, _head):
     return title1, title2, title02
 
 
+def time_to_angle(_time, _data):
+    _scale = 1900 / 180
+    _time_sc = 220
+    _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
+    _data = _data[-1::-1, :]
+    return _angle, _data
+
+
 if __name__ == '__main__':
     align = 'y'
     channel_align = 'y'
     noise_int_calibration = 'y'
-    v_deviation = 'n'
+    v_deviation = 'y'
 
-    current_primary_dir = '2023_02_10sun'
-    current_data_file = '2023-02-10_01+20'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2023_02_22sun'
+    current_data_file = '2023-02-22_15-28'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2023'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
-    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла таймингом калибровок по ГШ и по поляризации
+    dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
 
     path_obj = DataPaths(current_data_file, current_primary_dir, main_dir)
     converted_dir_path = path_obj.converted_dir_path
@@ -549,7 +557,7 @@ if __name__ == '__main__':
     path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(2)
+    freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)
@@ -648,13 +656,14 @@ if __name__ == '__main__':
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
     mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
+    mean_frame_ind_pol, s0_selected = time_to_angle(mean_frame_ind_pol, s0_selected)
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************
     # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
     # two_fig_plot(path_to_stocks_fig_folder)       # Картинка с двумя графиками (I & V)
     # mean_frame_ind_pol = mean_frame_ind_pol[670:770]
-    some_fig_plot(path_to_stocks_fig_folder, s0[:, num_mask], s3[:, num_mask], s3_dv)
+    some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask], s3_dv[-1::-1, :])
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
     #                Path(current_treatment_path, current_data_file), freq_mask0, head)
     pass
