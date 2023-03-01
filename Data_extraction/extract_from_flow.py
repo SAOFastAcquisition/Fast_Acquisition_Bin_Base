@@ -569,13 +569,13 @@ if __name__ == '__main__':
 
     start = datetime.now()
 
-    current_data_dir = '2022'
+    current_data_dir = '2023'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_10_21test'
-    current_primary_file = '2022-10-21_01'
+    current_primary_dir = '2023_02_27sun'
+    current_primary_file = '2023-02-27_01+28'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:

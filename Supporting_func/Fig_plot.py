@@ -8,6 +8,7 @@ import matplotlib.font_manager as font_manager
 from matplotlib.ticker import MaxNLocator, ScalarFormatter, FixedLocator
 from tkinter import *
 from tkinter import messagebox as mb
+
 # from IPython.display import set_matplotlib_formats
 # set_matplotlib_formats('svg')
 
@@ -20,13 +21,14 @@ from tkinter import messagebox as mb
 def save_fig(func):
     """ Функция-декоратор для сохранения в одноименную с файлом данных папку рисунков временных сканов и спектров
     в выделенные моменты времени."""
+
     def wrapper(*args):
         figure, file_name, flag, _format = func(*args)
         add_pass1 = path_to_pic(file_name, flag, _format)
         path = Path(file_name, add_pass1)
         if not os.path.exists(file_name):
             os.makedirs(file_name)
-        figure.savefig(path)
+        figure.savefig(path, dpi=600)
         del figure
         flag_save = save_question()
         if flag_save == 'no':
@@ -38,6 +40,7 @@ def save_fig(func):
         else:
             print('Picture is saved')
         return
+
     return wrapper
 
 
@@ -59,7 +62,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
             if spectr1[i, j] < 2:
-                spectr1[i, j] = 2       #'NaN'
+                spectr1[i, j] = 2  # 'NaN'
 
     freq_line_sp1 = size_sp1[0]
 
@@ -145,7 +148,146 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     return fig, file_name0, flag, format
 
 
-def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.55, 0.45, 0.33, 0.48]):
+@save_fig
+def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, line_legend=[2] * 20):
+    # import matplotlib.ticker as ticker
+    file_name0 = str(file_name0_path)
+    size_sp1 = spectr1.shape
+
+    if not flag:
+        argument = time_to_angle(argument)
+        spectr1 = spectr1[:, -1::-1]
+
+    for i in range(size_sp1[0]):
+        for j in range(size_sp1[1]):
+            if spectr1[i, j] < 20:
+                spectr1[i, j] = 20  # 'NaN'
+
+    freq_line_sp1 = size_sp1[0]
+    f_size = 7
+    fig, ax = plt.subplots(1, figsize=(6, 4))
+    _line_style = ['-', '--', '-.', ':']
+    #                   ******************************
+    #           ******** Установка вида меток на осях ********
+    #                   ******************************
+    ax.tick_params(axis='both',  # Применяем параметры к обеим осям
+                   which='major',  # Применяем параметры к основным делениям
+                   direction='in',  # Рисуем деления внутри и снаружи графика
+                   length=5,  # Длинна делений
+                   width=1,  # Ширина делений
+                   color='black',  # Цвет делений
+                   pad=2,  # Расстояние между черточкой и ее подписью
+                   labelsize=f_size,  # Размер подписи
+                   labelcolor='black',  # Цвет подписи
+                   bottom=True,  # Рисуем метки снизу
+                   top=True,  # сверху
+                   left=True,  # слева
+                   right=True,  # и справа
+                   labelbottom=True,  # Рисуем подписи снизу
+                   labeltop=False,  # сверху
+                   labelleft=True,  # слева
+                   labelright=False,  # и справа
+                   labelrotation=0)  # Поворот подписей
+    ax.tick_params(axis='both',  # Применяем параметры к обеим осям
+                   which='minor',  # Применяем параметры к вспомогательным делениям
+                   direction='in',  # Рисуем деления внутри и снаружи графика
+                   length=2,  # Длинна делений
+                   width=1,  # Ширина делений
+                   color='black',  # Цвет делений
+                   pad=10,  # Расстояние между черточкой и ее подписью
+                   labelsize=10,  # Размер подписи
+                   labelcolor='black',  # Цвет подписи
+                   bottom=True,  # Рисуем метки снизу
+                   top=True,  # сверху
+                   left=True,  # слева
+                   right=True)  # и справа
+    #                   ******************************
+    #                           **************
+
+    _font = {'fontname': 'serif'}
+    font = font_manager.FontProperties(family='Courier',
+                                       weight='normal',
+                                       style='normal', size=7)
+    line_color = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
+
+    # Show the major grid lines with dark grey lines
+    # plt.grid(b=True, which='major', color='#666666', linestyle='-')
+
+    # Show the minor grid lines with very faint and almost transparent grey lines
+    # plt.minorticks_on()
+    # plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+
+    title1, title2, title02 = title_func(file_name0, head)
+
+    y_max = np.nanmax(spectr1)
+    y_min = np.nanmin(spectr1)
+    # x_min = argument.min()
+    # x_max = argument.max()
+
+    if flag:
+        y_min = 300
+        # ax.set_ylim(y_min, y_max+2000)
+        ax.set_xlabel('Freq, MHz', _font, fontsize=f_size)
+        ax.set_yscale('log')
+        ax.set_ylabel('Antenna temperature, K', _font, fontsize=f_size)
+        # ax.set_title(title02 + title1, fontsize=18)
+        plt.text(1800, 500, '1', _font, fontsize=f_size, style='italic')  # Разрешение по частоте
+        plt.text(1800, 20000, '2', _font, fontsize=f_size, style='italic')  # Разрешение по времени
+        plt.text(1800, 6000, '3', _font, fontsize=f_size, style='italic')  # Информация о поляризации
+        plt.text(1800, 10400, '4', _font, fontsize=f_size, style='italic')  # Информация о статистической чистке сканов
+        y1 = y_min * 3
+        y2 = y_min
+        y3 = y_max - (y_max - y_min) / 10
+        y4 = y_min * 9
+        y5 = y_min * 27
+
+    else:
+        # pylab.xlim(x_min, x_max + 100)
+        plt.legend(loc='upper right')
+        ax.set_xlabel('Angle, arcsec', _font, fontsize=f_size)
+        if burn == 1:
+            ax.set_yticks([0, 1])
+            ax.set_ylim(0, 4)
+        ax.set_ylabel('Antenna temperature, K', _font, fontsize=f_size)
+        # ax.set_title(title2 + ' scan ' + title1, fontsize=20)
+        plt.text(-125, 15500, '1', _font, fontsize=f_size, style='italic')  # Разрешение по частоте
+        plt.text(-125, 12200, '2', _font, fontsize=f_size, style='italic')  # Разрешение по времени
+        plt.text(-175, 10300, '3', _font, fontsize=f_size, style='italic')  # Информация о поляризации
+        plt.text(-175, 7300, '4', _font, fontsize=f_size, style='italic')  # Информация о статистической чистке сканов
+
+    # plt.text(x_min, y5, inform[4], fontsize=16)  # Информация о статистической чистке сканов
+    m = 0
+    for i in range(freq_line_sp1):
+        ax.plot(argument, spectr1[i, :], color='black', linewidth=0.5, linestyle='-')
+        m += 1
+    if flag:
+        logic = False
+    else:
+        logic = True
+
+    if logic:
+        if flag:
+            set_zoom = 1600, 1750, 4e8, 2.5e9
+        else:
+            set_zoom = 375, 400, 0, 35000
+        axins = insert_zoom_ab(ax, argument, spectr1, line_color, line_legend, set_zoom)
+        ax.indicate_inset_zoom(axins, edgecolor="black")
+
+    # Управление шрифтом легенды
+
+    # ax.legend(prop=font)
+    # ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
+
+    plt.show()
+    _format = 'eps'
+    path_Bogod = Path(r'D:\Fast_Acquisition')
+    if path_Bogod.is_dir():
+        _format = 'svg'
+    # print(f'type fig: {type(fig)}')
+    return fig, file_name0, flag, _format
+
+
+def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.10, 0.48, 0.33, 0.48]):
     """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
     родительского рисунка, тот же массив
     аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
@@ -161,6 +303,53 @@ def insert_zoom(ax, argument, ordinate, line_color, line_legend, set_zoom, set_p
     axins.minorticks_on()
     axins.grid(b=True, which='major', color='#666666', linestyle='-')
     axins.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+    # sub region of the original image
+    x1, x2, y1, y2 = set_zoom
+    axins.set_xlim(x1, x2)
+    axins.set_ylim(y1, y2)
+    axins.set_xticklabels('')
+    axins.yaxis.set_major_formatter(sf)
+    axins.xaxis.set_major_formatter(sf)
+    # axins.set_yticklabels('')
+    return axins
+
+
+def insert_zoom_ab(ax, argument, ordinate, line_color, line_legend, set_zoom, set_pos=[0.10, 0.48, 0.33, 0.48]):
+    """ Функция вставляет в родительский рисунок matplotlib увеличенное изображение его части. Принимает объект
+    родительского рисунка, тот же массив
+    аргументов и значений функции, что и родительский, стиль линии, если речь идет о графике, расположение левого
+    нижнего угла вставки и ее размеры set_pos (относительно левого нижнего угла родителя в долях размера родительского рисунка),
+    границы выделенной области set_zoom. Возвращает объект-рисунок для размещения на родительском рисунке."""
+    sf = ScalarFormatter()
+    sf.set_powerlimits((-4, 4))
+    axins = ax.inset_axes(set_pos)
+    size = ordinate.shape
+    line_qwa = size[0]
+    _f_size = 7
+
+    for i in range(line_qwa):
+        axins.plot(argument, ordinate[i, :], color='black', linewidth=0.5, label=line_legend[i])
+    axins.minorticks_off()
+    axins.tick_params(axis='both',  # Применяем параметры к обеим осям
+                      which='major',  # Применяем параметры к основным делениям
+                      direction='in',  # Рисуем деления внутри и снаружи графика
+                      length=2,  # Длинна делений
+                      width=1,  # Ширина делений
+                      color='black',  # Цвет делений
+                      pad=5,  # Расстояние между черточкой и ее подписью
+                      labelsize=_f_size,  # Размер подписи
+                      labelcolor='black',  # Цвет подписи
+                      bottom=True,  # Рисуем метки снизу
+                      top=True,  # сверху
+                      left=True,  # слева
+                      right=True,  # и справа
+                      labelbottom=True,  # Рисуем подписи снизу
+                      labeltop=False,  # сверху
+                      labelleft=True,  # слева
+                      labelright=False,  # и справа
+                      labelrotation=0)  # Поворот подписей
+    # axins.grid(b=True, which='major', color='#666666', linestyle='-')
+    # axins.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
     # sub region of the original image
     x1, x2, y1, y2 = set_zoom
     axins.set_xlim(x1, x2)
@@ -223,10 +412,11 @@ def title_func(file_name0, head):
         if kind == 'VG':
             power_vg = 0
             title1 = date + ', Vector Gen' + ', P = ' + str(power_vg) + 'dBm, ' \
-                'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+                                                                        'Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'NG':
             t_noise = 6300
-            title1 = date + ', Noise Gen, ' + 'T = ' + str(t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
+            title1 = date + ', Noise Gen, ' + 'T = ' + str(
+                t_noise) + 'K, Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'ML':
             title1 = date + ', Matched Load' ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
         elif kind == 'SC':
@@ -273,7 +463,8 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
         axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='major', color='#666666', linestyle='-')
         # Show the minor grid lines with very faint and almost transparent grey lines
         axes[i_freq // n_col_pic, i_freq % n_col_pic].minorticks_on()
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='minor', color='#999999', linestyle='-',
+                                                           alpha=0.5)
 
         xticks = axes[i_freq // n_col_pic, i_freq % n_col_pic].get_xticks().tolist()
         xticks[-2:] = ''
@@ -286,7 +477,7 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
 
         axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_label_coords(1.05, -0.025)
         axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
-                                               xycoords='axes fraction', fontsize=10)
+                                                               xycoords='axes fraction', fontsize=10)
 
     axes[-1, -1].axis('off')
     fig.text(0.68, 0.25, inform[2], fontsize=14)
@@ -307,7 +498,6 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
 
 
 def config_fig_multi_axes(n):
-
     if n == 11:
         n_col, n_row = (4, 3)
     elif n == 10:
@@ -407,8 +597,70 @@ def graph_contour_2d(*args):
 
 
 @save_fig
-def graph_3d(*args):
+def graph_contour_2d_ab(*args):
+    import matplotlib.font_manager as font_manager
+    xval, yval, z, s, _info_txt, _current_file, _head = args
+    z = z[-1::-1, :]
+    yval = time_to_angle(yval)
+    x, y = np.meshgrid(xval, yval)
+    z = np.log10(z)
 
+    levels = MaxNLocator(nbins=7).tick_values(z.min(), z.max())
+    # pick the desired colormap, sensible levels, and define a normalization
+    # instance which takes data values and translates those into levels.
+    cmap = plt.get_cmap('gist_yarg')
+    _f_size = 7
+    fig, ax1 = plt.subplots(1, figsize=(6, 4))
+    ax1.tick_params(axis='both',  # Применяем параметры к обеим осям
+                    which='major',  # Применяем параметры к основным делениям
+                    direction='in',  # Рисуем деления внутри и снаружи графика
+                    length=5,  # Длинна делений
+                    width=1,  # Ширина делений
+                    color='black',  # Цвет делений
+                    pad=2,  # Расстояние между черточкой и ее подписью
+                    labelsize=_f_size,  # Размер подписи
+                    labelcolor='black',  # Цвет подписи
+                    bottom=True,  # Рисуем метки снизу
+                    top=True,  # сверху
+                    left=True,  # слева
+                    right=True,  # и справа
+                    labelbottom=True,  # Рисуем подписи снизу
+                    labeltop=False,  # сверху
+                    labelleft=True,  # слева
+                    labelright=False,  # и справа
+                    labelrotation=0)  # Поворот подписей
+    cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
+    title1, title2, title3 = title_func(_current_file, _head)
+    # fig.suptitle(title2 + ' ' + title1, y=1.0, fontsize=24)
+    x_min = xval[1]
+    y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
+    y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
+    ax_col = fig.colorbar(cf, ax=ax1)
+    plt.colorbar(gr, cax=axins, ticks=[0, 5, 10], label='Value')
+    # title1, title2 = pic_title()
+    # ax1.set_title(title2 + ' ' + title1, fontsize=20)
+    ax1.set_xlabel('Frequency, MHz', fontsize=_f_size)
+    ax1.set_ylabel('Angle, arcsec', fontsize=_f_size)
+
+    # plt.grid(b=True, which='major', color='#666666', linestyle='-')
+    # plt.minorticks_on()
+    # plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+    # plt.tick_params(axis='both', which='major', labelsize=16)
+
+    # plt.text(x_min, y1, _info_txt[0], fontsize=16)
+    # plt.text(x_min, y2, _info_txt[1], fontsize=16)
+
+    # adjust spacing between subplots so `ax1` title and `ax0` tick labels
+    # don't overlap
+    fig.tight_layout()
+    # add_path0 = path_to_pic(_current_file + '\\', 2, 'png')
+    # fig.savefig(file_name0 + '\\' + add_path0)
+    plt.show()
+    return fig, _current_file, 2, 'png'
+
+
+@save_fig
+def graph_3d(*args):
     from matplotlib import cm
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(1, 1, 1, projection='3d')
@@ -429,6 +681,13 @@ def graph_3d(*args):
     _format = 'png'
     plt.show()
     return fig, file_name, 0, _format
+
+
+def time_to_angle(_time):
+    _scale = 1900 / 180
+    _time_sc = 220
+    _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
+    return _angle
 
 
 if __name__ == '__main__':
