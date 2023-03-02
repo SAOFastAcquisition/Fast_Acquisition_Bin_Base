@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 import pylab
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
 from matplotlib.ticker import MaxNLocator, ScalarFormatter, FixedLocator
@@ -164,9 +165,12 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
                 spectr1[i, j] = 20  # 'NaN'
 
     freq_line_sp1 = size_sp1[0]
-    f_size = 7
-    fig, ax = plt.subplots(1, figsize=(6, 4))
+
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = '10'
     _line_style = ['-', '--', '-.', ':']
+
+    fig, ax = plt.subplots(1, figsize=(6, 4))
     #                   ******************************
     #           ******** Установка вида меток на осях ********
     #                   ******************************
@@ -177,7 +181,7 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
                    width=1,  # Ширина делений
                    color='black',  # Цвет делений
                    pad=2,  # Расстояние между черточкой и ее подписью
-                   labelsize=f_size,  # Размер подписи
+                   # labelsize=f_size,  # Размер подписи
                    labelcolor='black',  # Цвет подписи
                    bottom=True,  # Рисуем метки снизу
                    top=True,  # сверху
@@ -204,10 +208,6 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
     #                   ******************************
     #                           **************
 
-    _font = {'fontname': 'serif'}
-    font = font_manager.FontProperties(family='Courier',
-                                       weight='normal',
-                                       style='normal', size=7)
     line_color = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
 
     # Show the major grid lines with dark grey lines
@@ -227,14 +227,14 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
     if flag:
         y_min = 300
         # ax.set_ylim(y_min, y_max+2000)
-        ax.set_xlabel('Freq, MHz', _font, fontsize=f_size)
+        ax.set_xlabel('Freq, MHz')  # , _font, fontsize=f_size
         ax.set_yscale('log')
-        ax.set_ylabel('Antenna temperature, K', _font, fontsize=f_size)
+        ax.set_ylabel('Antenna temperature, K')
         # ax.set_title(title02 + title1, fontsize=18)
-        plt.text(1800, 500, '1', _font, fontsize=f_size, style='italic')  # Разрешение по частоте
-        plt.text(1800, 20000, '2', _font, fontsize=f_size, style='italic')  # Разрешение по времени
-        plt.text(1800, 6000, '3', _font, fontsize=f_size, style='italic')  # Информация о поляризации
-        plt.text(1800, 10400, '4', _font, fontsize=f_size, style='italic')  # Информация о статистической чистке сканов
+        plt.text(1800, 500, '1', style='italic')  # Разрешение по частоте
+        plt.text(1800, 20000, '2', style='italic')  # Разрешение по времени
+        plt.text(1800, 6000, '3', style='italic')  # Информация о поляризации
+        plt.text(1800, 10400, '4', style='italic')  # Информация о статистической чистке сканов
         y1 = y_min * 3
         y2 = y_min
         y3 = y_max - (y_max - y_min) / 10
@@ -244,16 +244,16 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
-        ax.set_xlabel('Angle, arcsec', _font, fontsize=f_size)
+        ax.set_xlabel('Angle, arcsec')
         if burn == 1:
             ax.set_yticks([0, 1])
             ax.set_ylim(0, 4)
-        ax.set_ylabel('Antenna temperature, K', _font, fontsize=f_size)
+        ax.set_ylabel('Antenna temperature, K')
         # ax.set_title(title2 + ' scan ' + title1, fontsize=20)
-        plt.text(-125, 15500, '1', _font, fontsize=f_size, style='italic')  # Разрешение по частоте
-        plt.text(-125, 12200, '2', _font, fontsize=f_size, style='italic')  # Разрешение по времени
-        plt.text(-175, 10300, '3', _font, fontsize=f_size, style='italic')  # Информация о поляризации
-        plt.text(-175, 7300, '4', _font, fontsize=f_size, style='italic')  # Информация о статистической чистке сканов
+        plt.text(-125, 15500, '1', style='italic')  # Разрешение по частоте
+        plt.text(-125, 12200, '2', style='italic')  # Разрешение по времени
+        plt.text(-175, 10300, '3', style='italic')  # Информация о поляризации
+        plt.text(-175, 7300, '4', style='italic')  # Информация о статистической чистке сканов
 
     # plt.text(x_min, y5, inform[4], fontsize=16)  # Информация о статистической чистке сканов
     m = 0
@@ -279,11 +279,9 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
     # ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
 
     plt.show()
+
     _format = 'eps'
-    path_Bogod = Path(r'D:\Fast_Acquisition')
-    if path_Bogod.is_dir():
-        _format = 'svg'
-    # print(f'type fig: {type(fig)}')
+    print(f'type fig: {type(fig)}')
     return fig, file_name0, flag, _format
 
 
@@ -325,7 +323,8 @@ def insert_zoom_ab(ax, argument, ordinate, line_color, line_legend, set_zoom, se
     axins = ax.inset_axes(set_pos)
     size = ordinate.shape
     line_qwa = size[0]
-    _f_size = 7
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = '10'
 
     for i in range(line_qwa):
         axins.plot(argument, ordinate[i, :], color='black', linewidth=0.5, label=line_legend[i])
@@ -337,7 +336,7 @@ def insert_zoom_ab(ax, argument, ordinate, line_color, line_legend, set_zoom, se
                       width=1,  # Ширина делений
                       color='black',  # Цвет делений
                       pad=5,  # Расстояние между черточкой и ее подписью
-                      labelsize=_f_size,  # Размер подписи
+                      # labelsize=_f_size,  # Размер подписи
                       labelcolor='black',  # Цвет подписи
                       bottom=True,  # Рисуем метки снизу
                       top=True,  # сверху
@@ -497,6 +496,85 @@ def fig_multi_axes(spectr1, argument, inform, file_name0path, freq_mask, head):
     return fig, file_name0, 0, 'png'
 
 
+@save_fig
+def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head):
+    """ Функция строит многооконный рисунок, принимает numpy-массив в качестве значений (первый индекс массива -
+    число графиков-окон), аргумент, информацию о свойствах графиков (разрешение по времени и частоте, поляризация), путь
+    к файлу данных, характеристики файла данных head, список параметра freq_mask, каждому значению из которого
+    соответствует свой график-окно. Максимальное количество окон задается n_row_pic, n_col_pic, и по умолчанию -
+     2 * 3 = 6.
+     Выдает рисунок как объект Figure matplotlib и сохраняет его в формате png в папку одноименную с file_name0path в
+     той же директории, где находится файл данных"""
+
+    file_name0 = str(file_name0path)
+    size_sp1 = spectr1.shape
+    freq_line_sp1 = size_sp1[0]
+    n_col_pic, n_row_pic = 2, 2
+
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = '10'
+
+    fig, axes = plt.subplots(2, 2, figsize=(6, 4))
+
+    # line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen',
+    # 'magenta', 'dodgerblue']
+
+    # fig.suptitle(title2 + ' scan ' + title1, y=1.0, fontsize=24)
+
+    for i_freq in range(freq_line_sp1):
+        axes[i_freq // 2, i_freq % 2].tick_params(axis='both',  # Применяем параметры к обеим осям
+                                                  which='major',  # Применяем параметры к основным делениям
+                                                  direction='in',  # Рисуем деления внутри и снаружи графика
+                                                  length=3,  # Длинна делений
+                                                  width=0.5,  # Ширина делений
+                                                  color='black',  # Цвет делений
+                                                  pad=2,  # Расстояние между черточкой и ее подписью
+                                                  # labelsize=f_size,  # Размер подписи
+                                                  labelcolor='black',  # Цвет подписи
+                                                  bottom=True,  # Рисуем метки снизу
+                                                  top=True,  # сверху
+                                                  left=True,  # слева
+                                                  right=True,  # и справа
+                                                  labelbottom=True,  # Рисуем подписи снизу
+                                                  labeltop=False,  # сверху
+                                                  labelleft=True,  # слева
+                                                  labelright=False,  # и справа
+                                                  labelrotation=0)  # Поворот подписей
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black')
+
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz', fontsize=10)
+        # Show the major grid lines with dark grey lines
+        # axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='major', color='#666666', linestyle='-')
+        # Show the minor grid lines with very faint and almost transparent grey lines
+        # axes[i_freq // n_col_pic, i_freq % n_col_pic].minorticks_on()
+        # axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='minor', color='#999999', linestyle='-',
+        #                                                    alpha=0.5)
+
+        xticks = axes[i_freq // n_col_pic, i_freq % n_col_pic].get_xticks().tolist()
+        xticks[-2:] = ''
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_major_locator(FixedLocator(xticks))
+        # Установление формата отображения меток по оси 0у - при порядке выше 4 он выносится на верх оси
+        sf = ScalarFormatter()
+        sf.set_powerlimits((-4, 4))
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].yaxis.set_major_formatter(sf)
+        # *************************************************************************
+
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].xaxis.set_label_coords(1.05, -0.025)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate('t, sec', xy=(0.95, -0.05), ha='left', va='top',
+                                                               xycoords='axes fraction', fontsize=10)
+
+    # axes[-1, -1].axis('off')
+    # fig.text(0.68, 0.25, inform[2], fontsize=14)
+    # fig.text(0.68, 0.2, inform[0], fontsize=14)
+    # fig.text(0.68, 0.15, inform[1], fontsize=14)
+    # plt.figtext(0.11, 0.25, 'time')
+    # axes[0, 2].legend(loc=10, bbox_to_anchor=(1.2, 0.5))
+    plt.subplots_adjust(hspace=0.4)
+    plt.show()
+
+    return fig, file_name0, 0, 'eps'
+
+
 def config_fig_multi_axes(n):
     if n == 11:
         n_col, n_row = (4, 3)
@@ -598,18 +676,22 @@ def graph_contour_2d(*args):
 
 @save_fig
 def graph_contour_2d_ab(*args):
-    import matplotlib.font_manager as font_manager
+    import matplotlib
+    # import matplotlib.font_manager as font_manager
     xval, yval, z, s, _info_txt, _current_file, _head = args
+    # Изменение порядка отсчета данных (z) по времени и Переход к углам относительно центра Солнца вместо времени
     z = z[-1::-1, :]
     yval = time_to_angle(yval)
     x, y = np.meshgrid(xval, yval)
     z = np.log10(z)
-
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = '10'
     levels = MaxNLocator(nbins=7).tick_values(z.min(), z.max())
+
     # pick the desired colormap, sensible levels, and define a normalization
     # instance which takes data values and translates those into levels.
     cmap = plt.get_cmap('gist_yarg')
-    _f_size = 7
+
     fig, ax1 = plt.subplots(1, figsize=(6, 4))
     ax1.tick_params(axis='both',  # Применяем параметры к обеим осям
                     which='major',  # Применяем параметры к основным делениям
@@ -618,7 +700,7 @@ def graph_contour_2d_ab(*args):
                     width=1,  # Ширина делений
                     color='black',  # Цвет делений
                     pad=2,  # Расстояние между черточкой и ее подписью
-                    labelsize=_f_size,  # Размер подписи
+                    # labelsize=_f_size,  # Размер подписи
                     labelcolor='black',  # Цвет подписи
                     bottom=True,  # Рисуем метки снизу
                     top=True,  # сверху
@@ -629,34 +711,20 @@ def graph_contour_2d_ab(*args):
                     labelleft=True,  # слева
                     labelright=False,  # и справа
                     labelrotation=0)  # Поворот подписей
+
     cf = ax1.contourf(x, y, z, levels=levels, cmap=cmap)
-    title1, title2, title3 = title_func(_current_file, _head)
-    # fig.suptitle(title2 + ' ' + title1, y=1.0, fontsize=24)
-    x_min = xval[1]
-    y1 = yval[0] + (yval[-1] - yval[0]) * 0.05
-    y2 = yval[0] + (yval[-1] - yval[0]) * 0.1
-    ax_col = fig.colorbar(cf, ax=ax1)
-    plt.colorbar(gr, cax=axins, ticks=[0, 5, 10], label='Value')
-    # title1, title2 = pic_title()
-    # ax1.set_title(title2 + ' ' + title1, fontsize=20)
-    ax1.set_xlabel('Frequency, MHz', fontsize=_f_size)
-    ax1.set_ylabel('Angle, arcsec', fontsize=_f_size)
-
-    # plt.grid(b=True, which='major', color='#666666', linestyle='-')
-    # plt.minorticks_on()
-    # plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
-    # plt.tick_params(axis='both', which='major', labelsize=16)
-
-    # plt.text(x_min, y1, _info_txt[0], fontsize=16)
-    # plt.text(x_min, y2, _info_txt[1], fontsize=16)
+    c_bar = fig.colorbar(cf, ax=ax1)
+    c_bar.ax.tick_params(direction='in')
+    c_bar.ax.set_ylabel('lg(Antenna temperature, K)')
+    ax1.set_xlabel('Frequency, MHz')
+    ax1.set_ylabel('Angle, arcsec')
 
     # adjust spacing between subplots so `ax1` title and `ax0` tick labels
     # don't overlap
     fig.tight_layout()
-    # add_path0 = path_to_pic(_current_file + '\\', 2, 'png')
-    # fig.savefig(file_name0 + '\\' + add_path0)
+
     plt.show()
-    return fig, _current_file, 2, 'png'
+    return fig, _current_file, 2, 'eps'
 
 
 @save_fig

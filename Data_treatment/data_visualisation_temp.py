@@ -322,7 +322,6 @@ def unite_spectrum(spec):
 
 
 def ngi_temperature(_f, _case_id, _path):
-
     with open(_path, 'rb') as _inp:
         _data_saved = pickle.load(_inp)
     _arr_av_left = _data_saved['polyval_coeff'][data['case_id'] == _case_id][data['polar'] == 'left'].iloc[0]
@@ -525,7 +524,7 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
     температурой приемника
     """
 
-    n_av_loc = 10   # Половина длины последовательности отсчетов для усреднения функцией treatment_null_mesh(,_s0,)
+    n_av_loc = 10  # Половина длины последовательности отсчетов для усреднения функцией treatment_null_mesh(,_s0,)
     _s_threshold = 1e6  # Порог для значений исходного массива _spectrum для функции del_random_mod(,_n,)
     #                   *** Загрузка температуры собственных шумов приемника ***
     #              **** Через интерполяцию средней температуры по серии измерений ****
@@ -677,16 +676,16 @@ def freq_mask(_i):
     _n1 = 1
     _n2 = 0
     _freq_mask = [
-        [2410, 2460],                                                                 # [0]
-        [2060, 2300, 2500, 2750, 2830, 2920],                                   # [1]
-        [1080, 1140, 1360, 1420, 1620, 1780, 1980],                             # [2]
-        [1000 * _n1 + 100 * _n2 + 20 + 10 * i for i in range(10)],              # [3]
-        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],           # [4]
-        [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],                       # [5]
+        [2410, 2460],  # [0]
+        [1245, 1375, 2500, 2820],  # [1]
+        [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
+        [1000 * _n1 + 100 * _n2 + 20 + 10 * i for i in range(10)],  # [3]
+        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
+        [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12'    # [7]
-        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2920],           # [8]
-        [1200, 1380, 2265, 2800]                                                # [9] article to 'ab'
+        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2920],  # [8]
+        [1200, 1380, 2265, 2800]  # [9] article to 'ab'
     ]
     return _freq_mask[_i]
 
@@ -730,8 +729,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-17_01+24'
-    current_primary_dir = '2022_12_17sun'
+    current_primary_file = '2022-12-23_05+12'
+    current_primary_dir = '2022_12_23_3C273'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -753,8 +752,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 16       # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 64  # Установка разрешения по частоте в МГц
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -762,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(0)
+    freq_spect_mask = freq_mask(1)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -770,15 +769,15 @@ if __name__ == '__main__':
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'n'
+    output_picture_mode = 'no'
     align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
     black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    lf_filter = 'y'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'y'
+    contour_2d_perm = 'т'
     poly3d_perm = 'n'
 
     # *****************************************************
@@ -842,7 +841,7 @@ if __name__ == '__main__':
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
     # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    time_spect_mask = [20, 185, 213, 247]       # [9] article to 'ab'
+    time_spect_mask = [20, 185, 213, 247]  # [9] article to 'ab'
     # time_spect_mask = [179.5, 180.5, 182]     # Первая вспышка
     # time_spect_mask = [184, 185.1, 186.5]     # Вторая вспышка
     # time_spect_mask = [187.5, 188.1, 189]     # Третья вспышка
@@ -935,11 +934,11 @@ if __name__ == '__main__':
     # ***            Многооконный вывод данных             ****
     # *********************************************************
     if output_picture_mode == 'no':
-        t_start, t_stop = 50, 180
+        t_start, t_stop = 175, 300
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
-        fp.fig_multi_axes(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
-                          path1,
-                          freq_spect_mask, head)
+        fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
+                             path1,
+                             freq_spect_mask, head)
 
     # *********************************************************
     # ***        Вывод данных двумерный и трехмерный       ****
