@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Interface import main
-from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec
+from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec, plot_low_freq_spec_ab
 from Interface.window_handler import exec_app
 from Polyphase.cic_filter import signal_filtering
 from test_statistic import low_noise_spectra_base
@@ -729,8 +729,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-12-23_05+12'
-    current_primary_dir = '2022_12_23_3C273'
+    current_primary_file = '2022-10-24_02'
+    current_primary_dir = '2022_10_24test'
     main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -752,8 +752,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 64  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 8  # Установка разрешения по частоте в МГц
+    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -774,8 +774,8 @@ if __name__ == '__main__':
     noise_calibr = 'n'
     black_body_calibr = 'n'
     save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'y'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    low_noise_spectrum = 'y'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'т'
     poly3d_perm = 'n'
@@ -923,7 +923,8 @@ if __name__ == '__main__':
             f_min = f_max / n
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
-        plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
+        # np.save(Path(path1, 'LN_spectrum'), spectrum_signal_av)
+        plot_low_freq_spec_ab(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
     #                       *****************************
 
     if output_picture_mode == 'y':
@@ -934,7 +935,7 @@ if __name__ == '__main__':
     # ***            Многооконный вывод данных             ****
     # *********************************************************
     if output_picture_mode == 'no':
-        t_start, t_stop = 175, 300
+        t_start, t_stop = 50, 180
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
         fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
                              path1,

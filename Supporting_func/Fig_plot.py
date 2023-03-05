@@ -540,7 +540,8 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
                                                   labelleft=True,  # слева
                                                   labelright=False,  # и справа
                                                   labelrotation=0)  # Поворот подписей
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black')
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black',
+                                                           linewidth=1)
 
         axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz', fontsize=10)
         # Show the major grid lines with dark grey lines
