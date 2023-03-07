@@ -59,7 +59,9 @@ def save_question():
 def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_legend=[2] * 20):
     file_name0 = str(file_name0_path)
     size_sp1 = spectr1.shape
-
+    if not flag:
+        argument = np.array(time_to_angle(argument))
+        spectr1 = spectr1[:, -1::-1]
     for i in range(size_sp1[0]):
         for j in range(size_sp1[1]):
             if spectr1[i, j] < 2:
@@ -99,7 +101,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     else:
         # pylab.xlim(x_min, x_max + 100)
         plt.legend(loc='upper right')
-        ax.set_xlabel('Time, sec', fontsize=18)
+        ax.set_xlabel('Angle, arcsec', fontsize=18)
         if burn == 1:
             ax.set_yticks([0, 1])
             ax.set_ylim(0, 4)
@@ -633,6 +635,8 @@ def path_to_pic(file_path, flag, _format='png'):
 def graph_contour_2d(*args):
     import matplotlib.font_manager as font_manager
     xval, yval, z, s, _info_txt, _current_file, _head = args
+    z = z[-1::-1, :]
+    yval = time_to_angle(yval)
     x, y = np.meshgrid(xval, yval)
     z = np.log10(z)
 
@@ -653,7 +657,7 @@ def graph_contour_2d(*args):
     # title1, title2 = pic_title()
     # ax1.set_title(title2 + ' ' + title1, fontsize=20)
     ax1.set_xlabel('Freq, MHz', fontsize=18)
-    ax1.set_ylabel('Time, s', fontsize=18)
+    ax1.set_ylabel('Angle, arcsec', fontsize=18)
 
     plt.grid(b=True, which='major', color='#666666', linestyle='-')
     plt.minorticks_on()
