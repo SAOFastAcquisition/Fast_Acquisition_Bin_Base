@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy.fftpack import fft
 from pathlib import Path
@@ -43,15 +44,81 @@ def plot_low_freq_spec(_spectrum, _delta_t, _path_to_picture_folder, _line_legen
     axes.set_xlabel('Freq, Hz', fontsize=18)
     axes.set_ylabel('Spectral Density, $K^2/Hz$', fontsize=20)
     for i in range(m):
-        axes.plot(arg[0:n//2], _spectrum[i, 0:n//2], label=_line_legend[i])
+        axes.plot(arg[0:n // 2], _spectrum[i, 0:n // 2], label=_line_legend[i])
     axes.legend()
     plt.show()
 
     fig.savefig(_path_to_picture)
 
 
-def path_to_pic(_file_path, format='png'):
+def plot_low_freq_spec_ab(_spectrum, _delta_t, _path_to_picture_folder, _line_legend):
+    _path_ad = Path(_path_to_picture_folder, 'LN_spectrum.npy')
+    _spectrum_ad = np.load(_path_ad, allow_pickle=True)
+    _path_to_picture = path_to_pic(_path_to_picture_folder, 'eps')
+    m, n = _spectrum.shape
+    f_max = 1 / _delta_t / 2
+    f_min = f_max / n
+    arg = np.linspace(f_min, f_max, n)
 
+    matplotlib.rcParams['font.family'] = 'serif'
+    matplotlib.rcParams['font.size'] = '10'
+
+    fig = plt.figure(figsize=(6, 4))
+    axes = fig.add_subplot()
+    axes.tick_params(axis='both',  # Применяем параметры к обеим осям
+                     which='major',  # Применяем параметры к основным делениям
+                     direction='in',  # Рисуем деления внутри и снаружи графика
+                     length=3,  # Длинна делений
+                     width=1,  # Ширина делений
+                     color='black',  # Цвет делений
+                     pad=2,  # Расстояние между черточкой и ее подписью
+                     # labelsize=f_size,  # Размер подписи
+                     labelcolor='black',  # Цвет подписи
+                     bottom=True,  # Рисуем метки снизу
+                     top=True,  # сверху
+                     left=True,  # слева
+                     right=True,  # и справа
+                     labelbottom=True,  # Рисуем подписи снизу
+                     labeltop=False,  # сверху
+                     labelleft=True,  # слева
+                     labelright=False,  # и справа
+                     labelrotation=0)  # Поворот подписей
+    axes.tick_params(axis='both',  # Применяем параметры к обеим осям
+                     which='minor',  # Применяем параметры к вспомогательным делениям
+                     direction='in',  # Рисуем деления внутри и снаружи графика
+                     length=2,  # Длинна делений
+                     width=1,  # Ширина делений
+                     color='black',  # Цвет делений
+                     pad=10,  # Расстояние между черточкой и ее подписью
+                     labelsize=10,  # Размер подписи
+                     labelcolor='black',  # Цвет подписи
+                     bottom=True,  # Рисуем метки снизу
+                     top=True,  # сверху
+                     left=True,  # слева
+                     right=True)  # и справа
+    # axes.grid(b=False, which='major', color='#666666', linestyle='-')
+    # Show the minor grid lines with very faint and almost transparent grey lines
+    # axes.minorticks_off()
+    # axes.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.5)
+
+    # axes.set_title('Temperature Low Noise Spectral Density')
+    axes.set_ylim([1, 1000000])
+    axes.set_yscale('log')
+    axes.set_xscale('log')
+    axes.set_xlabel('Freq, Hz')
+    axes.set_ylabel('Spectral Density, $K^2/Hz$')
+    plt.text(0.7, 15, '1', style='italic')  # Семейство кривых
+    plt.text(0.7, 10000, '2', style='italic')  #
+    for i in range(m):
+        axes.plot(arg[0:n // 2], _spectrum[i, 0:n // 2], color='black', linewidth=0.5)
+        axes.plot(arg[0:n // 2], _spectrum_ad[i, 0:n // 2], color='black', linewidth=0.5)
+    # axes.legend()
+    plt.show()
+
+    fig.savefig(_path_to_picture)
+
+
+def path_to_pic(_file_path, format='png'):
     add_pass0 = 'LF_spectrum_00'
     _l = len(add_pass0)
     add_pass1 = add_pass0 + '.' + format
@@ -72,7 +139,6 @@ def path_to_pic(_file_path, format='png'):
 
 
 if __name__ == '__main__':
-
     # ********************************** Путь к файлу данных ****************************
     current_catalog = r'2022\Results'  # Текущий каталог (за определенный период, здесь - год)
     current_data_dir = r'2022_01_20test'  # Папка с текущими даннымиH:\Fast_Acquisition\2021\Results\2021_09_22test\2021-09-22_01_14bit_pm20

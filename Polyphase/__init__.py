@@ -1,1 +1,1 @@
-from .scan_noise_spectrum import low_freq_noise_spectrum, plot_low_freq_spec
+from .scan_noise_spectrum import low_freq_noise_spectrum, plot_low_freq_spec, plot_low_freq_spec_ab
