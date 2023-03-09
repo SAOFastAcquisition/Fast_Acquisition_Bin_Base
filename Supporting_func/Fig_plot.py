@@ -514,13 +514,13 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
     matplotlib.rcParams['font.family'] = 'serif'
     matplotlib.rcParams['font.size'] = '10'
 
-    fig, axes = plt.subplots(2, 2, figsize=(6, 4))
+    fig, axes = plt.subplots(2, 2, figsize=(6.4, 4))
 
     # line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen',
     # 'magenta', 'dodgerblue']
 
     # fig.suptitle(title2 + ' scan ' + title1, y=1.0, fontsize=24)
-
+    up_lim = [0]*4
     for i_freq in range(freq_line_sp1):
         axes[i_freq // 2, i_freq % 2].tick_params(axis='both',  # Применяем параметры к обеим осям
                                                   which='major',  # Применяем параметры к основным делениям
@@ -541,8 +541,9 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
                                                   labelright=False,  # и справа
                                                   labelrotation=0)  # Поворот подписей
         axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black')
-
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz', fontsize=10)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate(str(freq_mask[i_freq]) + ' MHz', xy=(0.5, 0.85),
+                                                               xycoords='axes fraction')
+        # axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz', fontsize=10)
         # Show the major grid lines with dark grey lines
         # axes[i_freq // n_col_pic, i_freq % n_col_pic].grid(b=True, which='major', color='#666666', linestyle='-')
         # Show the minor grid lines with very faint and almost transparent grey lines
@@ -564,12 +565,9 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
                                                                xycoords='axes fraction', fontsize=10)
 
     # axes[-1, -1].axis('off')
-    # fig.text(0.68, 0.25, inform[2], fontsize=14)
-    # fig.text(0.68, 0.2, inform[0], fontsize=14)
-    # fig.text(0.68, 0.15, inform[1], fontsize=14)
-    # plt.figtext(0.11, 0.25, 'time')
     # axes[0, 2].legend(loc=10, bbox_to_anchor=(1.2, 0.5))
-    plt.subplots_adjust(hspace=0.4)
+    # plt.subplots_adjust(hspace=0.4)
+    plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=1.0)
     plt.show()
 
     return fig, file_name0, 0, 'eps'
@@ -721,8 +719,8 @@ def graph_contour_2d_ab(*args):
 
     # adjust spacing between subplots so `ax1` title and `ax0` tick labels
     # don't overlap
-    fig.tight_layout()
-
+    # fig.tight_layout()
+    plt.tight_layout(pad=0.2, w_pad=0.1, h_pad=0.1)
     plt.show()
     return fig, _current_file, 2, 'eps'
 
