@@ -170,7 +170,7 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
     matplotlib.rcParams['font.size'] = '10'
     _line_style = ['-', '--', '-.', ':']
 
-    fig, ax = plt.subplots(1, figsize=(6, 4))
+    fig, ax = plt.subplots(1, figsize=(6.4, 4))
     #                   ******************************
     #           ******** Установка вида меток на осях ********
     #                   ******************************
@@ -254,16 +254,17 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
         plt.text(-125, 12200, '2', style='italic')  # Разрешение по времени
         plt.text(-175, 10300, '3', style='italic')  # Информация о поляризации
         plt.text(-175, 7300, '4', style='italic')  # Информация о статистической чистке сканов
-
+        # plt.text(-125, 10800, '1', style='italic')  # Разрешение по частоте
+        # plt.text(-125, 8300, '2', style='italic')  # Разрешение по времени
     # plt.text(x_min, y5, inform[4], fontsize=16)  # Информация о статистической чистке сканов
     m = 0
     for i in range(freq_line_sp1):
-        ax.plot(argument, spectr1[i, :], color='black', linewidth=0.5, linestyle='-')
+        ax.plot(argument, spectr1[i, :], color='black', linewidth=1, linestyle='-')
         m += 1
     if flag:
         logic = False
     else:
-        logic = True
+        logic = False
 
     if logic:
         if flag:
@@ -277,7 +278,7 @@ def fig_plot_ab(spectr1, burn, argument, flag, inform, file_name0_path, head, li
 
     # ax.legend(prop=font)
     # ax.legend(loc=10, prop=font, bbox_to_anchor=(1, 0.5))
-
+    plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=1.0)
     plt.show()
 
     _format = 'eps'
@@ -540,8 +541,9 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
                                                   labelleft=True,  # слева
                                                   labelright=False,  # и справа
                                                   labelrotation=0)  # Поворот подписей
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black')
-        axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate(str(freq_mask[i_freq]) + ' MHz', xy=(0.5, 0.85),
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].plot(argument[0: -2], spectr1[i_freq, 0: -2], color='black',
+                                                           linewidth=1.5)
+        axes[i_freq // n_col_pic, i_freq % n_col_pic].annotate(str(freq_mask[i_freq]) + ' MHz', xy=(0.65, 0.85),
                                                                xycoords='axes fraction')
         # axes[i_freq // n_col_pic, i_freq % n_col_pic].set_title(str(freq_mask[i_freq]) + ' MHz', fontsize=10)
         # Show the major grid lines with dark grey lines
@@ -690,7 +692,7 @@ def graph_contour_2d_ab(*args):
     # instance which takes data values and translates those into levels.
     cmap = plt.get_cmap('gist_yarg')
 
-    fig, ax1 = plt.subplots(1, figsize=(6, 4))
+    fig, ax1 = plt.subplots(1, figsize=(6.4, 4))
     ax1.tick_params(axis='both',  # Применяем параметры к обеим осям
                     which='major',  # Применяем параметры к основным делениям
                     direction='in',  # Рисуем деления внутри и снаружи графика
@@ -720,7 +722,7 @@ def graph_contour_2d_ab(*args):
     # adjust spacing between subplots so `ax1` title and `ax0` tick labels
     # don't overlap
     # fig.tight_layout()
-    plt.tight_layout(pad=0.2, w_pad=0.1, h_pad=0.1)
+    plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.1)
     plt.show()
     return fig, _current_file, 2, 'eps'
 
