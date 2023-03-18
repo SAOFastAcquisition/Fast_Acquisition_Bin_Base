@@ -674,12 +674,12 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 1
+    _n2 = 2
     _freq_mask = [
         [2410, 2460],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 00 + 10 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 00 + 10 * i for i in range(5)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
@@ -729,8 +729,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-03-03_12-16'
-    current_primary_dir = '2023_03_03sun'
+    current_primary_file = '2023-02-10_01+20'
+    current_primary_dir = '2023_02_10sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -777,8 +777,9 @@ if __name__ == '__main__':
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'y'
+    contour_2d_perm = 'т'
     poly3d_perm = 'n'
+    ab = 'n'  # Подготовка рисунков к публикации в АБ
 
     # *****************************************************
     # Чтение с диска, если спектры ранее извлекались,
@@ -857,11 +858,11 @@ if __name__ == '__main__':
     # for i in range(4):
     #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
     #     line_legend_time[i] = line_legend_time[2 * i + 1]
-    spectr_freq[0, :] = (spectr_freq[0, :] + spectr_freq[2, :]) / 2
-    spectr_freq[1, :] = spectr_freq[1, :] - spectr_freq[0, :]
-    spectr_freq[0, :] = spectr_freq[0, :] / 1000
-    line_legend_time = line_legend_time[0:2]
-    spectr_freq = spectr_freq[0:2, :]
+    # spectr_freq[0, :] = (spectr_freq[0, :] + spectr_freq[2, :]) / 2
+    # spectr_freq[1, :] = spectr_freq[1, :] - spectr_freq[0, :]
+    # spectr_freq[0, :] = spectr_freq[0, :] / 1000
+    # line_legend_time = line_legend_time[0:2]
+    # spectr_freq = spectr_freq[0:2, :]
     n_freq = len(time_spect_mask)
     n_time = len(freq_spect_mask)
     for i in range(n_freq):
@@ -925,22 +926,33 @@ if __name__ == '__main__':
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
         # np.save(Path(path1, 'LN_spectrum'), spectrum_signal_av)
-        plot_low_freq_spec_ab(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
+        if ab == 'y':
+            plot_low_freq_spec_ab(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
+        else:
+            plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
     #                       *****************************
 
     if output_picture_mode == 'y':
-        fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
-        fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
-
+        if ab == 'y':
+            fp.fig_plot_ab(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+            fp.fig_plot_ab(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
+        else:
+            fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+            fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
     # *********************************************************
     # ***            Многооконный вывод данных             ****
     # *********************************************************
     if output_picture_mode == 'no':
         t_start, t_stop = 50, 180
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
-        fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
-                             path1,
-                             freq_spect_mask, head)
+        if ab == 'y':
+            fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
+                                 path1,
+                                 freq_spect_mask, head)
+        else:
+            fp.fig_multi_axes(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
+                                 path1,
+                                 freq_spect_mask, head)
 
     # *********************************************************
     # ***        Вывод данных двумерный и трехмерный       ****
@@ -963,7 +975,10 @@ if __name__ == '__main__':
         fp.graph_3d(freq[nf_start:nf_stop], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:nf_stop],
                     3, path1, head)
     if contour_2d_perm == 'y':
-        fp.graph_contour_2d(freq[12:115], timeS[277:311], spectr_extr1[277:311, 12:115], 0, info_txt, path1, head)
+        if ab == 'y':
+            fp.graph_contour_2d_ab(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
+        else:
+            fp.graph_contour_2d(freq[12:115], timeS[277:311], spectr_extr1[277:311, 12:115], 0, info_txt, path1, head)
 
     if poly3d_perm == 'y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
