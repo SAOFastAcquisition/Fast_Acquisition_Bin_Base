@@ -63,7 +63,7 @@ def plot_low_freq_spec_ab(_spectrum, _delta_t, _path_to_picture_folder, _line_le
     matplotlib.rcParams['font.family'] = 'serif'
     matplotlib.rcParams['font.size'] = '10'
 
-    fig = plt.figure(figsize=(6, 4))
+    fig = plt.figure(figsize=(6.4, 4))
     axes = fig.add_subplot()
     axes.tick_params(axis='both',  # Применяем параметры к обеим осям
                      which='major',  # Применяем параметры к основным делениям
@@ -105,14 +105,15 @@ def plot_low_freq_spec_ab(_spectrum, _delta_t, _path_to_picture_folder, _line_le
     axes.set_ylim([1, 1000000])
     axes.set_yscale('log')
     axes.set_xscale('log')
-    axes.set_xlabel('Freq, Hz')
+    axes.set_xlabel('Frequency, Hz')
     axes.set_ylabel('Spectral Density, $K^2/Hz$')
-    plt.text(0.7, 15, '1', style='italic')  # Семейство кривых
+    plt.text(0.7, 20, '1', style='italic')  # Семейство кривых
     plt.text(0.7, 10000, '2', style='italic')  #
     for i in range(m):
         axes.plot(arg[0:n // 2], _spectrum[i, 0:n // 2], color='black', linewidth=0.5)
         axes.plot(arg[0:n // 2], _spectrum_ad[i, 0:n // 2], color='black', linewidth=0.5)
     # axes.legend()
+    plt.tight_layout(pad=0.2, w_pad=0.2, h_pad=1.0)
     plt.show()
 
     fig.savefig(_path_to_picture)

@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -777,7 +777,7 @@ if __name__ == '__main__':
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'т'
+    contour_2d_perm = 'n'
     poly3d_perm = 'n'
     ab = 'n'  # Подготовка рисунков к публикации в АБ
 
@@ -841,13 +841,13 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
     # time_spect_mask = [20, 185, 213, 247]  # [9] article to 'ab'
     # time_spect_mask = [179.5, 180.5, 182]     # Первая вспышка
     # time_spect_mask = [184, 185.1, 186.5]     # Вторая вспышка
     # time_spect_mask = [187.5, 188.1, 189]     # Третья вспышка
     # time_spect_mask = [190, 190.7, 191.5]     # Четвертая вспышка
-    time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
+    # time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
     # if band_size == 'whole':
     #      freq_spect_mask = []
 
@@ -885,8 +885,10 @@ if __name__ == '__main__':
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
+    # path_npy = Path(str(converted_data_file_path) + '_spectrum.npy')
     # print(path_txt)
     # np.savetxt(path_txt, spectr_freq)
+    # np.save(path_npy, spectr_freq)
     # path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
     # print(path_txt)
     # np.savetxt(path_txt, freq)
