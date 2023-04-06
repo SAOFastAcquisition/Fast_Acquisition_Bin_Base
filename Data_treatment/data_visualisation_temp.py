@@ -729,7 +729,7 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-02-10_02+16'
+    current_primary_file = '2023-02-10_01+20'
     current_primary_dir = '2023_02_10sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)

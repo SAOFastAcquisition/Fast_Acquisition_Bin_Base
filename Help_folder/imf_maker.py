@@ -26,6 +26,47 @@ def plot_imf(_x, _y, _y1, _y2):
     plt.show()
 
 
+def zone_deletion(_len):
+    # Исключение зон действия режекторных фильтров при правильном порядке отсчетов частоты во второй зоне Найквиста
+    _delta_f = 2000 / _len
+    k1 = int((25 - _delta_f / 2) // _delta_f)
+    k2 = int((770 - _delta_f / 2) // _delta_f)
+    k3 = int((1034 - _delta_f / 2) // _delta_f)
+    k4 = int((1090 - _delta_f / 2) // _delta_f)
+    k5 = int((1220 - _delta_f / 2) // _delta_f)
+    k6 = int((1525 - _delta_f / 2) // _delta_f)
+    k7 = int((1700 - _delta_f / 2) // _delta_f)
+    k8 = int((1954 - _delta_f / 2) // _delta_f)
+    k9 = int(2000 / _delta_f) - 1
+    _k = [0, k1, k2, k3, k4, k5, k6, k7, k8, k9]
+    return _k
+
+
+def fill_zone_del(_data):
+    _len_data = len(_data)
+    _k = zone_deletion(_len_data)
+    _df = 2000 / _len_data
+    _x_init = np.array([1000 + _df / 2 + _df * _i for _i in _k])
+    _y_init = _data[_k]
+    _y_init[0] = _y_init[1] / 2
+    _y_init[-1] = _y_init[-2] / 2
+    _kr = _k[0:2]
+    reg0 = fill_func(_x_init[[0, 1]], _y_init[[0, 1]], _kr, 0)
+    _data[_k[0]:_k[1]] = reg0
+    pass
+    return _data
+
+
+def fill_func(_x_init, _y_init, _k_init, _order):
+    _k = np.array([i for i in range(_k_init[0], _k_init[1], 1)])
+    _kl = _k_init[1] - _k_init[0]
+    _y = _y_init[0] + (_y_init[1] - _y_init[0]) / _kl * (_k - _k_init[0]) \
+        + 0.1 * np.cos(2 * 3.14 / _kl * (_k - _k_init[0])) \
+        + 0.1 * np.sin(2 * 3.14 * _order / _kl * (_k - _k_init[0]))
+    pass
+    return _y
+
+
 def imf_gen(_data):
     from scipy.interpolate import make_interp_spline as mis
     _l = len(_data)
@@ -41,7 +82,7 @@ def imf_gen(_data):
     _cs_max = mis(_idx_maximas, _data[_idx_maximas], k=3, bc_type=(l, r))
     _cs = (_cs_max(cx) + _cs_min(cx)) / 2
 
-    # plot_imf(cx, _data, _cs, _data - _cs)
+    plot_imf(cx, _data, _cs, _data - _cs)
     return _cs
 
 
@@ -116,22 +157,32 @@ if __name__ == '__main__':
     data_treatment_file_path = adr1.treatment_data_file_path
     e = 2.718281828459045
     dec = np.log(10)
+    #                               **************************
+    # Загрузка исходных данных в виде спектров в фиксированные моменты времени '_spectrum_time.npy'
+    # или сканов на фиксированных частотах '_scan_freq.npy'
+    #                               **************************
     path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
     # path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
     spectrum = np.load(path_npy, allow_pickle=True)
-    spectrum_log = np.log10(spectrum)
-    data = spectrum_log[:, 5:197]
+    spectrum_log0 = np.log10(spectrum)
+    data = spectrum_log0[:, 0:197]
     l = np.shape(data)[1]
     arg = np.arange(0, l, 1)
-
-    imf1 = imf_decomp(data[4, :])
-    # imf2 = imf_decomp(spectrum_log[4, 5:500])
-    # imf3 = imf_decomp(spectrum_log[5, 5:500])
-
-    plot_imf(arg[:], np.exp(dec * (np.sum(imf1, axis=0))),
-                            np.exp(dec * imf1[3, :]) * (np.exp(dec * imf1[2, :]) - 1), np.exp(dec * imf1[0, :]))    #
-
-    # plot_imf(arg, imf1[1, :], imf2[1, :], imf3[1, :])
-    # plot_imf(arg, imf1[-1, :], imf2[-1, :], imf3[-1, :])
+    #                               **************************
+    imf00 = imf_decomp(fill_zone_del(data[4, :]))  # Разложение на собственные функции опорного спектра
+    # imf01 = imf_decomp(fill_zone_del(data[3, 0:197]) - imf00[0, 0:197] - imf00[1, 0:197])
+    # imf02 = imf_decomp(fill_zone_del(data[5, 0:197]) - imf00[0, 0:197] - imf00[1, 0:197])
+    #                               **************************
+    # data_mod1 = data[3, :] - imf0[0, :]
+    # data_mod2 = data[3, :] - imf0[0, :] - imf0[1, :]
+    # plot_imf(arg[:], np.exp(dec * data[5, :]), np.exp(dec * data_mod1), np.exp(dec * data_mod2))
+    # plot_imf(arg[:], imf00[0, :]+imf00[1, :], imf01[0, :]+imf01[1, :], imf02[0, :]+imf02[1, :])
+    # plot_imf(arg[:], imf00[1, :], imf01[1, :], imf02[1, :])
+    # plot_imf(arg[:], imf00[2, :], imf01[2, :], imf02[2, :])
+    plot_imf(arg[:], imf00[-1, :], imf00[0, :], imf00[1, :])
+    # imf1 = imf_decomp(data_mod1)
+    # imf2 = imf_decomp(data_mod2)
+    # imf3 = imf_decomp(data[3, :])
+    # plot_imf(arg[:], imf1[-1, :], imf2[-1, :], imf3[-1, :])
 
     pass
