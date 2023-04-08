@@ -1,10 +1,6 @@
 import numpy as np
-import os
-import sys
-import pickle
 from pathlib import Path
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline
 from scipy.signal import argrelextrema as agl
 from Help_folder.paths_via_class import DataPaths
 
@@ -33,9 +29,9 @@ def zone_deletion(_len):
     k2 = int((770 - _delta_f / 2) // _delta_f)
     k3 = int((1034 - _delta_f / 2) // _delta_f)
     k4 = int((1090 - _delta_f / 2) // _delta_f)
-    k5 = int((1220 - _delta_f / 2) // _delta_f)
+    k5 = int((1230 - _delta_f / 2) // _delta_f)
     k6 = int((1525 - _delta_f / 2) // _delta_f)
-    k7 = int((1700 - _delta_f / 2) // _delta_f)
+    k7 = int((1710 - _delta_f / 2) // _delta_f)
     k8 = int((1954 - _delta_f / 2) // _delta_f)
     k9 = int(2000 / _delta_f) - 1
     _k = [0, k1, k2, k3, k4, k5, k6, k7, k8, k9]
@@ -48,21 +44,34 @@ def fill_zone_del(_data):
     _df = 2000 / _len_data
     _x_init = np.array([1000 + _df / 2 + _df * _i for _i in _k])
     _y_init = _data[_k]
-    _y_init[0] = _y_init[1] / 2
-    _y_init[-1] = _y_init[-2] / 2
+    _len_init = len(_k)
+    _y_init[0] = _y_init[1] - 0.1
+    _y_init[_len_init-1] = _y_init[_len_init-2] - 0.15
     _kr = _k[0:2]
-    reg0 = fill_func(_x_init[[0, 1]], _y_init[[0, 1]], _kr, 0)
-    _data[_k[0]:_k[1]] = reg0
+    reg0 = fill_func(_x_init[[0, 1]], _y_init[[0, 1]], _kr, 2)
+    _data[_k[0]:_k[1]+1] = reg0
+    reg1 = fill_func(_x_init[[2, 3]], _y_init[[2, 3]], _k[2:4], 8)
+    _data[_k[2]:_k[3]+1] = reg1
+    reg2 = fill_func(_x_init[[4, 5]], _y_init[[4, 5]], _k[4:6], 5)
+    _data[_k[4]:_k[5]+1] = reg2
+    reg3 = fill_func(_x_init[[6, 7]], _y_init[[6, 7]], _k[6:8], 8)
+    _data[_k[6]:_k[7]+1] = reg3
+    reg4 = fill_func(_x_init[[8, 9]], _y_init[[8, 9]], _k[8:], 2)
+    _data[_k[8]:_k[9]+1] = reg4
+    plt.plot(_data)
+    plt.show()
     pass
     return _data
 
 
 def fill_func(_x_init, _y_init, _k_init, _order):
-    _k = np.array([i for i in range(_k_init[0], _k_init[1], 1)])
+    _k = np.array([i for i in range(_k_init[0], _k_init[1]+1, 1)])
     _kl = _k_init[1] - _k_init[0]
-    _y = _y_init[0] + (_y_init[1] - _y_init[0]) / _kl * (_k - _k_init[0]) \
-        + 0.1 * np.cos(2 * 3.14 / _kl * (_k - _k_init[0])) \
-        + 0.1 * np.sin(2 * 3.14 * _order / _kl * (_k - _k_init[0]))
+    _y = [_y_init[0] + (_y_init[1] - _y_init[0]) / _kl * (i - _k_init[0]) \
+          + 0.03 * np.cos(2 * 3.14 / _kl * (i - _k_init[0])) \
+          + 0.01 * np.sin(2 * 3.14 * _order / _kl * (i - _k_init[0])) for i in _k]
+    # plt.plot(_y)
+    # plt.show()
     pass
     return _y
 
@@ -82,7 +91,7 @@ def imf_gen(_data):
     _cs_max = mis(_idx_maximas, _data[_idx_maximas], k=3, bc_type=(l, r))
     _cs = (_cs_max(cx) + _cs_min(cx)) / 2
 
-    plot_imf(cx, _data, _cs, _data - _cs)
+    # plot_imf(cx, _data, _cs, _data - _cs)
     return _cs
 
 
@@ -164,12 +173,13 @@ if __name__ == '__main__':
     path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
     # path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
     spectrum = np.load(path_npy, allow_pickle=True)
+    mask = spectrum[3, :] == 40.0
     spectrum_log0 = np.log10(spectrum)
-    data = spectrum_log0[:, 0:197]
+    data = spectrum_log0
     l = np.shape(data)[1]
     arg = np.arange(0, l, 1)
     #                               **************************
-    imf00 = imf_decomp(fill_zone_del(data[4, :]))  # Разложение на собственные функции опорного спектра
+    imf00 = imf_decomp(fill_zone_del(data[5, :]))  # Разложение на собственные функции опорного спектра
     # imf01 = imf_decomp(fill_zone_del(data[3, 0:197]) - imf00[0, 0:197] - imf00[1, 0:197])
     # imf02 = imf_decomp(fill_zone_del(data[5, 0:197]) - imf00[0, 0:197] - imf00[1, 0:197])
     #                               **************************
@@ -179,6 +189,9 @@ if __name__ == '__main__':
     # plot_imf(arg[:], imf00[0, :]+imf00[1, :], imf01[0, :]+imf01[1, :], imf02[0, :]+imf02[1, :])
     # plot_imf(arg[:], imf00[1, :], imf01[1, :], imf02[1, :])
     # plot_imf(arg[:], imf00[2, :], imf01[2, :], imf02[2, :])
+    imf00[-1, mask] = 0
+    imf00[0, mask] = 0
+    imf00[1, mask] = 0
     plot_imf(arg[:], imf00[-1, :], imf00[0, :], imf00[1, :])
     # imf1 = imf_decomp(data_mod1)
     # imf2 = imf_decomp(data_mod2)
