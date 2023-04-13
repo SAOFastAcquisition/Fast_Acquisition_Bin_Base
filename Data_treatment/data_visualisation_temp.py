@@ -674,17 +674,17 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 2
+    _n2 = 3
     _freq_mask = [
         [2410, 2460],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 00 + 10 * i for i in range(5)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 20 + 4 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12'    # [7]
-        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2920],  # [8]
+        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2860],  # [8]
         [1200, 1380, 2265, 2800]  # [9] article to 'ab' Sun
     ]
     return _freq_mask[_i]
@@ -753,7 +753,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'
@@ -938,10 +938,10 @@ if __name__ == '__main__':
 
     if output_picture_mode == 'y':
         if ab == 'y':
-            fp.fig_plot_ab(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+            # fp.fig_plot_ab(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
             fp.fig_plot_ab(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
         else:
-            fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
+            # fp.fig_plot(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
             fp.fig_plot(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
     # *********************************************************
     # ***            Многооконный вывод данных             ****
