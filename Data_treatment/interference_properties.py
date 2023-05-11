@@ -12,7 +12,7 @@ if __name__ == '__main__':
     converted_data_file_path = adr1.converted_data_file_path
     data_treatment_file_path = adr1.treatment_data_file_path
 
-    mx = x.sum() / N
+    mx = x.sum() / N    # 1
     my = y.sum() / N
     a2 = np.dot(x.T, x) / N
     a11 = np.dot(x.T, y) / N
