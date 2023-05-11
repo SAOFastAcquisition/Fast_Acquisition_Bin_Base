@@ -79,7 +79,7 @@ if __name__ == "__main__":
     angle = np.array([t * angle_per_sample for t in range(n_angle)])
 
     main_lobe1 = gauss(angle, 60 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
-    main_lobe2 = gauss(angle, 40 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe2 = gauss(angle, 20 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     for i in range(len(main_lobe1)):
         if main_lobe1[i] < 1e-4:
             main_lobe1[i] = 1e-4

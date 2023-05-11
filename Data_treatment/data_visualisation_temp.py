@@ -761,7 +761,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'
