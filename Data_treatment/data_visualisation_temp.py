@@ -223,51 +223,36 @@ def preparing_data():
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     _path1 = Path(str(converted_data_file_path) + '_spectrum.npy')
-    spectrum = np.load(_path1, allow_pickle=True)
+    _spectrum = np.load(_path1, allow_pickle=True)
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
-        head = pickle.load(inp)
-    n_aver = head['n_aver']
-    band_size = head['band_size']
-    polar = head['polar']
-    # n_aver = head['n_aver']
+        _head = pickle.load(inp)
+    _n_aver = _head['n_aver']
+    _band_size = _head['band_size']
+    _polar = _head['polar']
 
-    # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями,
-    # одновременно понижая разрядность данных, меняя их тип с int64 до int32 и уменьшая
-    # занимаемую ими память
-    if num_of_polar == 2 and band_size == 'whole':
-        # if np.size(spectrum[0]) > 1:
-        #     spectrum_left1 = (spectrum[0] / 1000).astype(np.int32)
-        # else:
-        spectrum_left1 = spectrum[0]
-        # if np.size(spectrum[1]) > 1:
-        #     spectrum_left2 = (spectrum[1] / 1000).astype(np.int32)
-        # else:
-        spectrum_left2 = spectrum[1]
-        # if np.size(spectrum[2]) > 1:
-        #     spectrum_right1 = (spectrum[2] / 1000).astype(np.int32)
-        # else:
-        spectrum_right1 = spectrum[2]
-        # if np.size(spectrum[3]) > 1:
-        #     spectrum_right2 = (spectrum[3] / 1000).astype(np.int32)
-        # else:
-        spectrum_right2 = spectrum[3]
+    # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями
+    if num_of_polar == 2 and _band_size == 'whole':
+        spectrum_left1 = _spectrum[0]
+        spectrum_left2 = _spectrum[1]
+        spectrum_right1 = _spectrum[2]
+        spectrum_right2 = _spectrum[3]
     # Выдает спектры для левой и правой поляризаций шириной по 1 ГГц. При нумерации спектров учитывается
     # значение зоны Найквиста. С индексом "1" - 1-2 ГГц, с индексом "2" - 2-3 ГГц, как и для случая выше.
     # На выходе формально все 4 спектра, но для незадействованной полосы они пустые
-    elif num_of_polar == 2 and band_size == 'half':
+    elif num_of_polar == 2 and _band_size == 'half':
         if N_Nyq == 2:
-            spectrum_left1 = spectrum[0]
-            spectrum_right1 = spectrum[1]
+            spectrum_left1 = _spectrum[0]
+            spectrum_right1 = _spectrum[1]
             spectrum_left2 = []
             spectrum_right2 = []
         else:
-            spectrum_left2 = spectrum[0]
-            spectrum_right2 = spectrum[1]
+            spectrum_left2 = _spectrum[0]
+            spectrum_right2 = _spectrum[1]
             spectrum_left1 = []
             spectrum_right1 = []
     pass
 
-    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(n_aver), band_size, polar
+    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(_n_aver), _band_size, _polar
 
 
 def unite_spectrum(spec):
