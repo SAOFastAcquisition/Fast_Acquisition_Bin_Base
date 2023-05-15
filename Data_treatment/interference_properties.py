@@ -34,7 +34,7 @@ if __name__ == '__main__':
             spectrum[2][i][0:] = spectrum[2][i][-1::-1]
 
     if len(spectrum[0]) > 1 and len(spectrum[2]) > 1:       # Обе поляризации
-        dat = np.hstack((spectrum[0] + spectrum[1], spectrum[2] + spectrum[3]))
+        dat = np.hstack((spectrum[0] + spectrum[2], spectrum[1] + spectrum[3]))
     if len(spectrum[0]) > 1 and not(len(spectrum[1])) > 1:  # Левая поляризация
         dat = np.hstack((spectrum[0], spectrum[2]))
     if not(len(spectrum[0])) > 1 and len(spectrum[1]) > 1:  # Правая поляризация
@@ -51,4 +51,12 @@ if __name__ == '__main__':
 
     kk = (a11 - mx * my) / (a2 - mx ** 2)
     bb = my - kk * mx
+    ff = np.array([kk * z * delta_t + bb for z in range(n)])
+
+    delta_ff = ff - y
+    res = np.multiply(delta_ff, delta_ff)
+    res1 = res ** 0.5
+
+    res_relative = np.sum(res1, axis=0) / n / my
+
     pass
