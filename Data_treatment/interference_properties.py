@@ -1,9 +1,12 @@
 import numpy as np
+import pandas as pd
 import pickle
 import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 from Help_folder.paths_via_class import DataPaths
+from tkinter import *
+from tkinter import messagebox as mb
 
 
 def data_preparing(_path):
@@ -50,7 +53,15 @@ def data_preparing1(_path, _t1, _t2):
         head = pickle.load(inp)
     n1, n2 = int(_t1 / delta_t), int(_t2 / delta_t)
     _n = n2 - n1
-    spectrum = np.array([s[n1:n2, :] for s in spectrum0])
+    # spectrum = np.array([s[n1:n2, :] for s in spectrum0])
+    spectrum = pd.Series([[], [], [], []])
+    i = 0
+    for s in spectrum0:
+        if len(s) > 1:
+            spectrum[i] = s[n1:n2, :]
+        else:
+            spectrum[i] = []
+        i += 1
     # Приведение порядка следования отсчетов по частоте к нормальному
     if np.size(spectrum[0]):
         _n_row = np.shape(spectrum[0])[0]
@@ -108,7 +119,7 @@ def relative_rms1(_y, _n):
     if len(_y) > 1:
         log_mask = _y > 100
     else:
-        return 'Data are absent, massive is empty'
+        return []
 
     _shape = np.shape(_y)
     _x = np.array([i for i in range(_n)]) * delta_t
@@ -223,13 +234,14 @@ def some_fig_plot(_data1, _data2, _path_to_fig_folder=None):
     _df = 2000 / _m
     _freq = [1000 + _df / 2 + _df * _i for _i in range(_m)]
     _l = 1
+    _r_level = np.sqrt(2 / _df / delta_t / 1e6)     # 1е6 переход к Гц от МГц
     fig, _axes = plt.subplots(_l, 1, figsize=(12, _l * 3))
 
     if len(_data1) > 1:
         _axes.semilogy(_freq, _data1)
     if len(_data2) > 1:
         _axes.semilogy(_freq, _data2)
-    _axes.axhline(y=7.5e-3, xmin=0.05, xmax=0.95, color='r')
+    _axes.axhline(y=_r_level, xmin=0.05, xmax=0.95, color='r')
     _axes.grid()
     _axes.grid(which='minor',
                axis='x',
@@ -285,28 +297,49 @@ def save_question():
     return answer
 
 
+def save_rms_base(_data_left, _data_right, _path_dir, _path_file):
+
+    # **** Создание папки для хранения конвертированных данных, если ее нет ****
+    if not os.path.isdir(Path(_path_dir)):
+        os.mkdir(Path(_path_dir))
+    # **************************************************************************
+
+    _rms = pd.Series([_data_left, _data_right])
+    np.save(str(_path_file) + '_rms', _rms)
+
+
 if __name__ == '__main__':
-    current_primary_file = '2023-02-10_12-24'
-    current_primary_dir = '2023_02_10sun'
-    main_dir = '2023'
+    current_primary_file = '2022-12-23_04+14'
+    current_primary_dir = '2022_12_23_3C273'
+    main_dir = '2022'
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
     converted_data_file_path = adr1.converted_data_file_path
     data_treatment_file_path = adr1.treatment_data_file_path
+    converted_dir_path = adr1.converted_dir_path
 
     delta_t = 8.3886e-3
     delta_f = 7.8125
 
     path1 = Path(str(converted_data_file_path) + '_spectrum.npy')
-    t1, t2 = 250, 255   # Интервал времени, на котором считаем rms скана
+    t1, t2 = 100, 110   # Интервал времени, на котором считаем rms скана
 
-    y_left, y_right, n, n_aver = data_preparing1(path1, t1, t2)
-    res_relative_left = relative_rms1(y_left, n)
-    res_relative_right = relative_rms1(y_right, n)
+    if os.path.isfile(str(converted_data_file_path) + '_rms.npy'):
+        rms_relative_left, rms_relative_right = np.load(str(converted_data_file_path) + '_rms.npy', allow_pickle=True)
+    else:
+        y_left, y_right, n, n_aver = data_preparing1(path1, t1, t2)
+        rms_relative_left = relative_rms1(y_left, n)
+        rms_relative_right = relative_rms1(y_right, n)
+        save_rms_base(rms_relative_left, rms_relative_right, converted_dir_path, converted_data_file_path)
 
-    dz = zone_deletion(len(res_relative_left))
-    res_relative_left[dz] = 1e-3
-    res_relative_right[dz] = 1e-3
+    #       *** Установка в зоне действия режекторных фильтров rms_relative = 1e-3 ***
+    if len(rms_relative_left) > 1:
+        dz = zone_deletion(len(rms_relative_left))
+        rms_relative_left[dz] = 1e-3
+    if len(rms_relative_right) > 1:
+        dz = zone_deletion(len(rms_relative_right))
+        rms_relative_right[dz] = 1e-3
 
-    some_fig_plot(res_relative_left, res_relative_right)
+
+    some_fig_plot(rms_relative_left, rms_relative_right, data_treatment_file_path)
 
     pass
