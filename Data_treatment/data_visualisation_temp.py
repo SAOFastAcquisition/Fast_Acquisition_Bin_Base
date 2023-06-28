@@ -659,12 +659,12 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 3
+    _n2 = 4
     _freq_mask = [
         [2410, 2460],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 20 + 4 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 0 + 25 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-02-10_01+20'
-    current_primary_dir = '2023_02_10sun'
+    current_primary_file = '2023-06-23_01+12'
+    current_primary_dir = '2023_06_23_3C273'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 16  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -746,7 +746,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'

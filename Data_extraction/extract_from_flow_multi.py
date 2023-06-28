@@ -28,7 +28,7 @@ def extract_whole_band():
     spectrum_left_1 = []
     spectrum_left_2 = []
     spectrum_right_2 = []
-    attenuators = []
+    # attenuators = []
     frame = ' '
     frame_num_before = 0
     noise_gen_on_before = 0
@@ -113,9 +113,9 @@ def extract_whole_band():
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
                     if flag_registration == 1:
                         spectr_frame.append(frame_num)
-                        #
+
                     band = (frame_int & 0x8000000000000000) >> 63
-                    attenuators = [att_1, att_2, att_3]
+                    # attenuators = [att_1, att_2, att_3]
                     if i == 10:
                         att01 = att_1
                         att02 = att_2
@@ -478,8 +478,8 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_02_10sun'
-    current_primary_file = '2023-02-10_01+20-24'
+    current_primary_dir = '2023_06_23_3C273'
+    current_primary_file = '2023-06-23_01+12+10'
     azimuth_file_name = current_primary_file + 'az.txt'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\

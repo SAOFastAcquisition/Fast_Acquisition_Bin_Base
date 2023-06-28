@@ -61,7 +61,7 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     size_sp1 = spectr1.shape
 
     if not flag:
-        argument = np.array(time_to_angle(argument))
+        # argument = np.array(time_to_angle(argument))
         spectr1 = spectr1[:, -1::-1]
 
     for i in range(size_sp1[0]):
