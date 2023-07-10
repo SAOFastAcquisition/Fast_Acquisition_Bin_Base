@@ -410,12 +410,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_02_27sun'
-    current_primary_file = '2023-02-27_01+28'
+    current_primary_dir = '2023_05_22sun'
+    current_primary_file = '2023-05-22_01+24'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
-        current_data_dir = '2022/Test_and_calibration'
+        current_data_dir = '2023/Test_and_calibration'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
@@ -430,8 +430,8 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 8  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 4  # Установка разрешения по частоте в МГц
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
@@ -446,7 +446,7 @@ if __name__ == '__main__':
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
     output_picture_mode = 'y'
-    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
     noise_calibr = 'n'
     save_data = 'n'     # Сохранение сканов в формате *.npy: 'y' / 'n'
     lf_filter = 'n'     # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
@@ -542,12 +542,12 @@ if __name__ == '__main__':
 
 
     # ***************!! Вывод данных в текстовой форме !!*********************
-    # path_txt = str(Path(converted_data_file_path, current_primary_file + '_scan.txt'))
-    # print(path_txt) # (converted_data_file_path, current_primary_file + '_spectrum')
-    # np.savetxt(path_txt, spectr_freq)
-    # path_txt = str(Path(converted_data_file_path, current_primary_file + '_freq.txt'))
-    # print(path_txt)
-    # np.savetxt(path_txt, freq)
+    path_txt1 = str(Path(converted_data_file_path, current_primary_file + '_spectrum.txt'))
+    print(path_txt1) # (converted_data_file_path, current_primary_file + '_spectrum')
+    np.savetxt(path_txt1, spectr_freq)
+    path_txt2 = str(Path(converted_data_file_path, current_primary_file + '_freq.txt'))
+    print(path_txt2)
+    np.savetxt(path_txt2, freq)
     # ***********************************************************************
 
     # ************************** !!! Вывод данных !!! ***********************

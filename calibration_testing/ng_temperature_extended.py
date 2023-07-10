@@ -376,7 +376,7 @@ if __name__ == '__main__':
     ngi_id = '01'                                           # Идентификатор встроенного генератора шума
     case_id = '03'      # Идентификатор набора данных, по которым усредняется температура собств. шумов приемника
     note = '2022_11_18-24'                                  # Дата или период измерений набора данных
-    timing = [0, 20, 30, 50]
+    timing = [0, 10, 20, 40]
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     atc_path = Path(head_path, 'Alignment', atc_file_name)  # atc - antenna temperature coefficients

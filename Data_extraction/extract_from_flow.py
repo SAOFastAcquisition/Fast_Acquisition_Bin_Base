@@ -574,12 +574,12 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_02_27sun'
-    current_primary_file = '2023-02-27_01+28'
+    current_primary_dir = '2023_06_21sun'
+    current_primary_file = '2023-06-21_13-24'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
-        current_data_dir = '2022/Test_and_calibration'
+        current_data_dir = '2023/Test_and_calibration'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
