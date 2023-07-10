@@ -43,11 +43,11 @@ def extract_whole_band():
         f_in = open(file_name, 'rb')
         antenna = 0
         frame_num = 0
+        spectrum = pd.DataFrame(index=[0, 1, 2, 3], columns=['left', 'right'])
         while frame:
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
             # и 128-ми значений спектра в список spectr_frame на позиции [2:129]
-
 
             frame_int = int.from_bytes(f_in.read(8), byteorder='little')
             frame_num = frame_int & 0xFFFFFFF
@@ -69,7 +69,7 @@ def extract_whole_band():
             # ******************************************************************************
 
             # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
-            # Выделение промежутка для значения куртозиса = [2 - bound_left/64, 2 + bound_right/64])
+            # Выделение промежутка для значения куртозиса = [2 - bound_left/128, 2 + bound_right/128])
 
             n_aver = (frame_int & 0xFF00000000) >> 32
             bound_left = (frame_int & 0x1FF0000000000) >> (32 + 8)
@@ -97,8 +97,13 @@ def extract_whole_band():
                 att02 = att_2
                 att03 = att_3
             pass
-
+            if antenna == 0:
+                spectrum['left'].loc[band] = frame
+            else:
+                spectrum['right'].loc[band] = [frame_num]
             frame1 = f_in.read(8*128)
+            if len(frame1) != 1024:
+                break
             x = struct.unpack('ff'*128, frame1)
             verify_data = np.asarray(x).reshape(128, -1)
             spectrum_val = list(verify_data[:, 0])
@@ -138,7 +143,7 @@ def extract_whole_band():
             if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
                 spectrum_right_2.pop(-1)
 
-            print(i, frame_num, band, attenuators)
+            print(i, len(frame1), frame_num, band, attenuators)
             i += 1
 
             frame_num_before = frame_num
