@@ -44,6 +44,9 @@ def extract_whole_band():
         antenna = 0
         frame_num = 0
         spectrum = pd.DataFrame(index=[0, 1, 2, 3], columns=['left', 'right'])
+        for i in [0, 1, 2, 3]:
+            for j in ['left', 'right']:
+                spectrum[j].loc[i] = []
         while frame:
             spectr_frame = []
             # Обработка кадра: выделение номера кадра, границ куртозиса, длины усреднения на ПЛИС
@@ -98,9 +101,9 @@ def extract_whole_band():
                 att03 = att_3
             pass
             if antenna == 0:
-                spectrum['left'].loc[band] = frame
+                spectrum['left'].loc[band].extend([frame_num])
             else:
-                spectrum['right'].loc[band] = [frame_num]
+                spectrum['right'].loc[band].extend([frame_num])
             frame1 = f_in.read(8*128)
             if len(frame1) != 1024:
                 break
@@ -117,31 +120,16 @@ def extract_whole_band():
             #  pp_good = (frame_int & 0xFF800000) >> 23
             # if pp_good < pp_good_bound:
             #     spectrum_val = 2
+            if antenna == 0:
+                spectrum['left'].loc[band].extend(spectrum_val)
+            else:
+                spectrum['right'].loc[band].extend(spectrum_val)
             spectr_frame.extend(list(spectrum_val))
             pass
 
             if abs(frame_num_before - frame_num) > 1000:
                 print('Прервывание обработки из-за сбоя определения номера кадра')
                 break
-            if antenna == 0 and (antenna_before - antenna == 0):
-                if band:
-                    spectrum_left_2.append(spectr_frame)
-                else:
-                    spectrum_left_1.append(spectr_frame)
-            if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_1.pop(-1)
-            if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_2.pop(-1)
-
-            if antenna == 1 and (antenna_before - antenna) == 0:
-                if band:
-                    spectrum_right_2.append(spectr_frame)
-                else:
-                    spectrum_right_1.append(spectr_frame)
-            if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_1.pop(-1)
-            if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_2.pop(-1)
 
             print(i, len(frame1), frame_num, band, attenuators)
             i += 1
@@ -150,26 +138,13 @@ def extract_whole_band():
             # if att_1 == 31 & att_2 == 31 & att_3 == 31:
             #     break
         pass
-        n_right1 = len(spectrum_right_1)
-        n_left1 = len(spectrum_left_1)
-        n_right2 = len(spectrum_right_2)
-        n_left2 = len(spectrum_left_2)
-
-        # В случае, если при работе с одной поляризацией ('Ant1' или 'Ant2') в переменную
-        # antenna не записывается с какого входа берется сигнал (в любом случае antenna = 0),
-        # то необходима следующая процедура перестановки значений переменных
-        n_right = np.max([len(spectrum_right_1), len(spectrum_right_2)])
-        if n_right == 0 and antenna2_0 == 1:
-            spectrum_right_1 = spectrum_left_1
-            spectrum_left_1 = []
-            spectrum_right_2 = spectrum_left_2
-            spectrum_left_2 = []
-            n_right1 = len(spectrum_right_1)
-            n_left1 = len(spectrum_left_1)
-            n_right2 = len(spectrum_right_2)
-            n_left2 = len(spectrum_left_2)
 
         # Приведение длины записи к величине кратной количеству частот
+
+        for i in [0, 1, 2, 3]:
+            for j in ['left', 'right']:
+                if len(spectrum[j].loc[i]) > 1:
+                    spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], n_aver)
         if n_right1 > 1:
             spectrum_right_1 = cut_spectrum(spectrum_right_1, n_aver)
             # spectrum_right_1 = np.array(spectrum_right_1, dtype=np.int32)
@@ -207,29 +182,6 @@ def extract_whole_band():
             'align_file_path': r'F:\Fast_Acquisition\Alignment\Align_coeff.bin',
             'align_coeff_pos': 5}
     return save_spectrum(spectrum_extr, head)
-
-
-def parts_to_numpy(list_arr, len_list):
-    """ Функция превращает список в массив numpy.
-    Разбивает файл на меньшие части и обрабатывает их поотдельности. По ходу завершинея обработки частей
-    происходит объединение обработанных частей."""
-    n = int(len_list // 1e5)
-    k = int(len_list % 1e5)
-    numpy_arr = []
-    for i in range(n + 1):
-        if i == n:
-            auxiliary = list_arr[int(i * 1e5):int(i * 1e5 + k)]
-            auxiliary = np.array(auxiliary, dtype='int64')
-        else:
-            auxiliary = list_arr[int(i * 1e5):int((i + 1) * 1e5)]
-            auxiliary = np.array(auxiliary, dtype='int64')
-        l = np.size(numpy_arr)
-        if l:
-            numpy_arr = np.vstack([numpy_arr, auxiliary])
-        else:
-            numpy_arr = auxiliary
-
-    return numpy_arr
 
 
 def status_func(n_left1, n_left2, n_right1, n_right2):
