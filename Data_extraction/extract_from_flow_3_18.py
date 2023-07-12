@@ -121,17 +121,16 @@ def extract_whole_band():
             #     break
         pass
 
-        # Приведение длины записи к величине кратной количеству частот
-
-        for i in [0, 1, 2, 3]:
-            for j in ['left', 'right']:
-                if len(spectrum[j].loc[i]) > 1:
-                    spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], n_aver)
-                    spectrum[j].loc[i] = np.array(spectrum[j].loc[i])
 
     finally:
         f_in.close()
     pass
+    # Приведение длины записи к величине кратной количеству частот
+    for i in [0, 1, 2, 3]:
+        for j in ['left', 'right']:
+            if len(spectrum[j].loc[i]) > 1:
+                spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], n_aver)
+                spectrum[j].loc[i] = np.array(spectrum[j].loc[i])
 
     spectrum_len = pd.DataFrame(index=[0, 1, 2, 3], columns=['left', 'right'])
     for i in [0, 1, 2, 3]:
