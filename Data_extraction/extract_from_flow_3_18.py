@@ -2,6 +2,7 @@ import numpy as np
 import os
 import sys
 import struct
+import math
 import pandas as pd
 import pickle
 import json as jsn
@@ -17,11 +18,8 @@ sys.path.insert(0, Path(current_dir, 'Interface'))
 
 
 def extract_whole_band():
-
     file_name = Path(primary_data_file_path, current_primary_file + '.bin')
-
     i = 0
-    attenuators = []
     frame = ' '
     frame_num_before = 0
 
@@ -33,8 +31,8 @@ def extract_whole_band():
             return
 
         f_in = open(file_name, 'rb')
-        spectrum = pd.DataFrame(index=[0, 1, 2, 3], columns=['left', 'right'])
-        for i in [0, 1, 2, 3]:
+        spectrum = pd.DataFrame(index=[0, 1, 2, 3, 4], columns=['left', 'right'])
+        for i in [0, 1, 2, 3, 4]:
             for j in ['left', 'right']:
                 spectrum[j].loc[i] = []
         while frame:
@@ -66,7 +64,6 @@ def extract_whole_band():
             n_aver = (frame_int & 0xFF00000000) >> 32
             bound_left = (frame_int & 0x1FF0000000000) >> (32 + 8)
             bound_right = (frame_int & 0xFF800000000000) >> (32 + 8 + 9)
-
 
             frame = f_in.read(8)
             frame_int = int.from_bytes(frame, byteorder='little')
@@ -101,7 +98,7 @@ def extract_whole_band():
             #     spectrum_val = (spectrum_val * att_dict[att_3] * att_dict[att_1])
             # else:
             #     spectrum_val = (spectrum_val * att_dict[att_3] * att_dict[att_2])
-            spectrum_val[pp_good < pp_good_bound] = 2
+            # spectrum_val = [2 for i in range(128) if pp_good[i] < 0.5]
 
             # Запись на первую позицию фрагмента спектра номера кадра frame_num
             spectrum[polarization].loc[band].extend([frame_num])
@@ -126,14 +123,15 @@ def extract_whole_band():
         f_in.close()
     pass
     # Приведение длины записи к величине кратной количеству частот
-    for i in [0, 1, 2, 3]:
+    n_aver = int(math.log2(n_aver))
+    for i in [0, 1, 2, 3, 4]:
         for j in ['left', 'right']:
             if len(spectrum[j].loc[i]) > 1:
                 spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], n_aver)
                 spectrum[j].loc[i] = np.array(spectrum[j].loc[i])
 
-    spectrum_len = pd.DataFrame(index=[0, 1, 2, 3], columns=['left', 'right'])
-    for i in [0, 1, 2, 3]:
+    spectrum_len = pd.DataFrame(index=[0, 1, 2, 3, 4], columns=['left', 'right'])
+    for i in [0, 1, 2, 3, 4]:
         for j in ['left', 'right']:
             spectrum_len[j].loc[i] = len(spectrum[j].loc[i])
     polar, measure_kind = status_func(spectrum_len)
@@ -156,7 +154,7 @@ def extract_whole_band():
 def status_func(_sp_len):
 
     # polar Принамает значения поляризаций: 'both', 'left', 'right'
-    for j in [0, 1, 2, 3]:
+    for j in [0, 1, 2, 3, 4]:
         if _sp_len['left'].loc[j] > 1 and _sp_len['right'].loc[j] > 1:
             polar = 'both'
             break
@@ -187,11 +185,11 @@ def save_spectrum(_spectrum, _head):
     # print(f'len_spectrum1 = {len(spectrum1)}, len_spectrum2 ={len(spectrum2)}, len_spectrum3 ={len(spectrum3)}, '
     #       f'len_spectrum4 ={len(spectrum4)}')
 
-    for j in [0, 1, 2, 3]:
+    for j in [0, 1, 2, 3, 4]:
         for i in ['left', 'right']:
-            if len(_spectrum[j].loc[i]) > 1:
-                _spectrum[j].loc[i] = convert_to_matrix(_spectrum[j].loc[i],
-                                                        _spectrum[j].loc[i][-1][0] + 1, n_aver)
+            if len(_spectrum[i].loc[j]) > 1:
+                _spectrum[i].loc[j] = convert_to_matrix(_spectrum[i].loc[j],
+                                                        int(_spectrum[i].loc[j][-1][0] + 1), n_aver)
 
     # **** Создание папки для хранения конвертированных данных, если ее нет ****
     if not os.path.isdir(Path(converted_data_file_path)):
@@ -215,7 +213,8 @@ def cut_spectrum(_spectrum, n_aver):
     if rest:
         for k in range(rest):
             _sp.pop(-1)
-    print(n_frame_last, _sp[-1][0])
+    if len(_sp) > 1:
+        print(n_frame_last, _sp[-1][0])
     return _sp
 
 
@@ -225,10 +224,10 @@ def convert_to_matrix(S_total, counter, n_aver):
     спектра на фиксированной частоте от времени. Разрешение по времени - 8192 мкс. Вместо пропущенных пакетов
     вставляет значение 2"""
     len_time = np.shape(S_total)[0]
-    S = [[int(2)] * 128 for i in range(counter)]
+    S = [[int(2)] * 128 for i in range(int(counter))]
     # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
-        S[s[0]] = s[1:]
+        S[int(s[0])] = s[1:]
     aver_param_loc = 2 ** (6 - n_aver)
     n = 128 * aver_param_loc
     print(len(S))
@@ -282,7 +281,7 @@ if __name__ == '__main__':
     data_treatment_dir = 'Data_treatment3_18'       # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
-    current_primary_file = '2023-06-25_04'
+    current_primary_file = '2023-06-25_02'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
     #         or current_primary_dir.find('calibr') != -1:
