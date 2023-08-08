@@ -9,11 +9,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
-from Interface import main
 from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec, plot_low_freq_spec_ab
 from Interface.window_handler import exec_app
 from Polyphase.cic_filter import signal_filtering
-from test_statistic import low_noise_spectra_base
+# from test_statistic import low_noise_spectra_base
 from polys3d_demo import poly_graph3d
 from Help_folder.paths_via_class import DataPaths
 
@@ -27,6 +26,85 @@ start = datetime.now()
 
 freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]
+
+
+class DataPaths(object):
+
+    def __init__(self, _data_file, _data_dir, _main_dir):
+        if _data_dir.find('test') != -1 or _data_dir.find('calibration') != -1 or _data_dir.find('calibr') != -1:
+            _main_dir = '2023'
+        self.data_file_name = _data_file
+        self.data_file_prime = _data_file + '.bin'
+        self.data_dir = _data_dir
+        self.main_dir = _main_dir
+        self.head_path = path_to_data()
+        self.primary_dir_path, self.primary_data_file_path = self.primary_paths()
+        self.converted_dir_path, self.converted_data_file_path = self.converted_paths()
+        self.treatment_dir_path, self.treatment_data_file_path = self.treat_paths()
+
+    def primary_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Primary_data_3_18', self.data_dir)
+        create_folder(_path)
+        if self.__check_paths():
+            _primary_data_path = Path(_path, self.data_file_prime)
+        else:
+            raise CustomError('Head path not found!')
+        return _path, _primary_data_path
+
+    def converted_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Converted_data_3_18', str(self.data_dir) + '_conv')
+        create_folder(_path)
+        if self.__check_paths():
+            _convert_data_path = Path(_path, self.data_file_name)
+        else:
+            raise CustomError('Head path not found!')
+        return _path, _convert_data_path
+
+    def treat_paths(self):
+        _path = Path(self.head_path, self.main_dir, 'Data_treatment_3_18', str(self.data_dir) + '_treat')
+        create_folder(_path)
+        if self.__check_paths():
+            _treatment_data_path = Path(_path, self.data_file_name)
+        else:
+            raise CustomError('Head path not found!')
+        return _path, _treatment_data_path
+
+    def __check_paths(self):
+        return not self.head_path == 'Err'
+
+
+class CustomError(Exception):
+    pass
+
+
+def path_to_data():
+    """
+    Определяет путь на конкретной машине к корню каталога данных.
+    """
+    head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
+    head_path1a = Path(r'E:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
+    head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
+    head_path3 = Path(r'D:\Fast_acquisition')  # Путь к каталогу данных для ноута ВМ
+    head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
+
+    if head_path1.is_dir():
+        head_path_out = head_path1
+    elif head_path1a.is_dir():
+        head_path_out = head_path1a
+    elif head_path2.is_dir():
+        head_path_out = head_path2
+    elif head_path3.is_dir():
+        head_path_out = head_path3
+    elif head_path4.is_dir():
+        head_path_out = head_path4
+    else:
+        return 'Err'
+    return head_path_out
+
+
+def create_folder(_path):
+    if not os.path.isdir(_path):
+        os.mkdir(_path)
 
 
 def parts_to_numpy(list_arr, len_list):
@@ -80,11 +158,44 @@ def line_legend(freq_mask):
     return legend_time, legend_freq
 
 
-def form_spectr_sp1(spectr_extr, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_spect_mask):
+def band_map():
+    bm = [
+        [1000, 2900],
+        [2900, 5200],
+        [5200, 6500],
+        [6500, 8800],
+        [8800, 11200],
+        [11200, 13500],
+        [13500, 15800],
+        [15800, 18100]
+    ]
+    return bm
+
+def form_spectr_sp1(_sp, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_spect_mask):
     """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
     """
+    # Определение заполненных поддиапазонов
+    _shape_sp = np.shape(_sp)
+    _map_sp = []
+
+    for _i in range(_shape_sp[0]):
+        for _j in range(_shape_sp[1]):
+            _flag = 0
+            if np.size(_sp[_i, _j]) > 2:
+                _flag = 1
+            if _flag:
+                _map_sp.append(_i)
+
+    # Определение наличия данных для сканов на частоах из freq_spect_mask
+    _freq_mask = []
+    _band_map = band_map()
+    for _i in _map_sp:
+        for _f in freq_spect_mask:
+            if _band_map[_i][0] <= _f <= _band_map[_i][1]:
+                _freq_mask.append(_f)
+
     ind_spec = []
     ind_time = []
     t_ng = 1
@@ -220,39 +331,48 @@ def preparing_data():
     """ Функция в зависимости от вида данных (полная полоса 1-3 ГГц, половинная полоса 1-2 или 2-3 ГГц,
     с двумя поляризациями или одной) выдает данные для построения графиков"""
 
-    # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
-    # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
+    # Для k-ой полосы и двух возможных поляризаций выдает по спектру для каждой поляризации.
+    # Если поляризация не задействована, то соответствующие спектры - пустые. Спектры k = 3,4 - в обратном порядке
     _path1 = Path(str(converted_data_file_path) + '_spectrum.npy')
     _spectrum = np.load(_path1, allow_pickle=True)
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         _head = pickle.load(inp)
     _n_aver = _head['n_aver']
-    _band_size = _head['band_size']
     _polar = _head['polar']
 
     # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями
-    if num_of_polar == 2 and _band_size == 'whole':
-        spectrum_left1 = _spectrum[0]
-        spectrum_left2 = _spectrum[1]
-        spectrum_right1 = _spectrum[2]
-        spectrum_right2 = _spectrum[3]
+
     # Выдает спектры для левой и правой поляризаций шириной по 1 ГГц. При нумерации спектров учитывается
     # значение зоны Найквиста. С индексом "1" - 1-2 ГГц, с индексом "2" - 2-3 ГГц, как и для случая выше.
     # На выходе формально все 4 спектра, но для незадействованной полосы они пустые
-    elif num_of_polar == 2 and _band_size == 'half':
-        if N_Nyq == 2:
-            spectrum_left1 = _spectrum[0]
-            spectrum_right1 = _spectrum[1]
-            spectrum_left2 = []
-            spectrum_right2 = []
-        else:
-            spectrum_left2 = _spectrum[0]
-            spectrum_right2 = _spectrum[1]
-            spectrum_left1 = []
-            spectrum_right1 = []
-    pass
 
-    return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(_n_aver), _band_size, _polar
+    return _spectrum, int(_n_aver), _polar
+
+
+def band_separation(_s, _n_aver):
+    """
+    Функция принимает запись спектров для всей зоны Найквиста, отбрасывает спектры из защитной
+    зоны частот, формируя матрицу сканов на частотах поддиапазона, например, 2.9 - 5.2 ГГц, шириной
+    2.3 ГГц при том, что ширина зоны Найквиста - 2.7 ГГц
+    :param _s: Матрица спектров по поддиапазонам
+    :param _n_aver: количество усредняемых по частоте бинов для отсчета спектра
+    :return: Матрицу спектров для поддиапазона без защитных зон
+    """
+    #
+    _n_start = int(2432 / _n_aver)
+    _n_stop = int(32768 / _n_aver) - _n_start
+    _shape_s = np.shape(_s)
+    for i in range(_shape_s[0]):
+        for j in range(_shape_s[1]):
+            if np.size(_s[i, j]):
+                _N_row = np.shape(spectrum[i, j])[0]
+                s1 = np.zeros((_N_row, _n_stop - _n_start))
+                s = _s[i, j]
+                for k in range(_N_row):
+                    s1[k, :] = s[k, _n_start:_n_stop]
+                _s[i, j] = s1
+
+    return _s
 
 
 def unite_spectrum(spec):
@@ -661,16 +781,8 @@ def freq_mask(_i):
     _n1 = 2
     _n2 = 4
     _freq_mask = [
-        [1100, 1200],  # [0]
-        [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
-        [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 30 + 10 * i for i in range(10)],  # [3]
-        [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
-        [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
-        [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
-        [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12'    # [7]
-        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2860],  # [8]
-        [1200, 1380, 2265, 2800]  # [9] article to 'ab' Sun
+        [3000, 3600, 4500, 5100, 6600, 7500, 8200, 8600],  # [0]
+
     ]
     return _freq_mask[_i]
 
@@ -705,19 +817,10 @@ def data_poly3d_prep(_spectrum_extr):
 
 if __name__ == '__main__':
 
-    # parameters = main()
-    # current_data_file = parameters['file_name']      # Имя файла с исходными текущими данными без расширения
-    # current_data_dir = parameters['file_folder']          # Папка с текущими данными
-    # freq_res = parameters['freq_res']  # Установка разрешения по частоте в МГц
-    # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения
-    # 8.1925e-3 сек
-    # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-
-    current_primary_file = '2023-06-21_13-24'
-    current_primary_dir = '2023_06_21sun'
+    current_primary_file = '2023-06-25_03'
+    current_primary_dir = '2023_06_25test'
     main_dir = '2023'
-    # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
     converted_data_file_path = adr1.converted_data_file_path
@@ -739,106 +842,97 @@ if __name__ == '__main__':
 
     freq_res = 4  # Установка разрешения по частоте в МГц
     kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
-    delta_t = 8.3886e-3
-    delta_f = 7.8125
-    t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
-    N_Nyq = 3
+    delta_t = 12.427567e-3  # sec
+    delta_f = 0.082397461   # MHz
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(0)
     # *****************************************************
-
-    band_size_init = 'whole'
-    num_of_polar = 2
-    # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
+    polar = 'both'
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'y'
-    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'n'
-    black_body_calibr = 'n'
-    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
-    graph_3d_perm = 'n'
-    contour_2d_perm = 'n'
-    poly3d_perm = 'n'
-    ab = 'n'  # Подготовка рисунков к публикации в АБ
-
+    # output_picture_mode = 'y'
+    # align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
+    # noise_calibr = 'n'
+    # black_body_calibr = 'n'
+    # save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
+    # lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
+    # low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    # graph_3d_perm = 'n'
+    # contour_2d_perm = 'n'
+    # poly3d_perm = 'n'
+    # ab = 'n'  # Подготовка рисунков к публикации в АБ
+    a = 0
     # *****************************************************
     # Чтение с диска, если спектры ранее извлекались,
     # или извлечение спектров из исходных записей
-    spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2, n_aver, band_size, polar = \
-        preparing_data()
+    spectrum, n_aver, polar = preparing_data()
     print('Data are prepared')
-    aver_param = 2 ** (6 - n_aver)
-    kf = int(freq_res / delta_f * aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
-    # для данного наблюдения delta_f/aver_param, где delta_f = 7.8125 МГц
+    aver_param = 2 ** n_aver
+    kf = int(freq_res / delta_f / aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
+    # для данного наблюдения delta_f*aver_param, где delta_f = 0.082397461 МГц
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
 
     # Выравнивание спектров по результатам шумовых измерений АЧХ
-    if align == 'y':
-        if head['att3'] == 0:
-            pos = 0
-        elif head['att3'] == 5:
-            pos = 1
-        elif head['att3'] == 10:
-            pos = 2
-        elif head['att3'] == 15:
-            pos = 3
-        else:
-            pos = 0
-        path_output = Path(folder_align_path, align_file_name)
-        spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
-            align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
-                           head, path_output, pos)
-        print('spectrum is aligned')
+    # if align == 'y':
+    #     if head['att3'] == 0:
+    #         pos = 0
+    #     elif head['att3'] == 5:
+    #         pos = 1
+    #     elif head['att3'] == 10:
+    #         pos = 2
+    #     elif head['att3'] == 15:
+    #         pos = 3
+    #     else:
+    #         pos = 0
+    #     path_output = Path(folder_align_path, align_file_name)
+    #     spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2 = \
+    #         align_spectrum(spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2,
+    #                        head, path_output, pos)
+    #     print('spectrum is aligned')
+    a = 0
+    # Приведение порядка следования отсчетов по частоте к нормальному,
+    # условно, требуют смены порядка записи 1 и 4 - по совокупности признаков
+    shape_sp = np.shape(spectrum)
+    for i in range(shape_sp[0]):
+        for j in range(shape_sp[1]):
+            if np.size(spectrum[i, j]) and i in [1, 4]:
+                N_row = np.shape(spectrum[i, j])[0]
+                N_col = np.shape(spectrum[i, j])[1]
+                s = spectrum[i, j]
+                for k in range(N_row):
+                    s[k, :] = s[k, -1::-1]
+                spectrum[i, j] = s
+                s1 = spectrum[i, j]
+                aver_param = int(32768 / N_col)
 
-    # Приведение порядка следования отсчетов по частоте к нормальному
-    if np.size(spectr_extr_left1):
-        N_row = np.shape(spectr_extr_left1)[0]
-        for i in range(N_row):
-            spectr_extr_left1[i][0:] = spectr_extr_left1[i][-1::-1]
-    if np.size(spectr_extr_right1):
-        N_row = np.shape(spectr_extr_right1)[0]
-        for i in range(N_row):
-            spectr_extr_right1[i][0:] = spectr_extr_right1[i][-1::-1]
+    # Отбрасывание отсчетов защитной зоны поддиапазона наблюдения
+    spectrum = band_separation(spectrum, aver_param)
 
-    spectrum = pd.Series([spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2])
-
-    if noise_calibr == 'y':
-        spectrum = noise_self_calibration(spectrum, ngi_temperature_path)
-    if black_body_calibr == 'y':
-        spectrum = noise_black_body_calibration(spectrum, receiver_temperature_path)
-
-    united_spectrum = unite_spectrum(spectrum)
-    ser_ind = united_spectrum.index
-    if len(ser_ind) == 2:
-        spectrum_extr = united_spectrum[0] + united_spectrum[1]
-    else:
-        spectrum_extr = united_spectrum[0]
+    # if noise_calibr == 'y':
+    #     spectrum = noise_self_calibration(spectrum, ngi_temperature_path)
+    # if black_body_calibr == 'y':
+    #     spectrum = noise_black_body_calibration(spectrum, receiver_temperature_path)
+    #
+    # united_spectrum = unite_spectrum(spectrum)
+    # ser_ind = united_spectrum.index
+    # if len(ser_ind) == 2:
+    #     spectrum_extr = united_spectrum[0] + united_spectrum[1]
+    # else:
+    #     spectrum_extr = united_spectrum[0]
 
     # # ***********************************************
     # # ***        Графический вывод данных        ****
     # # ***********************************************
-
+    a = 0
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
     time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    # time_spect_mask = [20, 185, 213, 247]  # [9] article to 'ab'
-    # time_spect_mask = [179.5, 180.5, 182]     # Первая вспышка
-    # time_spect_mask = [184, 185.1, 186.5]     # Вторая вспышка
-    # time_spect_mask = [187.5, 188.1, 189]     # Третья вспышка
-    # time_spect_mask = [190, 190.7, 191.5]     # Четвертая вспышка
-    # time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
-    # if band_size == 'whole':
-    #      freq_spect_mask = []
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
-    shift = head['shift']
-    spectr_freq, spectr_time = form_spectr_sp1(spectrum_extr, freq_spect_mask, time_spect_mask)
+    spectr_freq, spectr_time = form_spectr_sp1(spectrum, freq_spect_mask, time_spect_mask)
     line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     # for i in range(4):
     #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]

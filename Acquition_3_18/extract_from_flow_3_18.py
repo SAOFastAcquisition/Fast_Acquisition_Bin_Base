@@ -278,7 +278,7 @@ if __name__ == '__main__':
     current_data_dir = '2023'
     primary_data_dir = 'Primary_data_3_18'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data_3_18'       # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment3_18'       # Каталог для записи результатов обработки, рисунков
+    data_treatment_dir = 'Data_treatment_3_18'       # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
     current_primary_file = '2023-06-25_02'
