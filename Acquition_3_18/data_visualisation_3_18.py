@@ -171,14 +171,15 @@ def band_map():
     ]
     return bm
 
-def form_spectr_sp1(_sp, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=time_spect_mask):
+
+def form_spectr_sp1(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=time_spect_mask):
     """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
     """
     # Определение заполненных поддиапазонов
     _shape_sp = np.shape(_sp)
-    _map_sp = []
+    _map_sp = []    # Номера поддиапазонов, в которых проводилось наблюдение
 
     for _i in range(_shape_sp[0]):
         for _j in range(_shape_sp[1]):
@@ -189,25 +190,31 @@ def form_spectr_sp1(_sp, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=
                 _map_sp.append(_i)
 
     # Определение наличия данных для сканов на частоах из freq_spect_mask
-    _freq_mask = []
+    _freq_map = {}                  # Частота анализа - ключ, номер поддиапазона - значение
     _band_map = band_map()
     for _i in _map_sp:
-        for _f in freq_spect_mask:
+        for _f in _freq_spect_mask_in:
             if _band_map[_i][0] <= _f <= _band_map[_i][1]:
-                _freq_mask.append(_f)
+                _freq_map[_f] = _i
+    _freq_mask = _freq_map.keys()   # Частоты, для которых доступны сканы во времени
 
     ind_spec = []
     ind_time = []
     t_ng = 1
-    N_col = np.shape(spectr_extr)[1]
-    s_freq = np.zeros((len(time_spect_mask_in), N_col // kf))
-    s_time = np.zeros((N_row // kt, len(freq_spect_mask_in)))
+    _N_col = {s: np.shape(_sp[s, 1])[1] for s in _map_sp}
+    _kf = int(freq_res / delta_f / aver_param)
+    if not _kf:
+        print(f'Frequency resolution freq_res={freq_res} is too large. Decrease it, increase freq_res')
+        sys.exit()
+
+    s_freq = {}
+    s_time = {}
     j = 0
-    for f in freq_spect_mask_in:
-        if band_size_init == 'half':
-            ind1 = (f - (N_Nyq - 1) * 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
-        elif band_size_init == 'whole':
-            ind1 = (f - 1000 - delta_f / aver_param / 2) // (delta_f / aver_param)
+    for _f in _freq_mask:
+        if _freq_map[_f] == 2:
+            ind1 = (f - _band_map[_freq_map[_f], 0] - delta_f * aver_param / 2) // (delta_f * aver_param)
+        else:
+            ind1 = (f - _band_map[_freq_map[_f], 0] - delta_f * aver_param / 2) // (delta_f * aver_param)
         ind = int(ind1)
         if ind > N_col - int(kf / 2) - 1:
             ind = N_col - int(kf / 2) - 1
@@ -264,14 +271,8 @@ def form_spectr_sp1(_sp, freq_spect_mask_in=freq_spect_mask, time_spect_mask_in=
         ind_time.append(ind)
         i += 1
     s_time = s_time.transpose()
-    if head['att3'] == 0:
-        a = 5.27e8
-    elif head['att3'] == 5:
-        a = 6.21e8
-    else:
-        a = 5.8e8
-    a = 1
-    return s_freq * (2 ** shift) * t_ng / a, s_time * (2 ** shift) * t_ng / a
+
+    return s_freq, s_time
 
 
 def spectr_construction(Spectr, kf, kt):
@@ -840,7 +841,7 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 4  # Установка разрешения по частоте в МГц
+    freq_res = 16  # Установка разрешения по частоте в МГц
     kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 12.427567e-3  # sec
     delta_f = 0.082397461   # MHz
