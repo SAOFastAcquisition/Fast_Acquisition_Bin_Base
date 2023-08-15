@@ -172,7 +172,7 @@ def band_map():
     return bm
 
 
-def form_spectr_sp1(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=time_spect_mask):
+def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=time_spect_mask):
     """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
@@ -186,7 +186,7 @@ def form_spectr_sp1(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_i
             _flag = 0
             if np.size(_sp[_i, _j]) > 2:
                 _flag = 1
-            if _flag:
+            if _flag and _i not in _map_sp:
                 _map_sp.append(_i)
 
     # Определение наличия данных для сканов на частоах из freq_spect_mask
@@ -196,49 +196,51 @@ def form_spectr_sp1(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_i
         for _f in _freq_spect_mask_in:
             if _band_map[_i][0] <= _f <= _band_map[_i][1]:
                 _freq_map[_f] = _i
-    _freq_mask = _freq_map.keys()   # Частоты, для которых доступны сканы во времени
+    _freq_mask = list(_freq_map.keys())   # Частоты, для которых доступны сканы во времени
 
     ind_spec = []
     ind_time = []
     t_ng = 1
+    # Словарь, в котором ключ - номер поддиапазона, значение - количество частотных отсчетов в нем
     _N_col = {s: np.shape(_sp[s, 1])[1] for s in _map_sp}
+    _N_raw = {s: np.shape(_sp[s, 1])[0] for s in _map_sp}
     _kf = int(freq_res / delta_f / aver_param)
     if not _kf:
-        print(f'Frequency resolution freq_res={freq_res} is too large. Decrease it, increase freq_res')
-        sys.exit()
+        sys.exit(f'Frequency resolution freq_res={freq_res}MHz is too large. Decrease it, '
+                 f'increase freq_res to {delta_f * aver_param}MHz at least')
 
     s_freq = {}
     s_time = {}
     j = 0
     for _f in _freq_mask:
-        if _freq_map[_f] == 2:
-            ind1 = (f - _band_map[_freq_map[_f], 0] - delta_f * aver_param / 2) // (delta_f * aver_param)
-        else:
-            ind1 = (f - _band_map[_freq_map[_f], 0] - delta_f * aver_param / 2) // (delta_f * aver_param)
-        ind = int(ind1)
-        if ind > N_col - int(kf / 2) - 1:
-            ind = N_col - int(kf / 2) - 1
+        _s_loc1 = []
+        ind = int((_f - _band_map[int(_freq_map[_f])][0] - delta_f * aver_param / 2) // (delta_f * aver_param))
+        # - количество отсчетов по частоте в поддиапазоне с разрешением не лучше freq_res
+        if ind > _N_col[int(_freq_map[_f])] - int(kf / 2) - 1:
+            ind = _N_col [int(_freq_map[_f])]- int(kf / 2) - 1
         if ind < int(kf / 2):
             ind = int(kf / 2)
         i = 0
-        while kt * (i + 1) < N_row:
+        sp = _sp[_freq_map[_f], 1]
+        while kt * (i + 1) < _N_raw[int(_freq_map[_f])]:
             if kf == 1:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind][spectr_extr[i * kt:(i + 1) * kt, ind] > 40])
-                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind] > 40).sum()
+                _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][_sp[i * kt:(i + 1) * kt, ind] > 40])
+                n_mesh = (sp[i * kt: (i + 1) * kt, ind] > 40).sum()
                 if n_mesh == 0:
-                    s_time[i, j] = 2
+                    _s_loc = 2
                 else:
-                    s_time[i, j] /= n_mesh
+                    _s_loc /= n_mesh
             else:
-                s_time[i, j] = np.sum(spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind +
-                                                                                         int(kf / 2)][
-                                          spectr_extr[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
-                n_mesh = (spectr_extr[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
+                _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)][
+                                          sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
+                n_mesh = (sp[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
                 if n_mesh == 0:
-                    s_time[i, j] = 2
+                    _s_loc = 2
                 else:
-                    s_time[i, j] /= n_mesh
+                    _s_loc /= n_mesh
             i += 1
+            _s_loc1.append(_s_loc)
+        s_time[_f] = np.array(_s_loc1)
         ind_spec.append(ind)
         j += 1
     i = 0
@@ -841,7 +843,7 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 16  # Установка разрешения по частоте в МГц
+    freq_res = 22  # Установка разрешения по частоте в МГц
     kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 12.427567e-3  # sec
     delta_f = 0.082397461   # MHz
@@ -933,7 +935,7 @@ if __name__ == '__main__':
     time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
-    spectr_freq, spectr_time = form_spectr_sp1(spectrum, freq_spect_mask, time_spect_mask)
+    spectr_freq, spectr_time = form_spectrum(spectrum, freq_spect_mask, time_spect_mask)
     line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     # for i in range(4):
     #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
