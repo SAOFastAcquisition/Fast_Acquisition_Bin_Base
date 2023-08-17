@@ -172,7 +172,7 @@ def band_map():
     return bm
 
 
-def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=time_spect_mask):
+def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spect_mask):
     """ Возвращает s_freq - срезы частотного спектра в моменты времени time_spect_mask и s_time - сканы Солнца
     по времени на частотах freq_spect_mask с заданным разрешением по времени и частоте
 
@@ -198,9 +198,6 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=
                 _freq_map[_f] = _i
     _freq_mask = list(_freq_map.keys())   # Частоты, для которых доступны сканы во времени
 
-    ind_spec = []
-    ind_time = []
-    t_ng = 1
     # Словарь, в котором ключ - номер поддиапазона, значение - количество частотных отсчетов в нем
     _N_col = {s: np.shape(_sp[s, 1])[1] for s in _map_sp}
     _N_raw = {s: np.shape(_sp[s, 1])[0] for s in _map_sp}
@@ -209,11 +206,11 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=
         sys.exit(f'Frequency resolution freq_res={freq_res}MHz is too large. Decrease it, '
                  f'increase freq_res to {delta_f * aver_param}MHz at least')
 
-    s_freq = {}
-    s_time = {}
+    s_freq = [[[] for i in range(4)] for j in range(len(_freq_mask) * 2)]
+    s_time = [[[] for i in range(4)] for j in range(len(_time_mask) * 2)]
     j = 0
     for _f in _freq_mask:
-        _s_loc1 = []
+
         ind = int((_f - _band_map[int(_freq_map[_f])][0] - delta_f * aver_param / 2) // (delta_f * aver_param))
         # - количество отсчетов по частоте в поддиапазоне с разрешением не лучше freq_res
         if ind > _N_col[int(_freq_map[_f])] - int(kf / 2) - 1:
@@ -221,58 +218,87 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_spect_mask_in=
         if ind < int(kf / 2):
             ind = int(kf / 2)
         i = 0
-        sp = _sp[_freq_map[_f], 1]
-        while kt * (i + 1) < _N_raw[int(_freq_map[_f])]:
-            if kf == 1:
-                _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][_sp[i * kt:(i + 1) * kt, ind] > 40])
-                n_mesh = (sp[i * kt: (i + 1) * kt, ind] > 40).sum()
-                if n_mesh == 0:
-                    _s_loc = 2
-                else:
-                    _s_loc /= n_mesh
+        for _i in range(2):
+            _s_loc1 = []
+            _time_count = []
+            sp = _sp[_freq_map[_f], _i]
+            if len(sp) < 2:
+                s_time[j][2] = []
+                s_time[j][0] = _f
+                s_time[j][1] = _i
+                j += 1
             else:
-                _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)][
-                                          sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
-                n_mesh = (sp[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
-                if n_mesh == 0:
-                    _s_loc = 2
-                else:
-                    _s_loc /= n_mesh
-            i += 1
-            _s_loc1.append(_s_loc)
-        s_time[_f] = np.array(_s_loc1)
-        ind_spec.append(ind)
-        j += 1
+                while kt * (i + 1) < _N_raw[int(_freq_map[_f])]:
+                    if kf == 1:
+                        _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][_sp[i * kt:(i + 1) * kt, ind] > 40])
+                        n_mesh = (sp[i * kt: (i + 1) * kt, ind] > 40).sum()
+
+                        if n_mesh == 0:
+                            _s_loc = 2
+                        else:
+                            _s_loc /= n_mesh
+
+                    else:
+                        _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)][
+                                                  sp[i * kt:(i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40])
+                        n_mesh = (sp[i * kt: (i + 1) * kt, ind - int(kf / 2):ind + int(kf / 2)] > 40).sum()
+                        if n_mesh == 0:
+                            _s_loc = 2
+                        else:
+                            _s_loc /= n_mesh
+                    i += 1
+                    _s_loc1.append(_s_loc)
+                    _time_count.append(kt * (i + 0.5) * delta_t)
+                s_time[j][2] = np.array(_s_loc1)
+                s_time[j][3] = np.array(_time_count)
+                s_time[j][0] = _f
+                s_time[j][1] = _i
+                j += 1
+    s_time = np.array(s_time)
     i = 0
-    for t in time_spect_mask_in:
+    for t in _time_mask:
         ind = int(t // delta_t)
         if ind > N_row - kt / 2 - 1:
             ind = N_row - int(kt / 2) - 1
         if ind < (kt / 2):
             ind = int(kt / 2)
         j = 0
-        while (j + 1) * kf < N_col:
-            if kt == 1:
-                s_freq[i, j] = np.sum(spectr_extr[ind, j * kf:(j + 1) * kf][spectr_extr[ind, j * kf:(j + 1) * kf] > 40])
-                n_mesh = (spectr_extr[ind, j * kf:(j + 1) * kf] > 40).sum()
-                if n_mesh == 0:
-                    s_freq[i, j] = 2
-                else:
-                    s_freq[i, j] /= n_mesh
+        for _i in range(2):
+            _s_loc1 = []
+            _freq_count = []
+            sp = _sp[_freq_map[_f], _i]
+            if len(sp) < 2:
+                s_freq[j][2] = []
+                s_freq[j][0] = t
+                s_freq[j][1] = _i
+                j += 1
             else:
-                s_freq[i, j] = np.sum(spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf
-                                                                                       :(j + 1) * kf][
-                                          spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
-                n_mesh = (spectr_extr[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
-                if n_mesh == 0:
-                    s_freq[i, j] = 2
-                else:
-                    s_freq[i, j] /= n_mesh
-
-            j += 1
+                while (j + 1) * kf < N_col:
+                    if kt == 1:
+                        s_loc = np.sum(sp[ind, j * kf:(j + 1) * kf][sp[ind, j * kf:(j + 1) * kf] > 40])
+                        n_mesh = (sp[ind, j * kf:(j + 1) * kf] > 40).sum()
+                        if n_mesh == 0:
+                            s_loc = 2
+                        else:
+                            s_loc /= n_mesh
+                    else:
+                        s_loc = np.sum(sp[ind - int(kt / 2):ind + int(kt / 2), j * kf :(j + 1) * kf][
+                                                  sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
+                        n_mesh = (sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
+                        if n_mesh == 0:
+                            s_loc = 2
+                        else:
+                            s_loc /= n_mesh
+                        _s_loc1.append(_s_loc)
+                        _freq_count.append(kf * (i + 0.5) * delta_f)
+                s_freq[j][2] = np.array(_s_loc1)
+                s_freq[j][3] = np.array(_time_count)
+                s_freq[j][0] = t
+                s_freq[j][1] = _i
+                j += 1
         ind_time.append(ind)
         i += 1
-    s_time = s_time.transpose()
+    s_freq = np.array(s_freq)
 
     return s_freq, s_time
 
