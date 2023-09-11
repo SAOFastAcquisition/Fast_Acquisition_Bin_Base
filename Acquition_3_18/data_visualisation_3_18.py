@@ -206,8 +206,9 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
         sys.exit(f'Frequency resolution freq_res={freq_res}MHz is too large. Decrease it, '
                  f'increase freq_res to {delta_f * aver_param}MHz at least')
 
-    s_freq = [[[] for i in range(4)] for j in range(len(_freq_mask) * 2)]
-    s_time = [[[] for i in range(4)] for j in range(len(_time_mask) * 2)]
+    s_freq = [[[[]for l in range(2)] for i in range(7)] for j in range(len(_time_mask))]
+    s_time = [[[] for i in range(4)] for j in range(len(_freq_mask) * 2)]
+    form = np.shape(np.array(s_freq))
     j = 0
     for _f in _freq_mask:
 
@@ -249,58 +250,65 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
                     i += 1
                     _s_loc1.append(_s_loc)
                     _time_count.append(kt * (i + 0.5) * delta_t)
-                s_time[j][2] = np.array(_s_loc1)
-                s_time[j][3] = np.array(_time_count)
-                s_time[j][0] = _f
-                s_time[j][1] = _i
+
+                s_time[j][0] = _f                       # scan frequency
+                s_time[j][1] = _i                       # scan polarization
+                s_time[j][2] = np.array(_s_loc1)        # scan
+                s_time[j][3] = np.array(_time_count)    # time sequence
+
                 j += 1
-    s_time = np.array(s_time)
+    _scan_time = np.array(s_time)
     i = 0
     for t in _time_mask:
+        # Определение индекса середины зоны, в которой проводится усреднение по времени
         ind = int(t // delta_t)
         if ind > N_row - kt / 2 - 1:
             ind = N_row - int(kt / 2) - 1
         if ind < (kt / 2):
             ind = int(kt / 2)
-        j = 0
-        for _i in range(2):
+        # _j - Номер частотного поддиапазона
+        for _l in range(2): # Цикл по поляризациям
             _s_loc1 = []
             _freq_count = []
-            sp = _sp[_freq_map[_f], _i]
-            if len(sp) < 2:
-                s_freq[j][2] = []
-                s_freq[j][0] = t
-                s_freq[j][1] = _i
-                j += 1
-            else:
-                while (j + 1) * kf < N_col:
-                    if kt == 1:
-                        s_loc = np.sum(sp[ind, j * kf:(j + 1) * kf][sp[ind, j * kf:(j + 1) * kf] > 40])
-                        n_mesh = (sp[ind, j * kf:(j + 1) * kf] > 40).sum()
-                        if n_mesh == 0:
-                            s_loc = 2
+            for _j in range(5):
+                sp = _sp[_j, _l]
+                if len(sp) < 2:
+                    s_freq[i][_j][_l] = []
+                    # s_freq[j][0] = t
+                    # s_freq[j][1] = _i
+                    # j += 1
+                else:
+                    j = 0
+                    while (j + 1) * kf < N_col:
+                        if kt == 1:
+                            s_loc = np.sum(sp[ind, j * kf:(j + 1) * kf][sp[ind, j * kf:(j + 1) * kf] > 40])
+                            n_mesh = (sp[ind, j * kf:(j + 1) * kf] > 40).sum()
+                            if n_mesh == 0:
+                                s_loc = 2
+                            else:
+                                s_loc /= n_mesh
                         else:
-                            s_loc /= n_mesh
-                    else:
-                        s_loc = np.sum(sp[ind - int(kt / 2):ind + int(kt / 2), j * kf :(j + 1) * kf][
-                                                  sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
-                        n_mesh = (sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
-                        if n_mesh == 0:
-                            s_loc = 2
-                        else:
-                            s_loc /= n_mesh
-                        _s_loc1.append(_s_loc)
-                        _freq_count.append(kf * (i + 0.5) * delta_f)
-                s_freq[j][2] = np.array(_s_loc1)
-                s_freq[j][3] = np.array(_time_count)
-                s_freq[j][0] = t
-                s_freq[j][1] = _i
-                j += 1
-        ind_time.append(ind)
+                            s_loc = np.sum(sp[ind - int(kt / 2):ind + int(kt / 2), j * kf :(j + 1) * kf][
+                                                      sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
+                            n_mesh = (sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
+                            if n_mesh == 0:
+                                s_loc = 2
+                            else:
+                                s_loc /= n_mesh
+                            _s_loc1.append(_s_loc)
+                            _freq_count.append(kf * (j + 0.5) * delta_f)
+                        j += 1
+                    s_freq[i][_j][_l] = np.array(_s_loc1)
+                    # s_freq[j][3] = np.array(_time_count)
+                    # s_freq[j][0] = t
+                    # s_freq[j][1] = _i
+                    # j += 1
+        # ind_time.append(ind)
         i += 1
-    s_freq = np.array(s_freq)
+    # s_freq = np.array(s_freq)
+    s = s_freq[:][1][1]
 
-    return s_freq, s_time
+    return s_freq, _scan_time
 
 
 def spectr_construction(Spectr, kf, kt):
