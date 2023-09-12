@@ -209,6 +209,19 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
     s_freq = [[[[]for l in range(2)] for i in range(7)] for j in range(len(_time_mask))]
     s_time = [[[] for i in range(4)] for j in range(len(_freq_mask) * 2)]
     form = np.shape(np.array(s_freq))
+
+    """ Формирование сканов с заданным разрешением по частоте и времени на фиксированных частотах из 
+    _freq_spect_mask_in.  В результате формируется нумпай-матрица из строк, количество которых равно 
+    удвоенному числу частот в _freq_spect_mask_in, 
+    первый столбец - частота скана, 
+    второй - поляризация (0 - левая, 1 - правая),
+    третий - значения спектра скана,
+    четвертый - моменты времени, в которыйе берутся значения спектров скана
+    j   - индекс частоты в маске
+    _i  - индекс по поляризации (0 или 1)
+    i   - индекс по моментам времени, взятым с заданным разрешением
+    """
+
     j = 0
     for _f in _freq_mask:
 
@@ -267,10 +280,10 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
         if ind < (kt / 2):
             ind = int(kt / 2)
         # _j - Номер частотного поддиапазона
-        for _l in range(2): # Цикл по поляризациям
+        for _l in range(2):                         # Цикл по поляризациям
             _s_loc1 = []
             _freq_count = []
-            for _j in range(5):
+            for _j in range(5):                     # Цикл по поддиапазонам
                 sp = _sp[_j, _l]
                 if len(sp) < 2:
                     s_freq[i][_j][_l] = []
@@ -279,7 +292,7 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
                     # j += 1
                 else:
                     j = 0
-                    while (j + 1) * kf < N_col:
+                    while (j + 1) * kf < N_col:     # Цикл по частоте - аргументу спектра
                         if kt == 1:
                             s_loc = np.sum(sp[ind, j * kf:(j + 1) * kf][sp[ind, j * kf:(j + 1) * kf] > 40])
                             n_mesh = (sp[ind, j * kf:(j + 1) * kf] > 40).sum()
@@ -288,27 +301,31 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
                             else:
                                 s_loc /= n_mesh
                         else:
-                            s_loc = np.sum(sp[ind - int(kt / 2):ind + int(kt / 2), j * kf :(j + 1) * kf][
+                            s_loc = np.sum(sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf][
                                                       sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40])
                             n_mesh = (sp[ind - int(kt / 2):ind + int(kt / 2), j * kf:(j + 1) * kf] > 40).sum()
                             if n_mesh == 0:
                                 s_loc = 2
                             else:
                                 s_loc /= n_mesh
-                            _s_loc1.append(_s_loc)
-                            _freq_count.append(kf * (j + 0.5) * delta_f)
+                            _s_loc1.append(s_loc)
+                            _freq_count.append(_band_map[_j][0] + kf * (j + 0.5) * delta_f * aver_param)
                         j += 1
                     s_freq[i][_j][_l] = np.array(_s_loc1)
+                    _s_loc1 = []
+
                     # s_freq[j][3] = np.array(_time_count)
                     # s_freq[j][0] = t
                     # s_freq[j][1] = _i
                     # j += 1
         # ind_time.append(ind)
         i += 1
-    # s_freq = np.array(s_freq)
-    s = s_freq[:][1][1]
+    _s_freq = np.array(s_freq)
+    s0 = s_freq[0][1][1]
+    s1 = s_freq[0][2][1]
+    s5 = s_freq[0][3][1]
 
-    return s_freq, _scan_time
+    return _s_freq, np.array(_freq_count), _scan_time
 
 
 def spectr_construction(Spectr, kf, kt):
@@ -906,6 +923,7 @@ if __name__ == '__main__':
     # или извлечение спектров из исходных записей
     spectrum, n_aver, polar = preparing_data()
     print('Data are prepared')
+    n_aver = 7
     aver_param = 2 ** n_aver
     kf = int(freq_res / delta_f / aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
     # для данного наблюдения delta_f*aver_param, где delta_f = 0.082397461 МГц
@@ -969,8 +987,8 @@ if __name__ == '__main__':
     time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
-    spectr_freq, spectr_time = form_spectrum(spectrum, freq_spect_mask, time_spect_mask)
-    line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
+    spectr_freq, freq_count, spectr_time = form_spectrum(spectrum, freq_spect_mask, time_spect_mask)
+    # line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     # for i in range(4):
     #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
     #     line_legend_time[i] = line_legend_time[2 * i + 1]
