@@ -118,7 +118,6 @@ def extract_whole_band():
             #     break
         pass
 
-
     finally:
         f_in.close()
     pass
@@ -281,7 +280,7 @@ if __name__ == '__main__':
     data_treatment_dir = 'Data_treatment_3_18'       # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
-    current_primary_file = '2023-06-25_02'
+    current_primary_file = '2023-06-25_04'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
     #         or current_primary_dir.find('calibr') != -1:

@@ -492,7 +492,7 @@ def freq_mask(_i):
 if __name__ == '__main__':
 
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_primary_file = '2023-06-25_03'
+    current_primary_file = '2023-06-25_04'
     current_primary_dir = '2023_06_25test'
     main_dir = '2023'
     date = current_primary_dir[0:10]
@@ -543,6 +543,13 @@ if __name__ == '__main__':
     # Приведение порядка следования отсчетов по частоте к нормальному,
     # условно, требуют смены порядка записи 1 и 4 - по совокупности признаков
     shape_sp = np.shape(spectrum)
+
+    s11 = spectrum[1][1]
+    s21 = spectrum[2][1]
+    plt.plot(s11[:, 100])
+    plt.show()
+    plt.plot(s11[130, :])
+    plt.show()
     for i in range(shape_sp[0]):
         for j in range(shape_sp[1]):
             if np.size(spectrum[i, j]) and i in [1, 4]:
