@@ -131,32 +131,21 @@ def parts_to_numpy(list_arr, len_list):
     return numpy_arr
 
 
-def cut_spectrum(spectrum, n_aver):
-    spectrum.pop(-1)
-    n_frame_last = spectrum[-1][0]
-    rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
+def cut_spectrum(_spectrum, _n_aver):
+    _spectrum.pop(-1)
+    n_frame_last = _spectrum[-1][0]
+    rest = (n_frame_last + 1) % (256 / _n_aver)
     if rest:
         for k in range(rest):
-            spectrum.pop(-1)
-    print(n_frame_last, spectrum[-1][0])
-    return spectrum
+            _spectrum.pop(-1)
+    print(n_frame_last, _spectrum[-1][0])
+    return _spectrum
 
 
-def line_legend(freq_mask):
-    N_col_leg = len(freq_mask)
-    N_row_leg = len(time_spect_mask)
-    legend_freq = [0] * N_col_leg
-    legend_time = [0] * N_row_leg
-    i1 = 0
-    for i in freq_mask:
-        legend_freq[i1] = str(i) + ' MHz'
-        i1 += 1
-    i1 = 0
-    for i in time_spect_mask:
-        legend_time[i1] = str(i) + ' sec'
-        i1 += 1
-
-    return legend_time, legend_freq
+def line_legend(_freq_mask):
+    _legend_freq = [str(i) + 'MHz' for i in _freq_mask]
+    _legend_time = [str(i) + 'sed' for i in time_spect_mask]
+    return _legend_time, _legend_freq
 
 
 def band_map():
@@ -326,7 +315,7 @@ def spectrum_former(_sp, _freq_map, _time_mask, _band_map, _n_col, _n_raw):
     return np.array(_s_freq)
 
 
-def spectr_construction(Spectr, kf, kt):
+def spectrum_construction(Spectr, kf, kt):
     ''' Функция формирует спектр принятого сигнала с требуемым разрешением по частоте и времени. Максимальное
     разрешение отсчетов по времени 8192 мкс и по частоте 7,8125 МГц. Путем суммирования и усреднерия по kt*kf
     отсчетам разрешение по частоте и по времени в исходном спектре Spectr уменьшается в kf и kt раз,
@@ -452,16 +441,22 @@ def treatment_null_mesh(_s, _n, _s0=0):
     return _s
 
 
-def simple_plot(inp_data):
+def simple_plot(_inp_data):
     fig, ax = plt.subplots(1, figsize=(12, 6))
     line_color = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen', 'magenta', 'dodgerblue']
-    legend = []
+
+    _unit = [' sec', ' MHz']
+    _t = 1
+    if _inp_data[0, 0] < 1000:
+        _t = 0
+    legend = [str(_i) + _unit[_t] for _i in _inp_data[:, 0]]
+
     _i = 0
     _l = 0
-    _m = np.shape(inp_data)[0]
+    _m = np.shape(_inp_data)[0]
     for _i in range(_m):
-        if len(inp_data[_i][2]) > 2:
-            ax.semilogy(inp_data[_i][3], inp_data[_i][2], color=line_color[_l], label=inp_data[_i][0])
+        if len(_inp_data[_i][2]) > 2:
+            ax.semilogy(_inp_data[_i][3], _inp_data[_i][2], color=line_color[_l], label=legend[_i])
             _l += 1
 
     font = font_manager.FontProperties(family='Comic Sans MS',
@@ -493,7 +488,7 @@ def freq_mask(_i):
 if __name__ == '__main__':
 
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_primary_file = '2023-06-25_03'
+    current_primary_file = '2023-06-25_04'
     current_primary_dir = '2023_06_25test'
     main_dir = '2023'
     date = current_primary_dir[0:10]
@@ -515,7 +510,7 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 22  # Установка разрешения по частоте в МГц
+    freq_res = 11  # Установка разрешения по частоте в МГц
     kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 12.427567e-3  # sec
     delta_f = 0.082397461   # MHz
