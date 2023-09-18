@@ -200,9 +200,9 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
     _freq_mask = list(_freq_map.keys())   # Частоты, для которых доступны сканы во времени
 
     # Словарь, в котором ключ - номер поддиапазона, значение - количество частотных отсчетов в нем
-    _N_col = {int(_s): np.shape(_sp[_s, 1])[1] for _s in _map_sp}
+    _N_col: dict = {int(_s): np.shape(_sp[_s, 1])[1] for _s in _map_sp}
     # Словарь, в котором ключ - номер поддиапазона, значение - количество временных отсчетов в нем
-    _N_raw = {int(_s): np.shape(_sp[_s, 1])[0] for _s in _map_sp}
+    _N_raw: dict = {int(_s): np.shape(_sp[_s, 1])[0] for _s in _map_sp}
     _kf = int(freq_res / delta_f / aver_param)
     if not _kf:
         sys.exit(f'Frequency resolution freq_res={freq_res}MHz is too large. Decrease it, '
@@ -218,7 +218,7 @@ def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
     """
     Формирование сканов с заданным разрешением по частоте и времени на фиксированных частотах из
     _freq_spect_mask_in.  В результате формируется нумпай-матрица из строк, количество которых равно
-    удвоенному числу частот в _freq_spect_mask_in,
+    удвоенному числу частот в _freq_spect_mask_in (удвоение из-за двух поляризаций),
     первый столбец - частота скана,
     второй - поляризация (0 - левая, 1 - правая),
     третий - значения спектра скана,
@@ -478,6 +478,7 @@ def simple_plot(inp_data):
     # plt.setp(line_minor, linestyle='-.')
     plt.grid()
     plt.show()
+
 
 def freq_mask(_i):
     _n1 = 2

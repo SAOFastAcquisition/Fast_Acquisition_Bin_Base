@@ -227,7 +227,7 @@ def convert_to_matrix(S_total, counter, n_aver):
     # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
         S[int(s[0])] = s[1:]
-    aver_param_loc = 2 ** (6 - n_aver)
+    aver_param_loc = 2 ** n_aver
     n = 128 * aver_param_loc
     print(len(S))
     k = int(len(S) // n)
