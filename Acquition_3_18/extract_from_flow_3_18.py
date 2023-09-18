@@ -114,15 +114,13 @@ def extract_whole_band():
             i += 1
 
             frame_num_before = frame_num
-            # if att_1 == 31 & att_2 == 31 & att_3 == 31:
-            #     break
+
         pass
 
     finally:
         f_in.close()
     pass
     # Приведение длины записи к величине кратной количеству частот
-    n_aver = int(math.log2(n_aver))
     for i in [0, 1, 2, 3, 4]:
         for j in ['left', 'right']:
             if len(spectrum[j].loc[i]) > 1:
@@ -152,7 +150,7 @@ def extract_whole_band():
 
 def status_func(_sp_len):
 
-    # polar Принамает значения поляризаций: 'both', 'left', 'right'
+    # polar Принимает значения поляризаций: 'both', 'left', 'right'
     for j in [0, 1, 2, 3, 4]:
         if _sp_len['left'].loc[j] > 1 and _sp_len['right'].loc[j] > 1:
             polar = 'both'
@@ -181,8 +179,6 @@ def status_func(_sp_len):
 def save_spectrum(_spectrum, _head):
 
     n_aver = _head['n_aver']
-    # print(f'len_spectrum1 = {len(spectrum1)}, len_spectrum2 ={len(spectrum2)}, len_spectrum3 ={len(spectrum3)}, '
-    #       f'len_spectrum4 ={len(spectrum4)}')
 
     for j in [0, 1, 2, 3, 4]:
         for i in ['left', 'right']:
@@ -208,7 +204,7 @@ def cut_spectrum(_spectrum, n_aver):
     _row = _len // 129
     _sp = [[_spectrum[i + j * 129] for i in range(129)] for j in range(_row)]
     n_frame_last = _sp[-1][0]
-    rest = (n_frame_last + 1) % 2 ** (6 - n_aver)
+    rest = int((n_frame_last + 1) % (256 / n_aver))
     if rest:
         for k in range(rest):
             _sp.pop(-1)
@@ -222,13 +218,12 @@ def convert_to_matrix(S_total, counter, n_aver):
     строки которой - спектры с разрешением 7.8125/(2**(6-n_aver)) МГц, а столбцы - зависимость значения
     спектра на фиксированной частоте от времени. Разрешение по времени - 8192 мкс. Вместо пропущенных пакетов
     вставляет значение 2"""
-    len_time = np.shape(S_total)[0]
+
     S = [[int(2)] * 128 for i in range(int(counter))]
-    # S = [['NaN'] * 128 for i in range(counter)]
     for s in S_total:
         S[int(s[0])] = s[1:]
-    aver_param_loc = 2 ** n_aver
-    n = 128 * aver_param_loc
+    aver_param_loc = 256 / n_aver
+    n = int(128 * aver_param_loc)
     print(len(S))
     k = int(len(S) // n)
     print(f' n = {n}, k = {k}')
@@ -280,7 +275,7 @@ if __name__ == '__main__':
     data_treatment_dir = 'Data_treatment_3_18'       # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
-    current_primary_file = '2023-06-25_04'
+    current_primary_file = '2023-06-25_03'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
     #         or current_primary_dir.find('calibr') != -1:

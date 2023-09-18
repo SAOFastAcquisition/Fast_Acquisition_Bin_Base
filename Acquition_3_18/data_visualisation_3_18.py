@@ -461,7 +461,7 @@ def simple_plot(inp_data):
     _m = np.shape(inp_data)[0]
     for _i in range(_m):
         if len(inp_data[_i][2]) > 2:
-            ax.plot(inp_data[_i][3], inp_data[_i][2], color=line_color[_l], label=inp_data[_i][0])
+            ax.semilogy(inp_data[_i][3], inp_data[_i][2], color=line_color[_l], label=inp_data[_i][0])
             _l += 1
 
     font = font_manager.FontProperties(family='Comic Sans MS',
@@ -493,7 +493,7 @@ def freq_mask(_i):
 if __name__ == '__main__':
 
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_primary_file = '2023-06-25_04'
+    current_primary_file = '2023-06-25_03'
     current_primary_dir = '2023_06_25test'
     main_dir = '2023'
     date = current_primary_dir[0:10]
@@ -534,9 +534,8 @@ if __name__ == '__main__':
     # или извлечение спектров из исходных записей
     spectrum, n_aver, polar = preparing_data()
     print('Data are prepared')
-    n_aver = 7
-    aver_param = 2 ** n_aver
-    kf = int(freq_res / delta_f / aver_param)  # Установка разрешения по частоте в единицах максимального разрешения
+    # aver_param = 2 ** n_aver
+    kf = int(freq_res / delta_f / n_aver)  # Установка разрешения по частоте в единицах максимального разрешения
     # для данного наблюдения delta_f*aver_param, где delta_f = 0.082397461 МГц
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
@@ -545,12 +544,12 @@ if __name__ == '__main__':
     # условно, требуют смены порядка записи 1 и 4 - по совокупности признаков
     shape_sp = np.shape(spectrum)
 
-    s11 = spectrum[1][1]
-    s21 = spectrum[2][1]
-    plt.plot(s11[:, 100])
-    plt.show()
-    plt.plot(s11[130, :])
-    plt.show()
+    # s11 = spectrum[1][1]
+    # s21 = spectrum[2][1]
+    # plt.semilogy(s11[:, 100])
+    # plt.show()
+    # plt.semilogy(s11[130, :])
+    # plt.show()
     for i in range(shape_sp[0]):
         for j in range(shape_sp[1]):
             if np.size(spectrum[i, j]) and i in [1, 4]:
