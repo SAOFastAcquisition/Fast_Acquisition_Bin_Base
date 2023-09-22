@@ -58,10 +58,10 @@ def extract_whole_band():
                     break
             # ******************************************************************************
 
-            # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^n_aver)
+            # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^_n_aver)
             # Выделение промежутка для значения куртозиса = [2 - bound_left/128, 2 + bound_right/128])
 
-            n_aver = (frame_int & 0xFF00000000) >> 32
+            _n_aver = (frame_int & 0xFF00000000) >> 32
             bound_left = (frame_int & 0x1FF0000000000) >> (32 + 8)
             bound_right = (frame_int & 0xFF800000000000) >> (32 + 8 + 9)
 
@@ -87,10 +87,10 @@ def extract_whole_band():
                 polarization = 'right'
             pass
 
-            frame1 = f_in.read(8*128)
+            frame1 = f_in.read(8 * 128)
             if len(frame1) != 1024:
                 break
-            x = struct.unpack('ff'*128, frame1)
+            x = struct.unpack('ff' * 128, frame1)
             verify_data = np.asarray(x).reshape(128, -1)
             spectrum_val = list(verify_data[:, 0])
             pp_good = verify_data[:, 1]
@@ -121,10 +121,12 @@ def extract_whole_band():
         f_in.close()
     pass
     # Приведение длины записи к величине кратной количеству частот
+    if _n_aver == 0:
+        _n_aver = 4
     for i in [0, 1, 2, 3, 4]:
         for j in ['left', 'right']:
             if len(spectrum[j].loc[i]) > 1:
-                spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], n_aver)
+                spectrum[j].loc[i] = cut_spectrum(spectrum[j].loc[i], _n_aver)
                 spectrum[j].loc[i] = np.array(spectrum[j].loc[i])
 
     spectrum_len = pd.DataFrame(index=[0, 1, 2, 3, 4], columns=['left', 'right'])
@@ -134,10 +136,10 @@ def extract_whole_band():
     polar, measure_kind = status_func(spectrum_len)
 
     head = {'date': date,
-            'measure_kind': measure_kind,    # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+            'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
             'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
             'cleaned': 'no',
-            'n_aver': n_aver,
+            '_n_aver': _n_aver,
             'kurtosis': bound_left,
             'good_bound': pp_good_bound,
             'att1': att01,
@@ -149,7 +151,6 @@ def extract_whole_band():
 
 
 def status_func(_sp_len):
-
     # polar Принимает значения поляризаций: 'both', 'left', 'right'
     for j in [0, 1, 2, 3, 4]:
         if _sp_len['left'].loc[j] > 1 and _sp_len['right'].loc[j] > 1:
@@ -177,7 +178,6 @@ def status_func(_sp_len):
 
 
 def save_spectrum(_spectrum, _head):
-
     n_aver = _head['n_aver']
 
     for j in [0, 1, 2, 3, 4]:
@@ -266,16 +266,15 @@ def preparing_data():
 
 
 if __name__ == '__main__':
-
     start = datetime.now()
 
     current_data_dir = '2023'
-    primary_data_dir = 'Primary_data_3_18'           # Каталог исходных данных (за определенный период, здесь - год)
-    converted_data_dir = 'Converted_data_3_18'       # Каталог для записи результатов конвертации данных и заголовков
-    data_treatment_dir = 'Data_treatment_3_18'       # Каталог для записи результатов обработки, рисунков
+    primary_data_dir = 'Primary_data_3_18'  # Каталог исходных данных (за определенный период, здесь - год)
+    converted_data_dir = 'Converted_data_3_18'  # Каталог для записи результатов конвертации данных и заголовков
+    data_treatment_dir = 'Data_treatment_3_18'  # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
-    current_primary_file = '2023-06-25_03'
+    current_primary_file = '2023-06-25_02'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
     #         or current_primary_dir.find('calibr') != -1:
@@ -287,7 +286,7 @@ if __name__ == '__main__':
     primary_data_file_path, head_path = path_to_data(current_data_dir, current_primary_path)
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
 
-    align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
+    align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
     folder_align_path = Path(head_path, 'Alignment')
 
     date = current_primary_file[0:10]

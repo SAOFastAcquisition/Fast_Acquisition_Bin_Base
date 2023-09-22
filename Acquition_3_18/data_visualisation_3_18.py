@@ -238,6 +238,10 @@ def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
                 s_time[j][1] = _i
                 j += 1
             else:
+                if _freq_map[_f] == 2:
+                    _delta_t = 0.013981
+                else:
+                    _delta_t = 0.012428
                 while kt * (i + 1) < _n_raw[int(_freq_map[_f])]:
                     if kf == 1:
                         _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][_sp[i * kt:(i + 1) * kt, ind] > 40])
@@ -258,7 +262,7 @@ def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
                             _s_loc /= n_mesh
                     i += 1
                     _s_loc1.append(_s_loc)
-                    _time_count.append(kt * (i + 0.5) * delta_t)
+                    _time_count.append(kt * (i + 0.5) * _delta_t)
 
                 s_time[j][0] = _f                       # scan frequency
                 s_time[j][1] = _i                       # scan polarization
@@ -279,6 +283,9 @@ def spectrum_former(_sp, _freq_map, _time_mask, _band_map, _n_col, _n_raw):
             _s_loc1 = []
             _freq_count = []
             for _j in range(5):  # Цикл по поддиапазонам
+                _delta_f = 0.082397
+                if _j == 2:
+                    _delta_f = 0.073242
                 sp = _sp[_j, _l]
                 if len(sp) > 2:
                     # Определение индекса середины зоны, в которой проводится усреднение по времени
@@ -305,8 +312,11 @@ def spectrum_former(_sp, _freq_map, _time_mask, _band_map, _n_col, _n_raw):
                             else:
                                 s_loc /= n_mesh
                             _s_loc1.append(s_loc)
-                            _freq_count.append(_band_map[_j][0] + kf * (j + 0.5) * delta_f * aver_param)
+                            _freq_count.append(_band_map[_j][0] + kf * (j + 0.5) * _delta_f * aver_param)
                         j += 1
+                        if _j == 2:
+                            _a = _freq_count[-1]
+                            pass
             _s_freq[i][0] = t
             _s_freq[i][1] = _l
             _s_freq[i][2] = np.array(_s_loc1)
@@ -322,8 +332,8 @@ def spectrum_construction(Spectr, kf, kt):
     соответственно. Преобразованный спектр возвращается как S1. Для трехмерного изображения
     '''
 
-    N_col1 = _n_col // kf
-    N_row1 = _n_row // kt
+    N_col1 = n_col // kf
+    N_row1 = n_row // kt
     S1 = np.zeros((N_row1, N_col1))
 
     for i in range(N_row1):
@@ -400,10 +410,17 @@ def band_separation(_s, _n_aver):
     :return: Матрицу спектров для поддиапазона без защитных зон
     """
     #
-    _n_start = int(2432 / _n_aver)
-    _n_stop = int(32768 / _n_aver) - _n_start
+    _n_start0 = int(2432 / _n_aver)
+    _n_stop0 = int(32768 / _n_aver) - _n_start0
+    _n_start2 = int(4096 / _n_aver)
+    _n_stop2 = int(21844 / _n_aver)
     _shape_s = np.shape(_s)
     for i in range(_shape_s[0]):
+        _n_start = _n_start0
+        _n_stop = _n_stop0
+        if i == 2:
+            _n_start = _n_start2
+            _n_stop = _n_stop2
         for j in range(_shape_s[1]):
             if np.size(_s[i, j]):
                 _N_row = np.shape(spectrum[i, j])[0]
@@ -479,8 +496,8 @@ def freq_mask(_i):
     _n1 = 2
     _n2 = 4
     _freq_mask = [
-        [3000, 3600, 4500, 5100, 6600, 7500, 8200, 8600],  # [0]
-
+        [3000, 3600, 4500, 5100, 6600, 7500, 8200, 8600],   # [0]
+        [3700, 4850, 6350, 6500, 7000, 7100]                            # [1]
     ]
     return _freq_mask[_i]
 
@@ -488,7 +505,7 @@ def freq_mask(_i):
 if __name__ == '__main__':
 
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_primary_file = '2023-06-25_04'
+    current_primary_file = '2023-06-25_03'
     current_primary_dir = '2023_06_25test'
     main_dir = '2023'
     date = current_primary_dir[0:10]
@@ -517,7 +534,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(0)
+    freq_spect_mask = freq_mask(1)
     # *****************************************************
     polar = 'both'
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
@@ -529,7 +546,7 @@ if __name__ == '__main__':
     # или извлечение спектров из исходных записей
     spectrum, n_aver, polar = preparing_data()
     print('Data are prepared')
-    # aver_param = 2 ** n_aver
+    aver_param = n_aver
     kf = int(freq_res / delta_f / n_aver)  # Установка разрешения по частоте в единицах максимального разрешения
     # для данного наблюдения delta_f*aver_param, где delta_f = 0.082397461 МГц
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
@@ -547,25 +564,25 @@ if __name__ == '__main__':
     # plt.show()
     for i in range(shape_sp[0]):
         for j in range(shape_sp[1]):
-            if np.size(spectrum[i, j]) and i in [1, 4]:
-                _n_row = np.shape(spectrum[i, j])[0]
-                _n_col = np.shape(spectrum[i, j])[1]
+            if np.size(spectrum[i, j]) and i in [2]:
+                n_row = np.shape(spectrum[i, j])[0]
+                n_col = np.shape(spectrum[i, j])[1]
                 s = spectrum[i, j]
-                for k in range(_n_row):
+                for k in range(n_row):
                     s[k, :] = s[k, -1::-1]
                 spectrum[i, j] = s
                 s1 = spectrum[i, j]
-                aver_param = int(32768 / _n_col)
+                # aver_param = int(32768 / _n_col)
 
     # Отбрасывание отсчетов защитной зоны поддиапазона наблюдения
-    spectrum = band_separation(spectrum, aver_param)
+    spectrum = band_separation(spectrum, n_aver)
 
     # # ***********************************************
     # # ***        Графический вывод данных        ****
     # # ***********************************************
 
     # Динамическая маска (зависит от длины записи во времени)
-    t_spect = _n_row * delta_t
+    t_spect = n_row * delta_t
     time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
