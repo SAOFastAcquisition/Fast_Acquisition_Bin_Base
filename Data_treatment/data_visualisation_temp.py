@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-06-21_13-24'
-    current_primary_dir = '2023_06_21sun'
+    current_primary_file = '2023-02-17_04+16'
+    current_primary_dir = '2023_02_17sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -871,10 +871,12 @@ if __name__ == '__main__':
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
     # path_npy1 = Path(str(converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
-    # path_npy2 = Path(str(converted_data_file_path) + '_scan_freq.npy')     # Сканы на фиксированных частотах
+    path_npy2 = Path(str(converted_data_file_path) + '_scan_freq.npy')     # Сканы на фиксированных частотах
+    path_npy_time = Path(str(converted_data_file_path) + '_time.npy')
     # print(path_txt)
     # np.savetxt(path_txt, )
-    # np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
+    np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
+    np.save(path_npy_time, timeS)
     # np.save(path_npy1, spectr_freq)                                        # Спектры в фиксированные моменты времени
     # path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
     # print(path_txt)

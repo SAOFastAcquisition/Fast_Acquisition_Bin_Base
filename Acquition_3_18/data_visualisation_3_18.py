@@ -7,6 +7,8 @@ import json as jsn
 from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objs as go
 import matplotlib.font_manager as font_manager
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
@@ -616,10 +618,23 @@ if __name__ == '__main__':
     # if output_picture_mode == 'y':
     sp = spectrum_f[1:6, 2]
 
-    simple_plot(spectrum_f)
-    simple_plot(scan)
-
-
+    # simple_plot(spectrum_f)
+    # simple_plot(scan)
+    unit = [' sec', ' MHz']
+    _t = 1
+    if spectrum_f[0, 0] < 1000:
+        _t = 0
+    legend = [str(i) + unit[_t] for i in spectrum_f[:, 0]]
+    fig = go.Figure()
+    m = np.shape(spectrum_f)[0]
+    l = 0
+    for i in range(m):
+        if len(spectrum_f[i][2]) > 2:
+            fig.add_trace(go.Scatter(x=spectrum_f[i][3], y=spectrum_f[i][2], name=legend[i]))
+            l += 1
+    # fig.add_trace(go.Scatter(x=spectrum_f[1][3], y=spectrum_f[1][2]))
+    fig.update_yaxes(type="log")
+    fig.show()
     # fp.fig_plot(spectrum_f[1][2], 0, freq, 1, info_txt, path1, head)
     # fp.fig_plot(scan[1][2], 0, timeS, 0, info_txt, path1, head)
     # *********************************************************
