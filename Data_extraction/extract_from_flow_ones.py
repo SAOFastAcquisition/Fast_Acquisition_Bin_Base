@@ -100,14 +100,15 @@ def extract_whole_band():
                     noise_gen_on = (frame_int & 0x100000) >> 20
                     if noise_gen_on - noise_gen_on_before == 1:
                         ng_counter1 += 1
-                        if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 != ng_counter1 % 2):
+                        if (ng_counter1 % 2 == 0) & (ng_counter2 % 2 == 1):
                             flag_registration = 1
                         print('NG on, frame num: ', frame_num, ' flag_registration =', flag_registration)
                     if noise_gen_on - noise_gen_on_before == -1:
                         ng_counter2 += 1
-                        if (ng_counter2 // 2 == ng_counter1 // 2) & (ng_counter2 % 2 == 0) & \
-                                (ng_counter1 % 2 == 0):
+                        if (ng_counter2 // 2 == 1) & (ng_counter1 // 2 == 1) & (ng_counter2 % 2 == 1) & \
+                                (ng_counter1 % 2 == 1):
                             flag_registration = 0
+                            break
                             pass
                         print('NG off, frame num: ', frame_num, ' flag_registration =', flag_registration)
                     # Запись на первую позицию (с индексом 0) фрагмента спектра номера кадра frame_num
@@ -478,8 +479,8 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_10_19sun'
-    current_primary_file = '2023-10-19_01-24'
+    current_primary_dir = '2023_10_31sun'
+    current_primary_file = '2023-10-31_05-24'
     azimuth_file_name = current_primary_file + 'az.txt'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\

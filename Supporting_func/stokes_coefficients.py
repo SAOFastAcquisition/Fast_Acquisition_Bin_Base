@@ -127,7 +127,6 @@ def stokes_v_deviation(_s, _m):
     for _i in range(shape[1]):
         _s1[:, _i] = maf_fir(_s[:, _i], _m)
         _s1[:, _i] = _s[:, _i] - _s1[:, _i]
-    pass
     return _s1
 
 
@@ -540,8 +539,8 @@ if __name__ == '__main__':
     noise_int_calibration = 'y'
     v_deviation = 'y'
 
-    current_primary_dir = '2023_02_22sun'
-    current_data_file = '2023-02-22_15-28'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2023_10_27sun'
+    current_data_file = '2023-10-27_05-24'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2023'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ

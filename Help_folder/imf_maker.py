@@ -292,8 +292,8 @@ if __name__ == '__main__':
     # Загрузка исходных данных в виде спектров в фиксированные моменты времени '_spectrum_time.npy'
     # или сканов на фиксированных частотах '_scan_freq.npy'
     #                               **************************
-    # path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
-    path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
+    path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
+    # path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
     tag = 0
     if 'spectrum_time' in str(path_npy):
         tag = 1

@@ -319,10 +319,10 @@ def ngi_temperature(_f, _case_id, _path):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0, 5.5  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 7, 12  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 0, 5.5  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 7, 12
+    t_cal0, t_cal1 = 0, 4.5  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 5.5, 12  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 0, 4.5  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 5.5, 12
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-02-17_04+16'
-    current_primary_dir = '2023_02_17sun'
+    current_primary_file = '2023-10-31_05-24'
+    current_primary_dir = '2023_10_31sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -875,8 +875,8 @@ if __name__ == '__main__':
     path_npy_time = Path(str(converted_data_file_path) + '_time.npy')
     # print(path_txt)
     # np.savetxt(path_txt, )
-    np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
-    np.save(path_npy_time, timeS)
+    # np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
+    # np.save(path_npy_time, timeS)
     # np.save(path_npy1, spectr_freq)                                        # Спектры в фиксированные моменты времени
     # path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
     # print(path_txt)

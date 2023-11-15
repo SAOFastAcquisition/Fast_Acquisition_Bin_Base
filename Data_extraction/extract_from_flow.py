@@ -281,6 +281,9 @@ def extract_whole_band():
                     if antenna == 1:
                         pass
                     noise_gen_on = (frame_int & 0x100000) >> 20
+                    if noise_gen_on:
+                        print(f'numframe = {frame_num}')
+                        pass
                     band = (frame_int & 0x8000000000000000) >> 63
                     attenuators = [att_1, att_2, att_3]
                     if i == 10:
@@ -574,8 +577,8 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_10_19sun'
-    current_primary_file = '2023-10-19_01-24'
+    current_primary_dir = '2023_10_20sun'
+    current_primary_file = '2023-10-20_02+12'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
