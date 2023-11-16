@@ -738,7 +738,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 2  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -875,8 +875,8 @@ if __name__ == '__main__':
     path_npy_time = Path(str(converted_data_file_path) + '_time.npy')
     # print(path_txt)
     # np.savetxt(path_txt, )
-    # np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
-    # np.save(path_npy_time, timeS)
+    np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
+    np.save(path_npy_time, timeS)
     # np.save(path_npy1, spectr_freq)                                        # Спектры в фиксированные моменты времени
     # path_txt = str(Path(converted_dir_path, current_data_file, 'freq.txt'))
     # print(path_txt)

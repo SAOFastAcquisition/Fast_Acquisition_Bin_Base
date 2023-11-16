@@ -279,8 +279,8 @@ def null_cross_sec(_data):
 
 
 if __name__ == '__main__':
-    current_primary_file = '2023-02-10_01+20'
-    current_primary_dir = '2023_02_10sun'
+    current_primary_file = '2023-10-31_05-24'
+    current_primary_dir = '2023_10_31sun'
     main_dir = '2023'
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
     converted_data_file_path = adr1.converted_data_file_path
@@ -292,8 +292,8 @@ if __name__ == '__main__':
     # Загрузка исходных данных в виде спектров в фиксированные моменты времени '_spectrum_time.npy'
     # или сканов на фиксированных частотах '_scan_freq.npy'
     #                               **************************
-    path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
-    # path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
+    # path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
+    path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
     tag = 0
     if 'spectrum_time' in str(path_npy):
         tag = 1
@@ -306,11 +306,11 @@ if __name__ == '__main__':
     #                               **************************
     imf00 = imf_decomp((data[6, :]))  # Разложение на собственные функции опорного спектра
     imf01 = imf_decomp(fill_zone_del(data[4, :]))
-    imf02 = imf_decomp(fill_zone_del(data[5, :]))
+    imf02 = imf_decomp(fill_zone_del(data[9, :]))
     imf00[:, mask] = 0
     imf01[:, mask] = 0
     imf02[:, mask] = 0
-    some_fig_plot(imf00)
+    some_fig_plot(imf02)
     #                               **************************
     # data_mod1 = data[3, :] - imf0[0, :]
     # data_mod2 = data[3, :] - imf0[0, :] - imf0[1, :]
@@ -319,11 +319,12 @@ if __name__ == '__main__':
     plot_imf(arg[:], imf00[1, :], imf01[1, :], imf02[1, :])
     plot_imf(arg[:], imf00[2, :], imf01[2, :], imf02[2, :])
     plot_imf(arg[:], imf00[-1, :], imf01[-1, :], imf02[-1, :])
-    plot_imf(arg[:], np.exp(dec * imf00[-1, :]), np.exp(dec * (data[5, :] - imf00[1, :])),
-             np.exp(dec * data[5, :]))
+    plot_imf(arg[:], np.exp(dec * (data[5, :])), np.exp(dec * (data[5, :] - imf02[0, :] - imf02[1, :])),
+             np.exp(dec * (data[5, :] - imf02[0, :] - imf02[1, :] - imf02[2, :] - imf02[3, :] - imf02[4, :] -
+                           - imf02[5, :] - - imf02[6, :])))
     # imf1 = imf_decomp(data_mod1) - imf00[0, :]
     # imf2 = imf_decomp(data_mod2)
     # imf3 = imf_decomp(data[3, :])
-    # plot_imf(arg[:], imf1[-1, :], imf2[-1, :], imf3[-1, :])
+    # plot_imf(arg[:], imf1[-1, :], imf2[-1, :], imf3[-1, :])  , np.exp(dec * data[5, :])
 
     pass
