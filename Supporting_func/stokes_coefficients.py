@@ -527,7 +527,7 @@ def title_func(file_name0, _head):
 
 def time_to_angle(_time, _data):
     _scale = 1900 / 180
-    _time_sc = 220
+    _time_sc = 203
     _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
     _data = _data[-1::-1, :]
     return _angle, _data
@@ -539,8 +539,8 @@ if __name__ == '__main__':
     noise_int_calibration = 'y'
     v_deviation = 'y'
 
-    current_primary_dir = '2023_10_27sun'
-    current_data_file = '2023-10-27_05-24'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2023_11_01sun'
+    current_data_file = '2023-11-01_05-24'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2023'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
