@@ -664,7 +664,7 @@ def freq_mask(_i):
         [1100, 1200],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 30 + 10 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 50 + 10 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-11-01_05-24'
-    current_primary_dir = '2023_11_01sun'
+    current_primary_file = '2023-11-14_05-24'
+    current_primary_dir = '2023_11_14sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 32  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -967,7 +967,7 @@ if __name__ == '__main__':
         if ab == 'y':
             fp.graph_contour_2d_ab(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
         else:
-            fp.graph_contour_2d(freq[12:115], timeS[277:311], spectr_extr1[277:311, 12:115], 0, info_txt, path1, head)
+            fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
 
     if poly3d_perm == 'y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)

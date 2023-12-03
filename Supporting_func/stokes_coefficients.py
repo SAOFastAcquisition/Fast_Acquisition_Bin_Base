@@ -11,7 +11,7 @@ from Supporting_func.afc_alignment import align_spectrum
 from pathlib import Path
 from scipy.fftpack import fft, ifft
 from scipy.signal import lfilter, filtfilt
-from Supporting_func.Fig_plot import fig_multi_axes
+from Supporting_func.Fig_plot import fig_multi_axes, graph_contour_2d
 from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
 from Help_folder.paths_via_class import DataPaths
 
@@ -188,18 +188,18 @@ def maf_fir(_s, _m=2):
 
 
 def freq_mask(_i):
-    _n1 = 1
-    _n2 = 3
+    _n1 = 2
+    _n2 = 7
     _freq_mask = [
         [2412],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
-        [1000 * _n1 + 100 * _n2 + 80 + 4 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 50 + 20 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12' # [7]
-        [1200, 1300, 1465, 1600, 1700, 2265, 2530, 2720, 2800, 2920]  # [8]
+        [1200, 1300, 1465, 1600, 1700, 2265, 2510, 2720, 2800, 2920]  # [8]
     ]
     return _freq_mask[_i]
 
@@ -537,10 +537,10 @@ if __name__ == '__main__':
     align = 'y'
     channel_align = 'y'
     noise_int_calibration = 'y'
-    v_deviation = 'y'
+    v_deviation = 'n'
 
-    current_primary_dir = '2023_11_01sun'
-    current_data_file = '2023-11-01_05-24'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2023_11_14sun'
+    current_data_file = '2023-11-14_05-24'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2023'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
@@ -624,6 +624,8 @@ if __name__ == '__main__':
     mean_frame_ind_pol = np.copy(mean_frame_ind)
     m, n = np.shape(s0)
     freq_res = n  # Число отсчетов спектра шириной 2 ГГц по частоте
+    df = 3.904
+    freq = [1000 + df / 2 + df * i for i in range(n)]
     num_mask = [int((s - 1000 * (1 + 1 / freq_res)) * freq_res / 2000) for s in freq_mask0]
 
     calibration_temperature = [calibration_temp(f) for f in freq_mask0]
@@ -662,7 +664,15 @@ if __name__ == '__main__':
     # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
     # two_fig_plot(path_to_stocks_fig_folder)       # Картинка с двумя графиками (I & V)
     # mean_frame_ind_pol = mean_frame_ind_pol[670:770]
-    some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask], s3_dv[-1::-1, :])
+    s3f = np.ones(np.shape(s3))
+    for i in range(np.shape(s3)[1]):
+        s3f[:, i] = maf_fir(s3[:, i], 9)
+    if v_deviation == 'y':
+        some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask], s3_dv[-1::-1, :])
+    else:
+        some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3f[-1::-1, num_mask], s3_dv)
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
     #                Path(current_treatment_path, current_data_file), freq_mask0, head)
     pass
+    # s31 = np.ma.masked_array(s3, np.isnan(s3)) + 2000
+    # graph_contour_2d(freq, mean_frame_ind_pol, s31, 0, 'ab',  treatment_dir_path, head)
