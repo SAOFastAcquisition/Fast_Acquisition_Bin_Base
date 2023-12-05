@@ -191,7 +191,7 @@ def freq_mask(_i):
     _n1 = 2
     _n2 = 7
     _freq_mask = [
-        [2412],  # [0]
+        [1530, 1545, 1680],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
         [1000 * _n1 + 100 * _n2 + 50 + 20 * i for i in range(10)],  # [3]
@@ -535,13 +535,13 @@ def time_to_angle(_time, _data):
 
 if __name__ == '__main__':
     align = 'y'
-    channel_align = 'y'
-    noise_int_calibration = 'y'
+    channel_align = 'n'
+    noise_int_calibration = 'n'
     v_deviation = 'n'
 
-    current_primary_dir = '2023_11_14sun'
-    current_data_file = '2023-11-14_05-24'  # Имя файла с исходными текущими данными без расширения
-    main_dir = '2023'
+    current_primary_dir = '2022_06_18sun'
+    current_data_file = '2022-06-18_07+04'  # Имя файла с исходными текущими данными без расширения
+    main_dir = '2022'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
@@ -556,7 +556,7 @@ if __name__ == '__main__':
     path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(8)
+    freq_mask_list = freq_mask(0)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)

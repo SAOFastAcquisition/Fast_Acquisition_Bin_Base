@@ -714,9 +714,9 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-11-14_05-24'
-    current_primary_dir = '2023_11_14sun'
-    main_dir = '2023'
+    current_primary_file = '2022-06-18_08+00'
+    current_primary_dir = '2022_06_18sun'
+    main_dir = '2022'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
