@@ -26,7 +26,7 @@ def freqtime_compare(freq=201, suptitle='', l=1):
     np.random.seed(42)
     awgn = np.random.normal(0, 9 * 1e-2, m)
 
-    # Input signal
+    # Input _signal
     t = np.linspace(0, 1, m)
 
     x = np.cos(2 * np.pi * freq * t) + awgn
@@ -147,13 +147,13 @@ XZ[::L] = XN
 
 plt.figure(figsize=(12, 5), dpi=120)
 plt.subplot(2, 2, 1)
-plt.plot(x, '-o', markersize=6, color='C0', label='Input signal')
+plt.plot(x, '-o', markersize=6, color='C0', label='Input _signal')
 plt.legend(loc='upper right')
 plt.subplot(2, 2, 2)
-plt.plot(y, '-*', markersize=6, color='C1', label='Decimated signal')
+plt.plot(y, '-*', markersize=6, color='C1', label='Decimated _signal')
 plt.legend(loc='upper right')
 plt.subplot(2, 2, 3)
-plt.stem(XM, use_line_collection=True, linefmt='C2', basefmt='C2', label='Spectrum (signal)')
+plt.stem(XM, use_line_collection=True, linefmt='C2', basefmt='C2', label='Spectrum (_signal)')
 plt.legend(loc='upper right')
 plt.subplot(2, 2, 4)
 plt.stem(XZ, use_line_collection=True, linefmt='C3', basefmt='C3', label='Spectrum (decimated)')

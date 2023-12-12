@@ -328,12 +328,12 @@ def noise_self_calibration(_scan, _polar):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 5
+    _n2 = 4
     _freq_mask = [
         [1530, 1545, 1680],                                                               # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],               # [1]
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],                           # [2]
-        [1000 * _n1 + 100 * _n2 + 20 * i for i in range(10)],                 # [3]
+        [1000 * _n1 + 100 * _n2 +50 + 25 * i for i in range(10)],                 # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],         # [4]
         [1140, 1150],                                                               # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],   # for Crab '2021-06-28_03+14' # [6]
@@ -411,7 +411,7 @@ if __name__ == '__main__':
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2022_06_18sun'
-    current_primary_file = '2022-06-18_07+04'
+    current_primary_file = '2022-06-18_03+20'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
@@ -437,7 +437,7 @@ if __name__ == '__main__':
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(0)
+    freq_spect_mask = freq_mask(3)
     # *****************************************************
 
     band_size_init = 'whole'

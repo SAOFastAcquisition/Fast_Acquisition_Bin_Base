@@ -91,7 +91,7 @@ if __name__ == '__main__':
         l = np.shape(spectrum[i])
         if np.size(l) == 2 and l[1] > 4:
             """Разбиение файла данных на части по времени для избежания проблем с памятью 
-            вызываемой функции свертки signal.fftconvolve()"""
+            вызываемой функции свертки _signal.fftconvolve()"""
             m = l[0] // 3000
             k = l[0] % 3000
             auxiliary = spectrum[i]
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                 pass
             spectrum[i] = auxiliary
 
-    # kernel = np.outer(signal.gaussian(70, 8), signal.gaussian(70, 8))
+    # kernel = np.outer(_signal.gaussian(70, 8), _signal.gaussian(70, 8))
 
     if visualization == 'y':
         some_visualisation()

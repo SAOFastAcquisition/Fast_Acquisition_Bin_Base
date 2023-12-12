@@ -47,7 +47,7 @@ if __name__ == "__main__":
     delta_t = delta_t0 * kt
 
     spectrum = np.load(data_saved_path)
-    spectrum_one = spectrum[:, 492]
+    spectrum_one = spectrum[:, 40]
     shape_spectrum = np.shape(spectrum)
 
     n_freq = shape_spectrum[1]
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     angle = np.array([t * angle_per_sample for t in range(n_angle)])
 
-    main_lobe1 = gauss(angle, 60 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe1 = gauss(angle, 50 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     main_lobe2 = gauss(angle, 20 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     for i in range(len(main_lobe1)):
         if main_lobe1[i] < 1e-4:
@@ -107,5 +107,5 @@ if __name__ == "__main__":
     main_lobe_ift2 = ifft(a_2)
     spectrum_ft = fft(sun_centered)
     spectrum_ift = ifft(spectrum_ft * r)
-    simplest_fig(angle, abs(spectrum_ift), sun_centered)
+    simplest_fig(angle[1900000:1912000], abs(spectrum_ift[1900000:1912000]), sun_centered[1900000:1912000])
     pass

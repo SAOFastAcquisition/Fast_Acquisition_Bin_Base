@@ -188,13 +188,13 @@ def maf_fir(_s, _m=2):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 7
+    _n1 = 1
+    _n2 = 4
     _freq_mask = [
         [1530, 1545, 1680],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
-        [1000 * _n1 + 100 * _n2 + 50 + 20 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 50 + 25 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -540,7 +540,7 @@ if __name__ == '__main__':
     v_deviation = 'n'
 
     current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_07+04'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения
     main_dir = '2022'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
@@ -556,7 +556,7 @@ if __name__ == '__main__':
     path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(0)
+    freq_mask_list = freq_mask(3)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)
@@ -615,7 +615,7 @@ if __name__ == '__main__':
 
         stokes_coeff = pd.Series([s0, s3, mean_frame_ind])
         np.save(path_to_stokes, stokes_coeff)
-        print('Stocks parameters are saved successfully')
+        print('Stokes parameters are saved successfully')
 
     else:
         stokes_coeff = np.load(path_to_stokes, allow_pickle=True)

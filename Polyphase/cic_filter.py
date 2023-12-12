@@ -1,6 +1,6 @@
 import numpy as np               # Import numpy
 import matplotlib.pyplot as plt  # Import matplotlib
-# from scipy.signal import freqz
+# from scipy._signal import freqz
 from scipy.signal import lfilter, filtfilt,  butter, freqs, remez, freqz
 from scipy.fftpack import fft
 # %matplotlib inline
@@ -15,7 +15,7 @@ class MafFilter:
     Parameters
     ----------
     x : np.array
-        input 1-D signal
+        input 1-D _signal
     """
 
     def __init__(self, x):
@@ -112,7 +112,7 @@ def signal_filtering(_signal, delta_f):
 
 def model_signal():
     N = 300  # Number of samples
-    # Input signal w/ noise:
+    # Input _signal w/ noise:
     _sig = np.concatenate(
         (
             np.zeros(int(N / 2)),
@@ -120,7 +120,7 @@ def model_signal():
             np.zeros(int(N / 2)))
     )
     # Add some noise and peaks
-    lns = _sig.size  # Size of signal
+    lns = _sig.size  # Size of _signal
     np.random.seed(2)
     _sig += np.random.randn(lns)  # Add Gaussian noise
     rnd = np.random.randint(0, lns, 15)  # Add random numbers for index
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     # sig1 = np.load('2021-12-26_03+12.npy', allow_pickle=True)
     # sig = sig1[0, :]
     sig = model_signal()
-    lns = sig.size  # Size of signal
+    lns = sig.size  # Size of _signal
 
     # Calculate Moving Average filter:
     # filt = MafFilter(sig)
@@ -165,11 +165,11 @@ if __name__ == '__main__':
                 hfq[i, j] = np.abs(np.sin(np.pi * M[j] * i / 2 / lns) / M[j] /
                                    np.sin(np.pi * i / 2 / lns))
 
-    # Calculate spectrum of input signal:
+    # Calculate spectrum of input _signal:
     fft_sig = np.abs(fft(sig))
     fft_sig /= np.max(fft_sig)
 
-    # Calculate spectrum of output signal:
+    # Calculate spectrum of output _signal:
     fft_out = np.zeros((lns, LM))
     for i in range(LM):
         fft_out[:, i] = np.abs(fft(res[:, i]))
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     plt.figure(figsize=(12, 6), dpi=120)
     plt.subplot(3, 2, 1)
     plt.plot(sig, linewidth=1.25)
-    plt.title('Input signal')
+    plt.title('Input _signal')
     plt.grid()
     # plt.xlim([0, 40000])
 
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     for i in range(LM-1):
         plt.plot(res[:, i], linewidth=1.0, label="M=%d" % M[i])
     plt.plot(res1, linewidth=1.0, label="M=%d" % M[LM-1])
-    plt.title('Output signal')
+    plt.title('Output _signal')
     plt.grid()
     plt.legend(loc=2)
     plt.xlim([0, N - 1])
