@@ -319,10 +319,10 @@ def ngi_temperature(_f, _case_id, _path):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0.2, 4.5  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 5.0, 10  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 0.2, 4.5  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 5.0, 10
+    t_cal0, t_cal1 = 26.8, 31.2  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 32.0, 37.  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 26.8, 31.2  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 32.0, 37.
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -714,9 +714,9 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2022-06-18_08+00'
-    current_primary_dir = '2022_06_18sun'
-    main_dir = '2022'
+    current_primary_file = '2023-12-13_01+24'
+    current_primary_dir = '2023_12_13moon'
+    main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 16  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек

@@ -31,6 +31,12 @@ def gauss(_x, _s, _a=1, _x0=0):
     return _a*np.exp(-((_x-_x0)/_s)**2)
 
 
+def gauss_lobe(x, sigma):
+    return np.exp(-((x / (.89 *sigma / (2 * np.sqrt(2 * np.log(2))))) ** 2) / 2) / (
+        .89 * sigma / (2 * np.sqrt(2 * np.log(2))) * np.sqrt(2 * np.pi)
+    )
+
+
 if __name__ == "__main__":
     current_primary_file = '2022-12-23_01+28'
     current_primary_dir = '2022_12_23sun'

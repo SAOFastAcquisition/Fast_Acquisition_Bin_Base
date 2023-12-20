@@ -756,7 +756,7 @@ def graph_3d(*args):
 
 
 def time_to_angle(_time):
-    _scale = 1900 / 180
+    _scale = 1960 / 180
     _time_sc = 203
     _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
     return _angle
