@@ -189,12 +189,12 @@ def maf_fir(_s, _m=2):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 4
+    _n2 = 5
     _freq_mask = [
         [1530, 1545, 1680],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
-        [1000 * _n1 + 100 * _n2 + 50 + 25 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 90 + 5 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -527,7 +527,7 @@ def title_func(file_name0, _head):
 
 def time_to_angle(_time, _data):
     _scale = 1900 / 180
-    _time_sc = 203
+    _time_sc = 200
     _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
     _data = _data[-1::-1, :]
     return _angle, _data
@@ -535,13 +535,13 @@ def time_to_angle(_time, _data):
 
 if __name__ == '__main__':
     align = 'y'
-    channel_align = 'n'
+    channel_align = 'y'
     noise_int_calibration = 'n'
     v_deviation = 'n'
 
-    current_primary_dir = '2022_06_18sun'
-    current_data_file = '2022-06-18_01+28'  # Имя файла с исходными текущими данными без расширения
-    main_dir = '2022'
+    current_primary_dir = '2023_12_03sun'
+    current_data_file = '2023-12-03_07+00'  # Имя файла с исходными текущими данными без расширения
+    main_dir = '2023'
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
