@@ -405,13 +405,13 @@ if __name__ == '__main__':
     align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_data_dir = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_data_dir = '2022'
+    current_data_dir = '2023'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2022_06_18sun'
-    current_primary_file = '2022-06-18_03+20'
+    current_primary_dir = '2023_10_20sun'
+    current_primary_file = '2023-10-20_02+12'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
@@ -437,7 +437,7 @@ if __name__ == '__main__':
     N_Nyq = 3
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
     # *****************************************************
 
     band_size_init = 'whole'

@@ -658,13 +658,13 @@ def receiver_noise_temperature(_path, _n, _case):
 
 
 def freq_mask(_i):
-    _n1 = 2
-    _n2 = 3
+    _n1 = 1
+    _n2 = 1
     _freq_mask = [
-        [1170, 2340],  # [0]
+        [2424],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 90 + 10 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 50 + 30 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
@@ -714,8 +714,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-02-10_01+20'
-    current_primary_dir = '2023_02_10sun'
+    current_primary_file = '2023-12-15_02+20'
+    current_primary_dir = '2023_12_15sun'
     main_dir = '2023'
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
@@ -738,12 +738,12 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
-    freq_spect_mask = freq_mask(0)
+    freq_spect_mask = freq_mask(8)
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
@@ -826,13 +826,17 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
     # time_spect_mask = [20, 185, 213, 247]  # [9] article to 'ab'
     # time_spect_mask = [179.5, 180.5, 182]     # Первая вспышка
     # time_spect_mask = [184, 185.1, 186.5]     # Вторая вспышка
     # time_spect_mask = [187.5, 188.1, 189]     # Третья вспышка
     # time_spect_mask = [190, 190.7, 191.5]     # Четвертая вспышка
+    # time_spect_mask = [187.65, 188.15, 188.65, 189.15, 189.65]
     # time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
+    # time_spect_mask = [141.8, 142.05, 142.3, 142.55]  # az+24
+    # time_spect_mask = [136.125, 136.375, 252.54, 252.79]    # az+20
+    time_spect_mask = [136.0, 182, 252.0]  # az+20
     # if band_size == 'whole':
     #      freq_spect_mask = []
 
@@ -866,7 +870,7 @@ if __name__ == '__main__':
     elif band_size_init == 'whole':
         freq = np.linspace(1000 + 3.9063 / aver_param * kf, 3000 - 3.9063 / aver_param * kf, N_col // kf)
     timeS = np.linspace(0, delta_t * N_row, N_row // kt)
-    # timeS = []
+    # timeS = [187.65, 188.15, 188.65, 189.15, 189.65]
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
