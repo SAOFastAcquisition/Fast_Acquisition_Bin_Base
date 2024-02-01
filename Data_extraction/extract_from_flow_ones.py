@@ -474,16 +474,18 @@ if __name__ == '__main__':
     """
     start = datetime.now()
 
-    current_data_dir = '2023'          # Каталог всех данных (первичных, вторичных) за год
     primary_data_dir = 'Primary_data'  # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_12_15sun'
-    current_primary_file = '2023-12-15_12-20'
+    object = 'sun'
+    current_primary_file = '2024-01-02_13-24'
+    current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
+                          current_primary_file[8:10] + object
+    current_data_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     azimuth_file_name = current_primary_file + 'az.txt'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
-    if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1\
+    if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
         current_data_dir = '2022/Test_and_calibration'
 

@@ -538,10 +538,11 @@ if __name__ == '__main__':
     channel_align = 'y'
     noise_int_calibration = 'n'
     v_deviation = 'n'
-
-    current_primary_dir = '2023_12_15sun'
-    current_data_file = '2023-12-15_05+08'  # Имя файла с исходными текущими данными без расширения
-    main_dir = '2023'
+    object = 'sun'
+    current_data_file = '2024-01-02_13-24'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = current_data_file[0:4] + '_' + current_data_file[5:7] + '_' + \
+                          current_data_file[8:10] + object
+    main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
@@ -557,7 +558,7 @@ if __name__ == '__main__':
     path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(0)
+    freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
     s = start_stop_calibr(current_data_file, path_to_csv)
@@ -608,19 +609,19 @@ if __name__ == '__main__':
                 d[:, j] = d[:, j] * noise_coeff[j]
 
             #                               *****************
-        np.savetxt(path_to_stokes_left_txt, c)
-        np.savetxt(path_to_stokes_right_txt, d)
+        # np.savetxt(path_to_stokes_left_txt, c)
+        # np.savetxt(path_to_stokes_right_txt, d)
         # Параметры Стокса
         s0 = c + d
         s3 = c - d
 
-        stokes_coeff = pd.Series([s0, s3, mean_frame_ind])
+        stokes_coeff = pd.Series([s0, s3, mean_frame_ind, noise_coeff])
         np.save(path_to_stokes, stokes_coeff)
         print('Stokes parameters are saved successfully')
 
     else:
         stokes_coeff = np.load(path_to_stokes, allow_pickle=True)
-        [s0, s3, mean_frame_ind] = stokes_coeff
+        [s0, s3, mean_frame_ind, equalizing_factor] = stokes_coeff
 
     mean_frame_ind_pol = np.copy(mean_frame_ind)
     m, n = np.shape(s0)
@@ -648,7 +649,9 @@ if __name__ == '__main__':
         head = pickle.load(inp)
     inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
               ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
-              ('polarisation ' + head['polar']), 'align: ' + 'yes', 'kurtosis quality = ' + str(head['good_bound'])]
+              ('polarisation ' + head['polar']),
+              'align: ' + 'yes',
+              'kurtosis quality = ' + str(head['good_bound'])]
 
     if v_deviation == 'y':
         s3_dv = stokes_v_deviation(s3[:, num_mask], 31)

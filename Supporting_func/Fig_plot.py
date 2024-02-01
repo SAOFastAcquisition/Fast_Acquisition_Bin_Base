@@ -637,7 +637,7 @@ def graph_contour_2d(*args):
     import matplotlib.font_manager as font_manager
     xval, yval, z, s, _info_txt, _current_file, _head = args
     x, y = np.meshgrid(xval, yval)
-    z = np.log10(z)
+    # z = np.log10(z)
 
     levels = MaxNLocator(nbins=15).tick_values(z.min(), z.max())
     # pick the desired colormap, sensible levels, and define a normalization

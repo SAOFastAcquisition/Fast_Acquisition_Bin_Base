@@ -714,9 +714,11 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    current_primary_file = '2023-12-15_02+20'
-    current_primary_dir = '2023_12_15sun'
-    main_dir = '2023'
+    object = 'sun'
+    current_primary_file = '2024-01-02_01+24'
+    current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
+                          current_primary_file[8:10] + object
+    main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     # main_dir = r'2021/Results'           # Каталог (за определенный период, здесь - за 2021 год)
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
@@ -738,7 +740,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -826,7 +828,7 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    # time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
+    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
     # time_spect_mask = [20, 185, 213, 247]  # [9] article to 'ab'
     # time_spect_mask = [179.5, 180.5, 182]     # Первая вспышка
     # time_spect_mask = [184, 185.1, 186.5]     # Вторая вспышка
@@ -836,7 +838,7 @@ if __name__ == '__main__':
     # time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
     # time_spect_mask = [141.8, 142.05, 142.3, 142.55]  # az+24
     # time_spect_mask = [136.125, 136.375, 252.54, 252.79]    # az+20
-    time_spect_mask = [136.0, 182, 252.0]  # az+20
+    # time_spect_mask = [136.0, 182, 252.0]  # az+20
     # if band_size == 'whole':
     #      freq_spect_mask = []
 
@@ -876,7 +878,7 @@ if __name__ == '__main__':
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
     # path_npy1 = Path(str(converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
     path_npy2 = Path(str(converted_data_file_path) + '_scan_freq.npy')  # Сканы на фиксированных частотах
-    path_npy_time = Path(str(converted_data_file_path) + '_time.npy')
+    path_npy_time = Path(str(converted_data_file_path) + '_time_count.npy')
     # print(path_txt)
     # np.savetxt(path_txt, )
     # np.save(path_npy2, spectr_time)                                        # Сканы на фиксированных частотах
