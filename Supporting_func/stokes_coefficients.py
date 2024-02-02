@@ -1,6 +1,7 @@
 from typing import Any
 import numpy as np
 import os
+import gzip
 import sys
 import pickle
 import matplotlib.pyplot as plt
@@ -538,10 +539,10 @@ if __name__ == '__main__':
     channel_align = 'y'
     noise_int_calibration = 'n'
     v_deviation = 'n'
-    object = 'sun'
+    object_m = 'sun'
     current_data_file = '2024-01-02_13-24'  # Имя файла с исходными текущими данными без расширения
     current_primary_dir = current_data_file[0:4] + '_' + current_data_file[5:7] + '_' + \
-                          current_data_file[8:10] + object
+                          current_data_file[8:10] + object_m
     main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
@@ -620,6 +621,13 @@ if __name__ == '__main__':
         print('Stokes parameters are saved successfully')
 
     else:
+        if os.path.exists(f'{str(path_to_stokes)}.gz'):
+            filename_out = f'{str(path_to_stokes)}.gz'
+            with gzip.open(filename_out, "rb") as fin:
+                _spectrum = np.load(fin, allow_pickle=True)
+        else:
+            _spectrum = np.load(path_to_stokes, allow_pickle=True)
+
         stokes_coeff = np.load(path_to_stokes, allow_pickle=True)
         [s0, s3, mean_frame_ind, equalizing_factor] = stokes_coeff
 

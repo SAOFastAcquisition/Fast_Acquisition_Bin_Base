@@ -3,6 +3,7 @@ import os
 import sys
 import pandas as pd
 import pickle
+import gzip
 import json as jsn
 from datetime import datetime
 from pathlib import Path
@@ -223,7 +224,14 @@ def preparing_data():
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     _path1 = Path(str(converted_data_file_path) + '_spectrum.npy')
-    _spectrum = np.load(_path1, allow_pickle=True)
+
+    if os.path.exists(f'{str(_path1)}.gz'):
+        filename_out = f'{str(_path1)}.gz'
+        with gzip.open(filename_out, "rb") as fin:
+            _spectrum = np.load(fin, allow_pickle=True)
+    else:
+        _spectrum = np.load(_path1, allow_pickle=True)
+
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         _head = pickle.load(inp)
     _n_aver = _head['n_aver']
