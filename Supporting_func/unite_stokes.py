@@ -4,16 +4,21 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import pickle
+import gzip, shutil
 import matplotlib.pyplot as plt
 from Data_extraction.c2023_12_15_03p16 import a
 from stokes_coefficients import pic_name, title_func
-
+from sun_az_spead import sun_az_speed
 from Help_folder.paths_via_class import DataPaths
 dt = 8.3886e-3
 
 
 def load_stokes(_path='2023-10-25_05-24_stocks.npy'):
-    _data = np.load(Path(_path), allow_pickle=True)
+    if _path[-2:] == 'gz':
+        with gzip.open(Path(_path), "rb") as fin:
+            _data = np.load(fin, allow_pickle=True)
+    else:
+        _data = np.load(Path(_path), allow_pickle=True)
     _stokes_I = _data[0]
     _stokes_V = _data[1]
     _time_counter = _data[2]
@@ -30,13 +35,18 @@ def save_reformat_stokes(_path_obj, _path_stokes_base):
     :param _path_stokes_base:
     :return:
     """
-    _paths = gb.glob(str(Path(_path_obj.converted_dir_path, "*stocks.npy")))  # Set Pattern in glob() function
+    _paths = gb.glob(str(Path(_path_obj.converted_dir_path, "*stocks.npy.gz")))  # Set Pattern in glob() function
+    if not _paths:
+        _paths = gb.glob(str(Path(_path_obj.converted_dir_path, "*stocks.npy")))
+    if not _paths:
+        print('save_reformat_stokes: No Stokes coefficient files in folder')
+        exit(1)
 
     for _path_curr in _paths:
         _data_file = os.path.basename(_path_curr)
         _stokes_I, _stokes_V, _time_count = load_stokes(_path_curr)
         _dict_stokes = {
-            'date': _data_file[0:10],
+            '_date': _data_file[0:10],
             'azimuth': _data_file[13:16],
             'stokes_I': [_stokes_I],
             'stokes_V': [_stokes_V],
@@ -47,10 +57,14 @@ def save_reformat_stokes(_path_obj, _path_stokes_base):
         if not os.path.isfile(_path_stokes_base):
             _stokes_base = _frame_stokes_curr
         else:
-            with open(_path_stokes_base, 'rb') as inp:
-                _stokes_base = pickle.load(inp)
+            if os.path.isfile(_path_stokes_base):
+                with open(_path_stokes_base, 'rb') as _inp:
+                    _stokes_base = pickle.load(_inp)
+            elif os.path.isfile(f'{_path_stokes_base}.gz'):
+                with gzip.open(f'{_path_stokes_base}.gz', 'rb') as _inp:
+                    _stokes_base = pickle.load(_inp)
 
-        _idx = _stokes_base.loc[(_stokes_base.date == _dict_stokes['date'])
+        _idx = _stokes_base.loc[(_stokes_base._date == _dict_stokes['_date'])
                                 & (_stokes_base.azimuth == _dict_stokes['azimuth'])].index  #
         if not len(_idx):
             _stokes_base = pd.concat([_stokes_base, _frame_stokes_curr], axis=0, ignore_index=False)
@@ -60,18 +74,22 @@ def save_reformat_stokes(_path_obj, _path_stokes_base):
         with open(_path_stokes_base, 'wb') as out:
             pickle.dump(_stokes_base, out)
 
+    with open(_path_stokes_base, "rb") as fin, gzip.open(f'{_path_stokes_base}.gz', "wb") as f_out:
+        # Читает файл по частям, экономя оперативную память
+        shutil.copyfileobj(fin, f_out)
+
 
 def plot_intensities(_arg, _x_l, _x_r, _param, _angle=0):
     _fig = plt.figure(figsize=[13, 8])
     #                           ****** Рисунок 1 левая поляризация ******
     _ax1 = plt.subplot(2, 1, 1)
     for _a, _b in zip(_x_l.T, _param):
-        plt.plot(_arg, _a, label=f'left: azimuth = {_b} deg')
+        plt.plot(_arg, _a, label=f'left: freq = {_b} MHz')
 
-    _ax1.set_ylim(ymax=1.2)
+    _ax1.set_ylim()
     plt.grid('both')
-    plt.title(str(path_treatment)[-16:] + ' Intensities L & R')
-    _ax1.set_ylabel('Normalized intensity')
+    plt.title(str(path_treatment)[-10:] + ' Intensities L & R')
+    _ax1.set_ylabel('Intensity, K')
     plt.legend(loc=2)
     plt.text((_arg[0] + _arg[-1]) / 2, 1.16, f'Position angle on Sun {np.ceil(_angle)} arcs', size=12)
     plt.grid(which='major', color='#666666', linestyle='-')
@@ -81,10 +99,10 @@ def plot_intensities(_arg, _x_l, _x_r, _param, _angle=0):
     #                           ****** Рисунок 2 правая поляризация ******
     _ax2 = plt.subplot(2, 1, 2)
     for _a, _b in zip(_x_r.T, _param):
-        plt.plot(_arg, _a, label=f'right: azimuth = {_b} deg')
+        plt.plot(_arg, _a, label=f'right: freq = {_b} MHz')
     #                                       ************
     plt.grid('on')
-    _ax2.set_ylabel('Normalized intensity')
+    _ax2.set_ylabel('Intensity, K')
     _ax2.set_ylim(ymax=1.2)
     plt.xlabel('Frequency, MHz')
     plt.legend(loc=2)
@@ -141,8 +159,11 @@ def filter_position(_time_num, _angle0):
     return _filt_pos
 
 
-def time_to_angle(_time_count, _time_culmination=200):
-    _scale = 1950 / 180
+def time_to_angle(_time_count, _date, _az, _time_culmination=200):
+    if _date:
+        _scale = sun_az_speed(_date, _az)
+    else:
+        _scale = 1950 / 180
     _time = np.array(_time_count) * dt
     _angle = [-(t - _time_culmination) * _scale for t in _time][-1::-1]
 
@@ -186,25 +207,29 @@ if __name__ == '__main__':
 
     reformat_stokes = 'n'
     pic_demonstrate = 'y'
-    az = [24, 20]
+    az = [24, 20, 16]
 
     if reformat_stokes == 'y':
         save_reformat_stokes(path_obj, path_stokes_base)
 
     if pic_demonstrate == 'y':
-        if os.path.isfile(path_stokes_base):
+        if os.path.isfile(f'{path_stokes_base}.gz'):
+            with gzip.open(f'{path_stokes_base}.gz', "rb") as inp:
+                stokes_base = pickle.load(inp)
+        elif os.path.isfile(path_stokes_base):
             with open(path_stokes_base, 'rb') as inp:
                 stokes_base = pickle.load(inp)
         else:
-            print('Base not found')
-            quit()
+            print('main: Base not found')
+            quit('Base not found')
 
         filt_freq = filter_freq(8)
         filt_az = filter_azimuth(az, stokes_base)
-        # fift_pos = filter_position(angle)
+        # В качестве индекса в отобранных данных используем значение азимута
         filtered_data = stokes_base[filt_az].set_index(stokes_base[filt_az].azimuth)
         stokes_I = filtered_data['stokes_I']
         stokes_V = filtered_data['stokes_V']
+
         i = 0
         for sI, sV in zip(stokes_I, stokes_V):
             sI_filt, sV_filt = sI[:, filt_freq], sV[:, filt_freq]
@@ -216,10 +241,10 @@ if __name__ == '__main__':
                 s_left_int[str(az[i])] = s_left
                 s_right_int[str(az[i])] = s_right
             i += 1
-    si = stokes_I[stokes_I.index.astype('int') == az[0]][0]
-    sv = stokes_V[stokes_I.index.astype('int') == az[0]][0]
+    si = stokes_I[stokes_I.index.astype('int') == az[2]][0]
+    sv = stokes_V[stokes_I.index.astype('int') == az[2]][0]
     time_count = filtered_data[filtered_data['azimuth'].astype(int) == az[0]].time_count[0]
-    arg = time_to_angle(time_count)
+    arg = time_to_angle(time_count, date, az)
     # some_fig_plot(path_to_stokes_fig_folder, arg, si[-1::-1], sv[-1::-1], None)
     plot_intensities(arg, si[-1::-1], sv[-1::-1], freq_mask(8))
     pass

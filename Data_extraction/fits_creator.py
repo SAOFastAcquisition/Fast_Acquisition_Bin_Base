@@ -7,7 +7,7 @@ from Supporting_func.stokes_coefficients import path_to_data
 
 
 def head_creator(head_fits, head_data):
-    head_fits['DATE'] = (head_data['date'], 'Date of observation')
+    head_fits['DATE'] = (head_data['_date'], 'Date of observation')
     head_fits['MEASKIND'] = (head_data['measure_kind'], 'Object of observation')
     head_fits['BAND'] = band(head_data['band_size'])
     head_fits['POLAR'] = (head_data['polar'], 'Polarization')
@@ -65,7 +65,7 @@ print(f'shape of f_spectrum.data is: {m}')
 plt.imshow(f_spectrum.data[:, :], origin='lower')
 plt.show()
 
-# head = {'date': date,
+# head = {'_date': _date,
 #         'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
 #         'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
 #         'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц

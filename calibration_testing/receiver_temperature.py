@@ -44,7 +44,7 @@ def differ(_s, _num_mask):
 
     _sp_m = zone_deletion(_sp_m, 'matched')
     _sp_s = zone_deletion(_sp_s, 'short')
-    columns_names = ['date', 'spectrum', 'polar', 'load']
+    columns_names = ['_date', 'spectrum', 'polar', 'load']
 
     _data = pd.DataFrame([[date, _sp_m, flag_matched, 'matched'],
                           [date, _sp_s, flag_short, 'short']],
@@ -117,7 +117,7 @@ def receiver_temperature_calc(_data):
     b2 = np.array(_data['spectrum'][_data['polar'] == 'right'][_data['load'] == 'short'].iloc[0])
 
     # Расчет и сохранение в файл шумовой температуры приемника
-    column = ['date', 'case_id', 'temperature', 'polar', 'att3']
+    column = ['_date', 'case_id', 'temperature', 'polar', 'att3']
     temp_left = b1 / (2 * a1 - b1) * temp0
     temp_left = del_random_mod(temp_left, 100)
     temp1 = pd.Series((date, case_id, temp_left, 'left', att3), index=column)
@@ -150,7 +150,7 @@ def receiver_temp_update(_s, _columns_names):
         with open(receiver_temperature_path, 'rb') as inp:
             _data = pickle.load(inp)
 
-    idx_r = _data.loc[(_data['date'] == _s['date'])
+    idx_r = _data.loc[(_data['_date'] == _s['_date'])
                       & (_data['polar'] == _s['polar'])
                       & (_data['att3'] == _s['att3'])].index
     if not len(idx_r):
@@ -195,7 +195,7 @@ def align_coefficient_update(_data1, _data2):
     with open(alignment_coeff_path, 'rb') as inp:
         _calibration_frame = pickle.load(inp)
 
-    _columns_names = ['date', 'att1', 'att2', 'att3',
+    _columns_names = ['_date', 'att1', 'att2', 'att3',
                       'spectrum_left1', 'polar', 'spectrum_left2', 'spectrum_right1',
                       'spectrum_right2',
                       'max_left1', 'max_left2', 'max_right1', 'max_right2', 'flag_align']
@@ -208,7 +208,7 @@ def align_coefficient_update(_data1, _data2):
     sp_right1 = _data2[: _l]
     sp_right1 = sp_right1[-1::-1]
     sp_right2 = _data2[_l:int(2 * _l)]
-    idx = _calibration_frame.loc[(_calibration_frame.date == date)
+    idx = _calibration_frame.loc[(_calibration_frame._date == date)
                                  & (_calibration_frame.att1 == att1)
                                  & (_calibration_frame.att2 == att2)
                                  & (_calibration_frame.att3 == att3)

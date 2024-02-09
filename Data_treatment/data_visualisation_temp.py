@@ -537,9 +537,9 @@ def noise_black_body_calibration(_spectrum, _receiver_temperature_path):
     #                  *** из результатов измерений ***
     # with open(_receiver_temperature_path, 'rb') as _inp:
     #     _receiver_temperature = pickle.load(_inp)
-    # temp_left = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+    # temp_left = _receiver_temperature['temperature'][_receiver_temperature['_date'] ==
     #                                                  '2022-11-18'][_receiver_temperature['polar'] == 'left'].iloc[0]
-    # temp_right = _receiver_temperature['temperature'][_receiver_temperature['date'] ==
+    # temp_right = _receiver_temperature['temperature'][_receiver_temperature['_date'] ==
     #                                                  '2022-11-18'][_receiver_temperature['polar'] == 'right'].iloc[0]
     # _l = np.size(temp_left)
     # temp_left0 = temp_left[0: _l1]
@@ -723,7 +723,7 @@ if __name__ == '__main__':
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     object = 'sun'
-    current_primary_file = '2024-01-02_01+24'
+    current_primary_file = '2024-01-05_13-24'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год

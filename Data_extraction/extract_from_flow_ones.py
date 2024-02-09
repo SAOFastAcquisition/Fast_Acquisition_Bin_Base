@@ -3,6 +3,8 @@ import os
 import sys
 import pandas as pd
 import pickle
+import gzip
+import glob as gb
 import json as jsn
 from datetime import datetime
 from pathlib import Path
@@ -38,13 +40,17 @@ def extract_whole_band():
     ng_counter2 = 0
     file_ind = 0
     try:
-        if os.path.isfile(file_name) == 1:
+        if os.path.isfile(file_name) == 1 or os.path.exists(f'{str(file_name)}.gz') == 1:
             pass
         else:
             print('\n \t', file_name, ' not found!!!\n')
             return
 
-        f_in = open(file_name, 'rb')
+        if os.path.exists(f'{str(file_name)}.gz'):
+            f_in = gzip.open(f'{str(file_name)}.gz', "rb")
+        else:
+            f_in = open(file_name, 'rb')
+
         antenna = 0
         frame_num = 0
         while frame:
@@ -154,22 +160,29 @@ def extract_whole_band():
 
             # Удаление отсчетов в моменты переключения поляризации
             if len(spectrum_left_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_1.pop(-1)
+                spectrum_left_1 = pop_exception(spectrum_left_1)
             if len(spectrum_left_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_left_2.pop(-1)
+                spectrum_left_2 = pop_exception(spectrum_left_2)
 
             if antenna == 1 and (antenna_before - antenna) == 0 and flag_registration == 1:
                 if band:
-                    spectrum_right_2.append(spectr_frame)
+                    try:
+                        spectrum_right_2.append(spectr_frame)
+                    except AttributeError as _err:
+                        print(_err)
+                        pass
                 else:
-                    spectrum_right_1.append(spectr_frame)
+                    try:
+                        spectrum_right_1.append(spectr_frame)
+                    except AttributeError as _err:
+                        print(_err)
+                        pass
 
             # Удаление отсчетов в моменты переключения поляризации
             if len(spectrum_right_1) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_1.pop(-1)
+                spectrum_right_1 = pop_exception(spectrum_right_1)
             if len(spectrum_right_2) > 1 and ((antenna_before - antenna) != 0):
-                spectrum_right_2.pop(-1)
-
+                spectrum_right_2 = pop_exception(spectrum_right_2)
             # print(i, frame_num, band, attenuators)
             i += 1
 
@@ -214,7 +227,7 @@ def extract_whole_band():
                 # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
                 band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
 
-                head = {'date': date,
+                head = {'_date': date,
                         'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
                         'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
                         # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
@@ -245,6 +258,15 @@ def extract_whole_band():
         f_in.close()
         pass
     return
+
+
+def pop_exception(_list):
+    try:
+        _list.pop(-1)
+    except AttributeError as _err:
+        print(_err)
+        pass
+    return _list
 
 
 def one_spectrum(_spectrum_right_1, _spectrum_left_1, _spectrum_right_2, _spectrum_left_2, antenna2_0, _n_aver):
@@ -451,9 +473,9 @@ def preparing_data():
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     path1 = Path(converted_data_file_path, current_primary_file + '_spectrum.npy')
+    path_zip = Path(converted_data_file_path, current_primary_file + '_spectrum.npy.gz')
     path2 = Path(converted_data_file_path, current_primary_file + '_left1.npy')
-    if not (os.path.isfile(path1) or
-            os.path.isfile(path2)):
+    if not (os.path.isfile(path1) or os.path.isfile(path_zip)):
         if num_of_polar == 2 and band_size_init == 'whole':
             extract_whole_band()
     else:
@@ -478,8 +500,10 @@ if __name__ == '__main__':
     converted_data_dir = 'Converted_data'  # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'  # Каталог для записи результатов обработки, рисунков
 
+    az_dict = {'+24': '_01', '+20': '_02', '+16': '_03', '+12': '_04', '+08': '_05', '+04': '_06', '+00': '_07',
+               '-04': '_08', '-08': '_09', '-12': '_10', '-16': '_11', '-20': '_12', '-24': '_13'}
     object = 'sun'
-    current_primary_file = '2024-01-02_13-24'
+    current_primary_file = '2024-02-04_03+16'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     current_data_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -498,10 +522,19 @@ if __name__ == '__main__':
     converted_data_file_path, head_path = path_to_data(current_data_dir, current_converted_path)
     path_to_azimuth = Path(primary_data_file_path, azimuth_file_name)
 
-    align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    folder_align_path = Path(head_path, 'Alignment')
+    # align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
+    # folder_align_path = Path(head_path, 'Alignment')
 
     date = current_primary_file[0:10]
+
+    # Переименование исходных файлов по шаблону скрипта
+    paths = gb.glob(str(Path(primary_data_file_path, "*.bin.gz")))  # Set Pattern in glob() function
+    if paths:
+        for s in paths:
+            s_num = s[-10:-7]
+            s_new = str(Path(primary_data_file_path, date + az_dict[s_num] + s[-10::]))
+            os.rename(s, s_new)
+    paths = gb.glob(str(Path(primary_data_file_path, "*.bin.gz")))
 
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
@@ -515,8 +548,15 @@ if __name__ == '__main__':
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
     # azimuth_list = pd.read_csv(path_to_azimuth, delimiter=',')          # Перечень номеров записей с азимутими
-    # output_filename_list = [date + s for s in azimuth_list['azimuth']]
-
-    preparing_data()
+    # output_filename_list = [_date + s for s in azimuth_list['azimuth']]
+    if paths:
+        for s in paths:
+            current_primary_file = s[-23:-7]
+            preparing_data()
+    else:
+        paths = gb.glob(str(Path(primary_data_file_path, "*.bin")))
+        for s in paths:
+            current_primary_file = s[-20:-4]
+            preparing_data()
     stop = datetime.now()
     print(f'Process duration = {stop - start} sec')

@@ -15,6 +15,7 @@ from scipy.signal import lfilter, filtfilt
 from Supporting_func.Fig_plot import fig_multi_axes, graph_contour_2d
 from Supporting_func.dict_calibr_from_csv import start_stop_calibr, calibration_temp
 from Help_folder.paths_via_class import DataPaths
+from Supporting_func.sun_az_spead import sun_az_speed
 
 current_dir = Path.cwd()
 sys.path.insert(0, current_dir)
@@ -526,8 +527,11 @@ def title_func(file_name0, _head):
     return title1, title2, title02
 
 
-def time_to_angle(_time, _data):
-    _scale = 1900 / 180
+def time_to_angle(_time, _data, _path=None, _az=0):
+    if _path:
+        _scale = sun_az_speed(_path, _az)
+    else:
+        _scale = 1900 / 180
     _time_sc = 200
     _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
     _data = _data[-1::-1, :]
@@ -540,10 +544,13 @@ if __name__ == '__main__':
     noise_int_calibration = 'n'
     v_deviation = 'n'
     object_m = 'sun'
-    current_data_file = '2024-01-02_13-24'  # Имя файла с исходными текущими данными без расширения
-    current_primary_dir = current_data_file[0:4] + '_' + current_data_file[5:7] + '_' + \
-                          current_data_file[8:10] + object_m
+    freq_mask_list = freq_mask(8)
+    freq_mask0 = np.array(freq_mask_list)
+
+    current_data_file = '2024-01-05_13-24'  # Имя файла с исходными текущими данными без расширения
     main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
+    current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
+
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
     # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
@@ -559,9 +566,6 @@ if __name__ == '__main__':
     path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
-    freq_mask_list = freq_mask(8)
-    freq_mask0 = np.array(freq_mask_list)
-
     s = start_stop_calibr(current_data_file, path_to_csv)
 
     if not (os.path.isfile(path_to_stokes)):
@@ -569,7 +573,12 @@ if __name__ == '__main__':
         # ************** Загрузка матрицы спектров и установок (head) *************
         with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
             head = pickle.load(inp)
-        spectrum = np.load(Path(converted_dir_path, current_data_file + '_spectrum.npy'), allow_pickle=True)
+        if os.path.exists(Path(converted_dir_path, current_data_file + '_spectrum.npy.gz')):
+            filename_out = Path(converted_dir_path, current_data_file + '_spectrum.npy.gz')
+            with gzip.open(filename_out, "rb") as fin:
+                spectrum = np.load(fin, allow_pickle=True)
+        else:
+            spectrum = np.load(Path(converted_dir_path, current_data_file + '_spectrum.npy'), allow_pickle=True)
         #               **********************************************
 
         if align == 'y':
@@ -669,7 +678,9 @@ if __name__ == '__main__':
     current_treatment_path = Path('Data_treatment', current_treatment_dir)
     s0_selected = s3[:, num_mask]
     mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
-    mean_frame_ind_pol, s0_selected = time_to_angle(mean_frame_ind_pol, s0_selected)
+    mean_frame_ind_pol, s0_selected = time_to_angle(mean_frame_ind_pol, s0_selected,
+                                                    current_data_file[:10],
+                                                    int(current_data_file[-3::]))
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************

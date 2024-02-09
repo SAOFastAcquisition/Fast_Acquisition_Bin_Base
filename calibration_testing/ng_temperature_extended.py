@@ -159,7 +159,7 @@ def save_ant_calibr_coeff(_c0, _c1, _polarisation, _path):
     :return:
     """
 
-    _columns_names = ['date', 'att1', 'att2', 'att3', 'polar',
+    _columns_names = ['_date', 'att1', 'att2', 'att3', 'polar',
                       'spectrum_left1', 'spectrum_left2', 'spectrum_right1',
                       'spectrum_right2', 'flag_align']
     if not os.path.isfile(_path):
@@ -178,7 +178,7 @@ def save_ant_calibr_coeff(_c0, _c1, _polarisation, _path):
     flag_align = 0
     # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
     # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
-    calibrate_row = {'date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
+    calibrate_row = {'_date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                      'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                      'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
                      'flag_align': flag_align}  # 'flag_align' - признак выравнивания по всему диапазону : 1 - сделано
@@ -188,7 +188,7 @@ def save_ant_calibr_coeff(_c0, _c1, _polarisation, _path):
     # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
     # вставлен в таблицу (объект DataFrame)
 
-    _idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+    _idx = calibration_frame.loc[(calibration_frame._date == head['_date'])
                                  & (calibration_frame.att1 == head['att1'])
                                  & (calibration_frame.att2 == head['att2'])
                                  & (calibration_frame.att3 == head['att3'])
@@ -380,7 +380,7 @@ if __name__ == '__main__':
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
     atc_path = Path(head_path, 'Alignment', atc_file_name)  # atc - antenna temperature coefficients
-    columns_names_base = ['nge_id', 'date', 'att1', 'att2', 'att3',
+    columns_names_base = ['nge_id', '_date', 'att1', 'att2', 'att3',
                           'polar', 'attempt_num', 'low_band', 'upper_band']
     columns_names = ['ngi_id', 'polar', 'temperature', 'case_id', 'note']
     if not os.path.isfile(ngi_temperature_base_path):
@@ -397,7 +397,7 @@ if __name__ == '__main__':
     r = temperature_ngi(spectrum, head['polar'], timing, atc_path)
     attempt_num = current_data_file[11:13]
     idx = ngi_temperature_base.loc[(ngi_temperature_base.nge_id == ngi_id)
-                                   & (ngi_temperature_base.date == head['date'])
+                                   & (ngi_temperature_base._date == head['_date'])
                                    & (ngi_temperature_base.att1 == head['att1'])
                                    & (ngi_temperature_base.att2 == head['att2'])
                                    & (ngi_temperature_base.att3 == head['att3'])
@@ -406,7 +406,7 @@ if __name__ == '__main__':
 
     if not len(idx):
         r = temperature_ngi(spectrum, head['polar'], timing)
-        temperature_row = {'nge_id': ngi_id, 'date': head['date'],
+        temperature_row = {'nge_id': ngi_id, '_date': head['_date'],
                            'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                            'polar': head['polar'], 'attempt_num': attempt_num,
                            'low_band': r[0], 'upper_band': r[1]
@@ -427,7 +427,7 @@ if __name__ == '__main__':
             ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
         ngi_selected1 = ngi_temperature_base[
-            ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['date']
+            ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['_date']
         # == '2022-11-24']
         head['polar'] = 'right'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
@@ -437,7 +437,7 @@ if __name__ == '__main__':
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
 
     #               *** Picture ***
-    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['date']
+    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['_date']
     # == '2022-11-24']
     plot_ngi(ngi_selected1)
 

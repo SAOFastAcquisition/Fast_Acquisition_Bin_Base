@@ -24,7 +24,7 @@ if __name__ == '__main__':
     current_catalog = r'Alignment'  # Текущий каталог (за определенный период, здесь - год)
     pos = 1
 
-    # date = current_data_file[0:10]
+    # _date = current_data_file[0:10]
     # year = current_data_file[0:4]
 
     folder_data_path, head_path = path_to_data(current_catalog, current_data_dir)

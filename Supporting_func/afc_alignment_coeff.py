@@ -135,7 +135,7 @@ folder_align_path = Path(head_path, 'Alignment')
 visualization_set = [0, 1]
 
 # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
-columns_names = ['date', 'att1', 'att2', 'att3',
+columns_names = ['_date', 'att1', 'att2', 'att3',
                  'spectrum_left1', 'polar', 'spectrum_left2', 'spectrum_right1',
                  'spectrum_right2',
                  'max_left1', 'max_left2', 'max_right1', 'max_right2', 'flag_align']
@@ -197,7 +197,7 @@ plt.show()
 
 # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
 # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
-calibrate_row = {'date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
+calibrate_row = {'_date': current_data_file[:10], 'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                  'polar': head['polar'], 'spectrum_left1': align_coeff[0], 'spectrum_left2': align_coeff[1],
                  'spectrum_right1': align_coeff[2], 'spectrum_right2': align_coeff[3],
                  'max_left1': s_max_band[0], 'max_left2': s_max_band[1],
@@ -211,7 +211,7 @@ calibrate_row_ser = pd.Series(calibrate_row)
 
 if not 'polar' in calibration_frame.columns:
     calibration_frame.polar = ''
-idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+idx = calibration_frame.loc[(calibration_frame._date == head['_date'])
                             & (calibration_frame.att1 == head['att1'])
                             & (calibration_frame.att2 == head['att2'])
                             & (calibration_frame.att3 == head['att3'])

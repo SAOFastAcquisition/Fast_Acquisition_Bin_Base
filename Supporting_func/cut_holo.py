@@ -19,7 +19,7 @@ AVERAGE_TIME = pd.Timedelta(0.4, unit='s')
 log_data = pd.read_csv(
     basedir + log_filename,
     delim_whitespace=True,
-    names=['date', 'time', 'position', 'skip'], parse_dates=[['date', 'time']]
+    names=['_date', 'time', 'position', 'skip'], parse_dates=[['_date', 'time']]
 )
 
 # По случайности слово 'run' в строке в начале записи как раз попадает в 

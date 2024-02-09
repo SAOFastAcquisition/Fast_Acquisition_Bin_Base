@@ -227,7 +227,7 @@ if __name__ == '__main__':
     timing = [0, 20, 30, 50]
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
-    columns_names_base = ['nge_id', 'date', 'att1', 'att2', 'att3',
+    columns_names_base = ['nge_id', '_date', 'att1', 'att2', 'att3',
                           'polar', 'attempt_num', 'low_band', 'upper_band']
     columns_names = ['ngi_id', 'polar', 'temperature', 'case_id', 'note']
     if not os.path.isfile(ngi_temperature_base_path):
@@ -244,7 +244,7 @@ if __name__ == '__main__':
     r = temperature_ngi(spectrum, head['polar'], timing)
     attempt_num = current_data_file[11:13]
     idx = ngi_temperature_base.loc[(ngi_temperature_base.nge_id == ngi_id)
-                                   & (ngi_temperature_base.date == head['date'])
+                                   & (ngi_temperature_base._date == head['_date'])
                                    & (ngi_temperature_base.att1 == head['att1'])
                                    & (ngi_temperature_base.att2 == head['att2'])
                                    & (ngi_temperature_base.att3 == head['att3'])
@@ -253,7 +253,7 @@ if __name__ == '__main__':
 
     if not len(idx):
         r = temperature_ngi(spectrum, head['polar'], timing)
-        temperature_row = {'nge_id': ngi_id, 'date': head['date'],
+        temperature_row = {'nge_id': ngi_id, '_date': head['_date'],
                            'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                            'polar': head['polar'], 'attempt_num': attempt_num,
                            'low_band': r[0], 'upper_band': r[1]
@@ -273,7 +273,7 @@ if __name__ == '__main__':
         for n in idx_drop:
             ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
-        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
+        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['_date']
                                                                                            # == '2022-11-24']
         head['polar'] = 'right'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
@@ -283,7 +283,7 @@ if __name__ == '__main__':
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
 
     #               *** Picture ***
-    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['date']
+    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['_date']
                                                                                        # == '2022-11-24']
     plot_ngi(ngi_selected1)
 

@@ -135,7 +135,7 @@ def extract_whole_band():
             spectrum_len[j].loc[i] = len(spectrum[j].loc[i])
     polar, measure_kind = status_func(spectrum_len)
 
-    head = {'date': date,
+    head = {'_date': date,
             'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
             'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
             'cleaned': 'no',

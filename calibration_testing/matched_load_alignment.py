@@ -101,10 +101,10 @@ def horn_loss(_date):
     with open(_receiver_temperature_path, 'rb') as _inp:
         _data = pickle.load(_inp)
     try:
-        receiver_temperature = _data['temperature'][_data.polar == _head['polar']][_data.date == _date].iloc[0]
+        receiver_temperature = _data['temperature'][_data.polar == _head['polar']][_data._date == _date].iloc[0]
     except IndexError:
-        receiver_temperature = _data['temperature'][_data.polar == 'left'][_data.date == _date].iloc[0]
-        receiver_temperature_right = _data['temperature'][_data.polar == 'right'][_data.date == _date].iloc[0]
+        receiver_temperature = _data['temperature'][_data.polar == 'left'][_data._date == _date].iloc[0]
+        receiver_temperature_right = _data['temperature'][_data.polar == 'right'][_data._date == _date].iloc[0]
 
     #       Если сигнал с одной поляризацией (левой или правой)
     if polar == 'left':

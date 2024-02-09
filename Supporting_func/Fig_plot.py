@@ -370,7 +370,7 @@ def title_func(file_name0, head):
     att1 = str(head['att1'])
     att2 = str(head['att2'])
     att3 = str(head['att3'])
-    date = head['date']
+    date = head['_date']
 
     title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
     # a = str(file_name0).find('sun', -50, -1)

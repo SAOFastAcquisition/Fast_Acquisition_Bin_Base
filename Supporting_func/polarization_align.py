@@ -84,7 +84,7 @@ if __name__ == '__main__':
     folder_align_path = Path(head_path, 'Alignment')
 
     # Если файла хранениия коэффициентов не существует, то создаем его, если существует - загружаем
-    columns_names = ['date', 'azimuth', 'att1', 'att2', 'att3',
+    columns_names = ['_date', 'azimuth', 'att1', 'att2', 'att3',
                      'polar', 'polar_align_low', 'polar_align_high',
                      'flag_align']
     if not os.path.isfile(Path(folder_align_path, align_file_name)):
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     # Рассчитанные коэффициенты вместе с исходной информацией записываем в виде словаря  для формирования
     # объекта Series и включения в сводную  таблицу корректирующих коэффициентов
-    calibrate_row = {'date': current_data_file[:11], 'azimuth': current_data_file[-3:],
+    calibrate_row = {'_date': current_data_file[:11], 'azimuth': current_data_file[-3:],
                      'att1': head['att1'], 'att2': head['att2'], 'att3': head['att3'],
                      'polar': head['polar'], 'polar_align_low': polar_align[0], 'polar_align_high': polar_align[1],
                      'flag_align': flag_align}
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # проверка на то, содержат они все коэффициенты или нет. Если нет, то объект Series будет полностью
     # вставлен в таблицу (объект DataFrame)
 
-    idx = calibration_frame.loc[(calibration_frame.date == head['date'])
+    idx = calibration_frame.loc[(calibration_frame._date == head['_date'])
                                 & (calibration_frame.att1 == head['att1'])
                                 & (calibration_frame.att2 == head['att2'])
                                 & (calibration_frame.att3 == head['att3'])

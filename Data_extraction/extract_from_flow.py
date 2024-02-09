@@ -380,7 +380,7 @@ def extract_whole_band():
     # head = [n_aver, shift, bound_left, bound_right, att01, att02, att03]
     band_size, polar, measure_kind = status_func(n_left1, n_left2, n_right1, n_right2)
 
-    head = {'date': date,
+    head = {'_date': date,
             'measure_kind': measure_kind,    # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
             'band_size': band_size,  # Параметр 'whole' означает работу в диапазоне 1-3 ГГц,
             # 'half_low' - диапазон 1-2, 'half_upper' - 2-3 ГГц
