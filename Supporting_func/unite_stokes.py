@@ -162,11 +162,13 @@ def filter_position(_time_num, _angle0):
 def time_to_angle(_time_count, _date, _az, _time_culmination=200):
     if _date:
         _scale = sun_az_speed(_date, _az)
+        if _scale[0] == 1:
+            _scale = 1900 / 135
     else:
-        _scale = 1950 / 180
+        _scale = 1950 / 135
     _time = np.array(_time_count) * dt
     _angle = [-(t - _time_culmination) * _scale for t in _time][-1::-1]
-
+    _angle = np.array(_angle)
     return _angle
 
 

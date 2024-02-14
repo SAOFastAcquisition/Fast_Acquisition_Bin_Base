@@ -530,8 +530,10 @@ def title_func(file_name0, _head):
 def time_to_angle(_time, _data, _path=None, _az=0):
     if _path:
         _scale = sun_az_speed(_path, _az)
+        if _scale == 1:
+            _scale = 1900 / 135
     else:
-        _scale = 1900 / 180
+        _scale = 1900 / 135
     _time_sc = 200
     _angle = [-(t - _time_sc) * _scale for t in _time][-1::-1]
     _data = _data[-1::-1, :]
