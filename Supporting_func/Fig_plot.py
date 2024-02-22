@@ -64,10 +64,10 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     #     argument = np.array(time_to_angle(argument))
     #     spectr1 = spectr1[:, -1::-1]
 
-    for i in range(size_sp1[0]):
-        for j in range(size_sp1[1]):
-            if spectr1[i, j] < 2:
-                spectr1[i, j] = 2  # 'NaN'
+    # for i in range(size_sp1[0]):
+    #     for j in range(size_sp1[1]):
+    #         if spectr1[i, j] < 2:
+    #             spectr1[i, j] = 2  # 'NaN'
 
     freq_line_sp1 = size_sp1[0]
 

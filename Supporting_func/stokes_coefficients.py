@@ -191,12 +191,12 @@ def maf_fir(_s, _m=2):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 5
+    _n2 = 1
     _freq_mask = [
         [1736],  # [0]
         [2060, 2300, 2500, 2750, 2830, 2920],  # [1]
         [1020, 1100, 1200, 1300, 1350, 1400, 1450, 1600],  # [2]
-        [1000 * _n1 + 100 * _n2 + 90 + 5 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 0 + 10 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1230, 1560, 2300, 2910],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14' # [6]
@@ -262,11 +262,12 @@ def two_fig_plot(_path_to_fig_folder):
     pass
 
 
-def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv):
+def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv, _head=None):
     """
     Функция принимает путь сохранения рисунка и три возможных последовательности для построения двух или трех
     графиков с общим аргументом mean_frame_ind_pol, который приходит от вызывающей функции. При этом наличие
     двух отображаемых на рис. последовательностей обязательно, последовательность _s_i присутствует всегда.
+    :param _head:
     :param _path_to_fig_folder: Путь к папке для сохранения рисунка
     :param _s_i:
     :param _s_v:
@@ -471,7 +472,7 @@ def title_func(file_name0, _head):
     att1 = str(_head['att1'])
     att2 = str(_head['att2'])
     att3 = str(_head['att3'])
-    date = _head['date']
+    date = _head['_date']
 
     title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
     a = file_name0.find('sun', -50, -1)
@@ -549,8 +550,8 @@ if __name__ == '__main__':
     freq_mask_list = freq_mask(8)
     freq_mask0 = np.array(freq_mask_list)
 
-    current_data_file = '2024-01-05_13-24'  # Имя файла с исходными текущими данными без расширения
-    main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
+    current_data_file = '2024-02-09_13-24'  # Имя файла с исходными текущими данными без расширения
+    main_dir = current_data_file[0:4]       # Каталог всех данных (первичных, вторичных) за год
     current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
 
     align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
@@ -581,6 +582,7 @@ if __name__ == '__main__':
                 spectrum = np.load(fin, allow_pickle=True)
         else:
             spectrum = np.load(Path(converted_dir_path, current_data_file + '_spectrum.npy'), allow_pickle=True)
+
         #               **********************************************
 
         if align == 'y':
@@ -643,6 +645,7 @@ if __name__ == '__main__':
         [s0, s3, mean_frame_ind, equalizing_factor] = stokes_coeff
 
     mean_frame_ind_pol = np.copy(mean_frame_ind)
+
     m, n = np.shape(s0)
     freq_res = n  # Число отсчетов спектра шириной 2 ГГц по частоте
     df = 3.90625

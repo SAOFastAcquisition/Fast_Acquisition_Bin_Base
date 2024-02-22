@@ -70,22 +70,22 @@ def sun_az_speed(_date, _az):
     p = np.poly1d(z)
     x = np.arange(-24, 24.1, 0.1)
     speed_calc = [p(z) for z in x]
-    fig, axes = plt.subplots(1, 1, figsize=(12, 12))
-    axes.plot(x_az, _sun_speed)
-    axes.plot(x, speed_calc)
-    axes.grid('on')
-    plt.show()
+    # fig, axes = plt.subplots(1, 1, figsize=(12, 12))
+    # axes.plot(x_az, _sun_speed)
+    # axes.plot(x, speed_calc)
+    # axes.grid('on')
+    # plt.show()
     return p(_az)
 
 
 if __name__ == '__main__':
-    _date = '2024-02-04'
-    main_dir = _date[0:4]
-    data_dir = f'{_date[0:4]}_{_date[5:7]}_{_date[8:]}sun'
-    path_obj = DataPaths(_date, data_dir, main_dir)
+    date = '2024-01-04'
+    main_dir = date[0:4]
+    data_dir = f'{date[0:4]}_{date[5:7]}_{date[8:]}sun'
+    path_obj = DataPaths(date, data_dir, main_dir)
 
     # sun_speed = sun_az_speed(str(Path(path_obj.primary_dir_path, "*.desc")), 24)
-    sun_speed = sun_az_speed(_date, 24)
+    sun_speed = sun_az_speed(date, 24)
     pass
 
 

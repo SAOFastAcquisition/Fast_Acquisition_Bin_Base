@@ -6,11 +6,17 @@ from pathlib import Path
 import pickle
 import gzip, shutil
 import matplotlib.pyplot as plt
-from Data_extraction.c2023_12_15_03p16 import a
-from stokes_coefficients import pic_name, title_func
+import plotly, plotly.offline as plo
+from plotly.graph_objs import Scatter, Layout
+import plotly.graph_objs as go
+
+# from Data_extraction.c2023_12_15_03p16 import a
+from stokes_coefficients import some_fig_plot, title_func
 from sun_az_spead import sun_az_speed
 from Help_folder.paths_via_class import DataPaths
+
 dt = 8.3886e-3
+df = 2000 / 512
 
 
 def load_stokes(_path='2023-10-25_05-24_stocks.npy'):
@@ -114,6 +120,33 @@ def plot_intensities(_arg, _x_l, _x_r, _param, _angle=0):
     return _fig, path_treatment, 7, 'png'
 
 
+def plotly_pic(_x, _y):
+    _y0 = _y[:, 50]
+    _n = [20, 50, 55]
+    _f = [1000 + df / 2 + i * df for i in range(512)]
+    fig = go.Figure()
+    i = 0
+    for s in _y.T:
+        fig.add_trace(go.Scatter(
+            x=_x[:, 0], y=s,
+            mode='lines',
+            name=f'freq={_f[i]:4.0f}'
+        ))
+        i += 1
+    # Set the y-axis to log scale
+    fig.update_layout(
+        yaxis_type='log',
+        xaxis_title='X',
+        yaxis_title='Y',
+        title='Log Scale Plot'
+    )
+    # fig.write_image("plot.png", format='png')
+    fig.write_html("plot.html")
+    # Show the plot
+    fig.show()
+
+
+
 def filter_freq(_i):
     _freq_0 = freq_mask(_i)
     df = 7.825 / 2
@@ -194,8 +227,8 @@ if __name__ == '__main__':
     Скрипт объединяет в один DataFrame все ранее вычисленные в данном азимуте параметры Стокса и номера 
     временных отсчетов, соответствующих середине пачек взятия отсчетов (примерно по 30) поляризаций поочередно
     """
-    current_data_file = '2023-12-15_01+24'
-    date = '2023-12-15'
+    current_data_file = '2024-02-14_03+16'
+    date = '2024-02-14'
     main_dir = date[0:4]
     data_dir = f'{date[0:4]}_{date[5:7]}_{date[8:]}sun'
 
@@ -209,7 +242,7 @@ if __name__ == '__main__':
 
     reformat_stokes = 'n'
     pic_demonstrate = 'y'
-    az = [24, 20, 16]
+    az = [-24, -20, -16]
 
     if reformat_stokes == 'y':
         save_reformat_stokes(path_obj, path_stokes_base)
@@ -245,8 +278,11 @@ if __name__ == '__main__':
             i += 1
     si = stokes_I[stokes_I.index.astype('int') == az[2]][0]
     sv = stokes_V[stokes_I.index.astype('int') == az[2]][0]
+    with open(Path(path_obj.converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
+        head = pickle.load(inp)
     time_count = filtered_data[filtered_data['azimuth'].astype(int) == az[0]].time_count[0]
     arg = time_to_angle(time_count, date, az)
-    # some_fig_plot(path_to_stokes_fig_folder, arg, si[-1::-1], sv[-1::-1], None)
-    plot_intensities(arg, si[-1::-1], sv[-1::-1], freq_mask(8))
+    # some_fig_plot(path_to_stokes_fig_folder, arg, si[-1::-1], sv[-1::-1])
+    # plot_intensities(arg, si[-1::-1], sv[-1::-1], freq_mask(8))
+    plotly_pic(arg, si[-1::-1])
     pass
