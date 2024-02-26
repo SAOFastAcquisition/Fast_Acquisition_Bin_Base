@@ -63,11 +63,11 @@ def fig_plot(spectr1, burn, argument, flag, inform, file_name0_path, head, line_
     # if not flag:
     #     argument = np.array(time_to_angle(argument))
     #     spectr1 = spectr1[:, -1::-1]
-
+    #
     # for i in range(size_sp1[0]):
     #     for j in range(size_sp1[1]):
-    #         if spectr1[i, j] < 2:
-    #             spectr1[i, j] = 2  # 'NaN'
+    #         if spectr1[i, j] < 0.02:
+    #             spectr1[i, j] = 0.02  # 'NaN'
 
     freq_line_sp1 = size_sp1[0]
 
@@ -370,7 +370,10 @@ def title_func(file_name0, head):
     att1 = str(head['att1'])
     att2 = str(head['att2'])
     att3 = str(head['att3'])
-    date = head['_date']
+    if '_date' in head:
+        date = head['_date']
+    else:
+        date = head['date']
 
     title1 = date + ', az = ' + az + ', Att = [' + att1 + ', ' + att2 + ', ' + att3 + ']'
     # a = str(file_name0).find('sun', -50, -1)

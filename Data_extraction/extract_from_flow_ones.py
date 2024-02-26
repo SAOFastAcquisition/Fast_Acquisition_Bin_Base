@@ -503,7 +503,7 @@ if __name__ == '__main__':
     az_dict = {'+24': '_01', '+20': '_02', '+16': '_03', '+12': '_04', '+08': '_05', '+04': '_06', '+00': '_07',
                '-04': '_08', '-08': '_09', '-12': '_10', '-16': '_11', '-20': '_12', '-24': '_13'}
     object = 'sun'
-    current_primary_file = '2024-02-09_03+16'
+    current_primary_file = '2024-02-25_03+16'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     current_data_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год

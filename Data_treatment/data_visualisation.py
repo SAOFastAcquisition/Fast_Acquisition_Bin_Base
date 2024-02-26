@@ -309,8 +309,8 @@ def unite_spectrum(spec):
         shape_l = np.shape(spec_left)
         shape_r = np.shape(spec_right)
         n_row1 = np.max([shape_l[0], shape_r[0]])
-        spec_left0 = np.full((n_row1, shape_l[1]), 2)
-        spec_right0 = np.full((n_row1, shape_r[1]), 2)
+        spec_left0 = np.full((n_row1, shape_l[1]), 2, dtype='float32')
+        spec_right0 = np.full((n_row1, shape_r[1]), 2, dtype='float32')
         spec_left0[:shape_l[0]] = spec_left
         spec_right0[:shape_r[0]] = spec_right
         united_spec = pd.Series([spec_left0, spec_right0], ind)

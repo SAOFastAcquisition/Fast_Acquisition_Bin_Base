@@ -176,41 +176,40 @@ FLUX_DM = np.array(
 )
 
 
-def interpol_sfu(_sc):
-    _n = len(_sc)
+def interpol_sfu(_n):
+    # _n = len(_sc)
     df = 2000 / _n
     df_ref = 2000 / 1024
     freq = np.array([1000 + df / 2 + df * i for i in range(_n)])
     freq_ref = np.array([1000 + df_ref / 2 + df_ref * i for i in range(1024)])
+
     if _n == 1024:
         _flux_n = FLUX_DM
-        flux_coeff = _flux_n / _sc
+
     if _n < 1024:
         _k = int(1024 / _n)
         _kh = int(_k / 2)
         _flux_n = np.array([(FLUX_DM[(i + 1) * _k - _kh] + FLUX_DM[(i + 1) * _k - _kh - 1]) / 2
                             for i in range(_n)])
-        flux_coeff = _flux_n / _sc
 
     if _n > 1024:
-        flux_coeff = np.zeros(_n)
+        _flux_n = np.zeros(_n)
         i = 0
-        for _f, _s in zip(freq, _sc):
+        for _f in freq:
             if _f <= freq_ref[0]:
-                flux_coeff[i] = (FLUX_DM[0] + (FLUX_DM[1] - FLUX_DM[0]) / df_ref * (_f - freq_ref[0])) / _s
+                _flux_n[i] = (FLUX_DM[0] + (FLUX_DM[1] - FLUX_DM[0]) / df_ref * (_f - freq_ref[0]))
             elif _f > freq_ref[-1]:
-                flux_coeff[i] = (FLUX_DM[-1] - (FLUX_DM[-1] - FLUX_DM[-2]) / df_ref * (_f - freq_ref[-1])) / _s
+                _flux_n[i] = (FLUX_DM[-1] - (FLUX_DM[-1] - FLUX_DM[-2]) / df_ref * (_f - freq_ref[-1]))
             else:
                 _nr = np.where(freq_ref >= _f)[0][0]
                 _nl = _nr - 1
                 # _nl = np.where(freq_ref < _f)[0][0]
-                flux_coeff[i] = (FLUX_DM[_nl] + (FLUX_DM[_nr] - FLUX_DM[_nl]) / df_ref * (freq_ref[_nr] - _f)) / _s
+                _flux_n[i] = (FLUX_DM[_nl] + (FLUX_DM[_nr] - FLUX_DM[_nl]) / df_ref * (freq_ref[_nr] - _f))
             i += 1
-    # plt.plot(freq, flux_coeff)
+    # plt.plot(freq, _flux_n)
     # plt.grid('on')
     # plt.show()
-    return flux_coeff
-    pass
+    return _flux_n
 
 
 if __name__ == '__main__':

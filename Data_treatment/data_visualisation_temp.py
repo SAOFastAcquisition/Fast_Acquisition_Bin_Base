@@ -258,7 +258,6 @@ def preparing_data():
             spectrum_right2 = _spectrum[1]
             spectrum_left1 = []
             spectrum_right1 = []
-    pass
 
     return spectrum_left1, spectrum_left2, spectrum_right1, spectrum_right2, int(_n_aver), _band_size, _polar
 
@@ -471,9 +470,9 @@ def del_random_mod(_s, _s0, _ds=2):
     :return:
     """
     _l = len(_s)
-    for _i in range(1, _l - 2):
-        if abs(_s[_i] - _s[_i - 1]) > _ds * abs(_s[_i + 1] - _s[_i - 1]):
-            _s[_i] = (_s[_i - 1] + _s[_i + 1]) / 2
+    for _i in range(1, _l - 3):
+        if abs(_s[_i] - _s[_i - 1]) > _ds * abs(_s[_i + 2] - _s[_i - 2]):
+            _s[_i] = (_s[_i - 2] + _s[_i + 2]) / 2
         if _s[_i] <= _s0:
             _s[_i] = _s0
     _s[0] = _s0
@@ -667,12 +666,12 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 1
+    _n2 = 0
     _freq_mask = [
         [2424],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 0 + 20 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 20 + 20 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
@@ -723,7 +722,7 @@ if __name__ == '__main__':
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     object = 'sun'
-    current_primary_file = '2024-02-09_13-24'
+    current_primary_file = '2024-02-23_13-24'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -753,7 +752,7 @@ if __name__ == '__main__':
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
@@ -847,7 +846,7 @@ if __name__ == '__main__':
     # time_spect_mask = [141.8, 142.05, 142.3, 142.55]  # az+24
     # time_spect_mask = [136.125, 136.375, 252.54, 252.79]    # az+20
     # time_spect_mask = [136.0, 182, 252.0]  # az+20
-    # time_spect_mask = [157.870, 156.87, 157.620, 157.12]  # az+20
+    time_spect_mask = [205.05, 205.30, 204.8, 204.55]  # az+20
     # if band_size == 'whole':
     #      freq_spect_mask = []
 
