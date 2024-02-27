@@ -451,9 +451,9 @@ def sun_calibration(_data, _file_name, _adr1):
 
         _data[_l] = _sp
         _l += 1
-    if not ('flux_coeff_left' in _head) or not ('flux_coeff_right' in _head):
-        with open(_path_to_head, 'wb') as out:
-            pickle.dump(_head, out)
+    # if not ('flux_coeff_left' in _head) or not ('flux_coeff_right' in _head):
+    with open(_path_to_head, 'wb') as out:
+        pickle.dump(_head, out)
     return _data
 
 
@@ -473,7 +473,7 @@ def zone_deletion(_len):
 
 if __name__ == '__main__':
     object = 'sun'
-    current_primary_file = '2024-02-25_01+24'
+    current_primary_file = '2024-02-19_06+04'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год

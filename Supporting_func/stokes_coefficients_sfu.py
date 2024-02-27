@@ -206,35 +206,36 @@ def freq_mask(_i):
     return _freq_mask[_i]
 
 
-def two_fig_plot(_path_to_fig_folder):
-    _pic_name = pic_name(_path_to_fig_folder, 0, 'svg')
-    _path_to_pic = Path(_path_to_fig_folder, _pic_name)
+def two_fig_plot(_x, _y1, _y2, _dict_pic, _head):
+    _pic_name = pic_name(_dict_pic['path_fig_folder'], 0, 'svg')
+    _path_to_pic = Path(_dict_pic['path_fig_folder'], _pic_name)
     fig, axes = plt.subplots(2, 1, figsize=(12, 12))
-    _fig_folder = str(_path_to_fig_folder)
-    title1, title2, title3 = title_func(_fig_folder, head)
+    _fig_folder = str(_dict_pic['path_fig_folder'])
+    title1, title2, title3 = title_func(_fig_folder, _head)
 
-    y_max = np.nanmax(s0[:, num_mask])
-    y_min = np.nanmin(s0[:, num_mask])
+    y_max = np.nanmax(_y1)
+    y_min = np.nanmin(_y1)
+
     _i_max = len(num_mask)
     _i = 0
-    for _j in num_mask:
-        f1 = freq_mask0[_i]
-        text1 = 'f = ' + str(f1) + ' MHz'
-        axes[0].plot(mean_frame_ind_pol, s0[:, _j], label=text1)
-        axes[1].plot(mean_frame_ind_pol, s3[:, _j])
-        axes[0].legend(loc='upper right')
+    for _j, _txt in enumerate(_dict_pic['line_labels']):
+        axes[0].plot(_x, _y1[:, _j], label=_txt)
+        # axes[0].plot(_x, _y1[:, _j], label=_dict_pic['line_labels'][_i])
+        axes[1].plot(_x, _y2[:, _j])
+        axes[0].legend(loc=_dict_pic['legend_pos'])
         _i += 1
 
-    axes[0].set_title('Stokes Parameters ' + title1, fontsize=20)
-    axes[0].set_ylabel('Stokes_I')
-    axes[1].set_ylabel('Stokes_V', color='darkred')
+    axes[0].set_title(_dict_pic['title'] + title1, fontsize=20)
+    axes[1].set_xlabel(_dict_pic['xlabel_ax1'], color='darkred')
+    axes[0].set_ylabel(_dict_pic['ylabel_ax0'])
+    axes[1].set_ylabel(_dict_pic['ylabel_ax1'], color='darkred')
     axes[0].minorticks_on()
     axes[1].minorticks_on()
 
     y1 = y_max - 2 * (y_max - y_min) / 10
     y2 = y_max - 3 * (y_max - y_min) / 10
-    axes[0].text(0, y1, inform[0], fontsize=12)  # Разрешение по частоте
-    axes[0].text(0, y2, inform[1], fontsize=12)  # Разрешение по времени
+    axes[0].text(-2000, y1, inform[0], fontsize=12)  # Разрешение по частоте
+    axes[0].text(-2000, y2, inform[1], fontsize=12)  # Разрешение по времени
 
     axes[0].grid()
     axes[1].grid()
@@ -262,7 +263,7 @@ def two_fig_plot(_path_to_fig_folder):
     pass
 
 
-def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv, _head=None):
+def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv=None, _head=None):
     """
     Функция принимает путь сохранения рисунка и три возможных последовательности для построения двух или трех
     графиков с общим аргументом mean_frame_ind_pol, который приходит от вызывающей функции. При этом наличие
@@ -544,18 +545,16 @@ def time_to_angle(_time, _data, _path=None, _az=0):
 if __name__ == '__main__':
     align = 'y'
     channel_align = 'y'
-    noise_int_calibration = 'n'
     v_deviation = 'n'
     object_m = 'sun'
-    freq_mask_list = freq_mask(8)
-    freq_mask0 = np.array(freq_mask_list)
+    freq_mask0 = np.array(freq_mask(8))
 
     current_data_file = '2024-02-09_13-24'  # Имя файла с исходными текущими данными без расширения
     main_dir = current_data_file[0:4]       # Каталог всех данных (первичных, вторичных) за год
     current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
+    current_treatment_dir = current_primary_dir + '_treat'
+    current_treatment_path = Path('Data_treatment', current_treatment_dir)
 
-    align_file_name: Any = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами
-    # выравнивания АЧХ
     dict_calibr_file_name = 'dict_calibr.csv'  # Имя файла c таймингом калибровок по ГШ и по поляризации
 
     path_obj = DataPaths(current_data_file, current_primary_dir, main_dir)
@@ -565,11 +564,29 @@ if __name__ == '__main__':
 
     path_to_stokes = Path(converted_dir_path, current_data_file + '_stocks.npy')
     path_stokes_base = Path(converted_dir_path, 'stokes_base.npy')
-    path_to_stokes_left_txt = Path(converted_dir_path, current_data_file + '_left.txt')
-    path_to_stokes_right_txt = Path(converted_dir_path, current_data_file + '_right.txt')
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
     path_to_csv = Path(converted_dir_path, dict_calibr_file_name)
     s = start_stop_calibr(current_data_file, path_to_csv)
+
+    dict_pic_IV = {
+        'title': 'Stokes Parameters ',
+        'ylabel_ax0': 'Stokes_I, s.f.u.',
+        'ylabel_ax1': 'Stokes_V, s.f.u.',
+        'xlabel_ax1': 'Frequency, MHz',
+        'line_labels': [f'f = {f1} MHz' for f1 in freq_mask0],
+        'legend_pos': 'upper right',
+        'path_fig_folder': path_to_stocks_fig_folder
+    }
+
+    dict_pic_LR = {
+        'title': 'LR polarization ',
+        'ylabel_ax0': 'Left polarization, s.f.u.',
+        'ylabel_ax1': 'Right polarization, s.f.u.',
+        'xlabel_ax1': 'Frequency, MHz',
+        'line_labels': [f'f = {f1} MHz' for f1 in freq_mask0],
+        'legend_pos': 'upper right',
+        'path_fig_folder': path_to_stocks_fig_folder
+    }
 
     if not (os.path.isfile(path_to_stokes)):
         #               **********************************************
@@ -648,35 +665,20 @@ if __name__ == '__main__':
     freq = [1000 + df / 2 + df * i for i in range(n)]
     num_mask = [int((s - 1000 * (1 + 1 / freq_res)) * freq_res / 2000) for s in freq_mask0]
 
-    calibration_temperature = [calibration_temp(f) for f in freq_mask0]
     c = (s3 + s0) / 2  # левая поляризация
+    d = (s0 - s3) / 2  # правая поляризация
 
-    #                         *************************************
-    #   *************** Калибровка антенной температуры по внутреннему ГШ *************
-    #                         *************************************
-    if noise_int_calibration == 'y':
-        ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
-        for j in range(np.size(freq_mask0)):
-            av_c_cal = np.nanmean(c[ind_c, num_mask[j]])
-            temp_coeff = calibration_temperature[j] / av_c_cal
-            s0[:, num_mask[j]] = s0[:, num_mask[j]] * temp_coeff
-            s3[:, num_mask[j]] = s3[:, num_mask[j]] * temp_coeff
     #                                   ******************
 
     with open(Path(converted_dir_path, current_data_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
-    inform = [('time resol = ' + str(60 * 8.3886e-3) + 'sec'),
-              ('freq resol = ' + str(int(2000 // (n + 1))) + 'MHz'),
+    inform = [f'time resol = {60 * 8.3886e-3: .2f} sec',
+              f'freq resol = {df: 1.2f} MHz',
               ('polarisation ' + head['polar']),
-              'align: ' + 'yes',
+              'align: quiet Sun',
               'kurtosis quality = ' + str(head['good_bound'])]
 
-    if v_deviation == 'y':
-        s3_dv = stokes_v_deviation(s3[:, num_mask], 31)
-    else:
-        s3_dv = None
-    current_treatment_dir = current_primary_dir + '_treat'
-    current_treatment_path = Path('Data_treatment', current_treatment_dir)
+
     s0_selected = s3[:, num_mask]
     mean_frame_ind_pol = mean_frame_ind_pol * 8.3886e-3
     mean_frame_ind_pol, s0_selected = time_to_angle(mean_frame_ind_pol, s0_selected,
@@ -686,15 +688,19 @@ if __name__ == '__main__':
     #                       ****** Графический вывод данных ******
     #                   **********************************************
     # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
-    # two_fig_plot(path_to_stocks_fig_folder)       # Картинка с двумя графиками (I & V)
+
     # mean_frame_ind_pol = mean_frame_ind_pol[670:770]
     s3f = np.ones(np.shape(s3))
     for i in range(np.shape(s3)[1]):
         s3f[:, i] = maf_fir(s3[:, i], 9)
-    if v_deviation == 'y':
-        some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask], s3_dv[-1::-1, :])
-    else:
-        some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3f[-1::-1, num_mask], s3_dv)
+    two_fig_plot(mean_frame_ind_pol, s0[-1::-1, num_mask], s3[-1::-1, num_mask],
+                 dict_pic_IV, head)  # Картинка с двумя графиками (I & V)
+    two_fig_plot(mean_frame_ind_pol, c[-1::-1, num_mask], d[-1::-1, num_mask],
+                 dict_pic_LR, head)  # Картинка с двумя графиками (L & R)
+    # if v_deviation == 'y':
+    #     some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask])
+    # else:
+    #     some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3f[-1::-1, num_mask])
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_ind_pol, inform,
     #                Path(current_treatment_path, current_data_file), freq_mask0, head)
     pass

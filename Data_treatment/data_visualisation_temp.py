@@ -722,7 +722,7 @@ if __name__ == '__main__':
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
     object = 'sun'
-    current_primary_file = '2024-02-23_13-24'
+    current_primary_file = '2024-02-19_06+04'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -747,12 +747,12 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 1  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
     N_Nyq = 3
-    freq_spect_mask = freq_mask(3)
+    freq_spect_mask = freq_mask(8)
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
@@ -846,7 +846,7 @@ if __name__ == '__main__':
     # time_spect_mask = [141.8, 142.05, 142.3, 142.55]  # az+24
     # time_spect_mask = [136.125, 136.375, 252.54, 252.79]    # az+20
     # time_spect_mask = [136.0, 182, 252.0]  # az+20
-    time_spect_mask = [205.05, 205.30, 204.8, 204.55]  # az+20
+    # time_spect_mask = [205.05, 205.30, 204.8, 204.55]  # az+20
     # if band_size == 'whole':
     #      freq_spect_mask = []
 
@@ -901,9 +901,10 @@ if __name__ == '__main__':
     # line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
     if not 'good_bound' in head:
         head['good_bound'] = 0.1
-    info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
-                ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-                ('polarisation ' + polar), 'align: ' + align, 'kurtosis quality = ' + str(head['good_bound'])]
+    a = head['good_bound']
+    info_txt = [f'time resol = {delta_t * kt: .4f} sec',
+                f'freq resol = {delta_f / aver_param * kf: 1.2f} MHz',
+                f'polarisation {polar}', 'align: noise gen.', f'kurtosis quality = {a}']
     path1 = data_treatment_file_path
     # ********************** Сохранение сканов в формате *.npy **************
     if save_data == 'y':
