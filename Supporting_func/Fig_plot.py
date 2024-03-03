@@ -677,9 +677,6 @@ def graph_contour_2d(*args):
     plt.show()
     return fig, _current_file, 2, 'png'
 
-    # Модуль проверки: формировалась ли ранее матрица спектра по времени и частоте
-    # если - нет, то идем в extract(file_name0), если - да, то загружаем
-
 
 @save_fig
 def graph_contour_2d_ab(*args):

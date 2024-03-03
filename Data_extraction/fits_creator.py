@@ -1,5 +1,4 @@
 from astropy.io import fits
-import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import os
@@ -23,7 +22,9 @@ def head_creator(head_fits, head_data):
         head_fits[_s] = (_fits_words[_s])
 
     head_fits['DATE'] = (head_data['date'], 'Date of observation')
+    head_fits['TELESCOP'] = ('RATAN_600', 'DM complex')
     # head_fits['MEASKIND'] = (head_data['measure_kind'], 'Object of observation')
+    head_fits['UNITS'] = ('sfu', 'Data units')
     head_fits['BAND'] = band(head_data['band_size'])
     head_fits['POLAR'] = (head_data['polar'], 'Polarization')
     head_fits['CLEAN'] = ('no', 'Additional data cleaning')
@@ -83,17 +84,17 @@ def control(_path):
     hdu_r = hdu_list[0]
     _data = hdu_r.data
     head0 = hdu_r.header
-    print(repr(head0))
+    print(*repr(head0))
     # Отсчеты частоты
     hdu_f = hdu_list[1]
     _data1 = hdu_f.data
     head1 = hdu_f.header
-    print(repr(head1))
+    print(*repr(head1))
     # Отсчеты позиции на Солнце
     hdu_pos = hdu_list[2]
     _data2 = hdu_pos.data
     head2 = hdu_list[2].header
-    print(repr(head2))
+    print(*repr(head2))
     # plt.imshow(f_spectrum.data[:, :, 0], origin='lower')
     # plt.show()
     # plt.imshow(f_spectrum.data[:, :, 1], origin='lower')
