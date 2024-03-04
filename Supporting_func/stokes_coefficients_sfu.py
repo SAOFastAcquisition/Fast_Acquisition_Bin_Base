@@ -275,11 +275,13 @@ def two_fig_plot(_x, _y1, _y2, _dict_pic, _head):
     _i_max = len(num_mask)
     _i = 0
     for _j, _txt in enumerate(_dict_pic['line_labels']):
+        _y = _y1[:, _j]
         axes[0].plot(_x, _y1[:, _j], label=_txt)
+        _t = _y2[:, _j]
         axes[1].plot(_x, _y2[:, _j])
         axes[0].legend(loc=_dict_pic['legend_pos'])
-        _i += 1
-
+        # _i += 1
+    plt.show()
     axes[0].set_title(_dict_pic['title'] + title1, fontsize=20)
     axes[1].set_xlabel(_dict_pic['xlabel_ax1'], color='darkred')
     axes[0].set_ylabel(_dict_pic['ylabel_ax0'])
@@ -321,12 +323,29 @@ def two_fig_plot(_x, _y1, _y2, _dict_pic, _head):
     pass
 
 
-def two_fig_plot1(*args, _x1, _y3):
-    _x = args[0]
-    _y1 = args[1]
-    _y2 = args[2]
-    _dict_pic = args[-2]
-    _head = args[-1]
+def legend_iter(_leg):
+    yield from _leg
+
+
+def two_fig_plot1(*_args, _x1, _y3):
+    """
+    Функция выдает рисунок, состоящий из трех графиков: первые два - зависимости IV параметров Стокса или левой-правой
+    поляризаций от частоты (спектры) или положения ДН телескопа на Солнце (сканы), третий - вспомогательный
+    (информативный) показывает либо точки на скане к которым относится спектр, либо спектры в выбранных точках сканов
+    :param _args:   _args[0] - аргумент для двух основных рисунков
+                    _args[1] - ордината первого графика
+                    _args[2] - ордината второго графика
+                    _args[-2] - параметры графиков: заголовки, подписи к осям, единицы и т.д.
+                    _args[-1] - параметры сбора и обработки данных
+    :param _x1: аргумент третьего графика
+    :param _y3: ордината третьего графика
+    :return:
+    """
+    _x = _args[0]
+    _y1 = _args[1]
+    _y2 = _args[2]
+    _dict_pic = _args[-2]
+    _head = _args[-1]
     _pic_name = pic_name(_dict_pic['path_fig_folder'], _dict_pic['flag'], _dict_pic['pic_format'])
     _path_to_pic = Path(_dict_pic['path_fig_folder'], _pic_name)
 
@@ -335,8 +354,10 @@ def two_fig_plot1(*args, _x1, _y3):
     title1, title2, title3 = title_func(_fig_folder, _head)
     gs = GridSpec(ncols=5, nrows=4, figure=_fig)
 
-    y_max = np.nanmax(_y1)
-    y_min = np.nanmin(_y1)
+    _y_max1 = np.nanmax(_y1)
+    _y_min1 = np.nanmin(_y1)
+    _y_max2 = np.nanmax(_y2)
+    _y_min2 = np.nanmin(_y2)
 
     _i_max = len(num_mask)
     _i = 0
@@ -348,13 +369,14 @@ def two_fig_plot1(*args, _x1, _y3):
         _axes1.plot(_x, _y2[:, _j])
         _axes0.legend(loc=_dict_pic['legend_pos'])
         _i += 1
-    _pos = _dict_pic['pos_select']
-    _axes0.plot([_pos[0], _pos[0]], [5, 25],
-                '--', label=f'pos = {_pos[0]} arcs')
-    _axes0.plot([_pos[1], _pos[1]], [5, 25],
-                '--', label=f'pos = {_pos[1]} arcs')
-    _axes1.plot([_pos[0], _pos[0]], [5, 25], '--')
-    _axes1.plot([_pos[1], _pos[1]], [5, 25], '--')
+    _pos = _dict_pic.get('pos_select')
+    _pos_s = _dict_pic.get('pos_spectrum_select')
+    if _pos:
+        for s in _pos:
+            _axes0.plot([s, s], [_y_min1, _y_max1],
+                        '--', label=f'pos = {s} arcs')
+            _axes1.plot([s, s], [_y_min2, _y_max2], '--')
+
     _axes0.set_title(_dict_pic['title'] + title1, fontsize=20)
     _axes1.set_xlabel(_dict_pic['xlabel_ax1'], color='darkred')
     _axes0.set_ylabel(_dict_pic['ylabel_ax0'])
@@ -364,13 +386,16 @@ def two_fig_plot1(*args, _x1, _y3):
 
     _axes0.legend(bbox_to_anchor=(1, 1), loc="upper left")
 
-    if _x1:
+    if len(_x1):
         _axes2 = plt.subplot(gs[2:, 3:])
-        _i = 0
+        a = legend_iter(_dict_pic['line_labels_add'])
         for s in _y3:
-            _axes2.plot(_x1, s, label=_dict_pic['line_labels_add'][_i])
-            _i += 1
-
+            _axes2.plot(_x1, s, label=next(a))
+        if _pos_s:
+            _y_max1 = np.nanmax(_y3)
+            for s in _pos_s:
+                _axes2.plot([s, s], [_y_min1, _y_max1],
+                            '--', label=f'pos = {s} arcs')
         _axes2.set_title(_dict_pic['title_add'], fontsize=14)
         _axes2.set_ylabel(_dict_pic['ylabel_ax2'])
         _axes2.set_xlabel(_dict_pic['xlabel_ax2'])
@@ -381,11 +406,28 @@ def two_fig_plot1(*args, _x1, _y3):
                     axis='x',
                     color='k',
                     linestyle=':')
-        # _axes2.legend(loc=_dict_pic['legend_add_pos'])
+        _axes2.tick_params(axis='both',  # Применяем параметры к обеим осям
+                           which='major',  # Применяем параметры к основным делениям
+                           direction='in',  # Рисуем деления внутри и снаружи графика
+                           length=5,  # Длинна делений
+                           width=1,  # Ширина делений
+                           color='black',  # Цвет делений
+                           pad=2,  # Расстояние между черточкой и ее подписью
+                           # labelsize=f_size,  # Размер подписи
+                           labelcolor='black',  # Цвет подписи
+                           bottom=True,  # Рисуем метки снизу
+                           top=False,  # сверху
+                           left=False,  # слева
+                           right=True,  # и справа
+                           labelbottom=True,  # Рисуем подписи снизу
+                           labeltop=False,  # сверху
+                           labelleft=False,  # слева
+                           labelright=True,  # и справа
+                           labelrotation=0)  # Поворот подписей
 
-    y1 = y_max - 2 * (y_max - y_min) / 10
-    y2 = y_max - 3 * (y_max - y_min) / 10
-    y3 = y_max - 4 * (y_max - y_min) / 10
+    y1 = _y_max1 - 2 * (_y_max1 - _y_min1) / 10
+    y2 = _y_max1 - 3 * (_y_max1 - _y_min1) / 10
+    y3 = _y_max1 - 4 * (_y_max1 - _y_min1) / 10
     _axes0.text(-2500, y1, inform[0], fontsize=12)  # Разрешение по частоте
     _axes0.text(-2500, y2, inform[1], fontsize=12)  # Разрешение по времени
     _axes0.text(-2500, y3, inform[3], fontsize=12)  # Калибровка
@@ -399,24 +441,7 @@ def two_fig_plot1(*args, _x1, _y3):
                 axis='x',
                 color='k',
                 linestyle=':')
-    _axes2.tick_params(axis='both',  # Применяем параметры к обеим осям
-                       which='major',  # Применяем параметры к основным делениям
-                       direction='in',  # Рисуем деления внутри и снаружи графика
-                       length=5,  # Длинна делений
-                       width=1,  # Ширина делений
-                       color='black',  # Цвет делений
-                       pad=2,  # Расстояние между черточкой и ее подписью
-                       # labelsize=f_size,  # Размер подписи
-                       labelcolor='black',  # Цвет подписи
-                       bottom=True,  # Рисуем метки снизу
-                       top=False,  # сверху
-                       left=False,  # слева
-                       right=True,  # и справа
-                       labelbottom=True,  # Рисуем подписи снизу
-                       labeltop=False,  # сверху
-                       labelleft=False,  # слева
-                       labelright=True,  # и справа
-                       labelrotation=0)  # Поворот подписей
+
     plt.show()
     #                               ********************************
     #                        ************ Сохранение рисунка ****************
@@ -463,8 +488,8 @@ def twin_fig_plot():
     for j in num_mask:
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()  # Создание второй оси ординат (справа). Ось абсцисс общая
-        ax1.plot(mean_frame_angle, s0[-1::-1, j], label='x(t)')
-        ax2.plot(mean_frame_angle, s3[-1::-1, j], label='y(t)', color='darkred')
+        ax1.plot(mean_frame_pos, s0[-1::-1, j], label='x(t)')
+        ax2.plot(mean_frame_pos, s3[-1::-1, j], label='y(t)', color='darkred')
         # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
         # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
         ax1.set_ylabel('Stokes_I')
@@ -644,37 +669,22 @@ def zone_deletion(_len):
 
 
 if __name__ == '__main__':
-    align = 'y'
-    channel_align = 'y'
-    v_deviation = 'n'
     object_m = 'sun'
-    freq_mask0 = np.array(freq_mask(8))
-
     current_data_file = '2024-02-09_13-24'  # Имя файла с исходными текущими данными без расширения
+
+    freq_mask0 = np.array(freq_mask(8))  # Маска частот для основного рисунка со сканами
+    pos_select = [-300, -250]  # Выбор позиций на Солнце для вспомогательного рисунка со спектрами
+    angle_mask = [-1000, -300, 1000]  # Выбор позиций на Солнце для основного рисунка со спектрами
+    pic = 'IV'
+    pic_spectrum = 'y'
+
     main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
-
     path_obj = DataPaths(current_data_file, current_primary_dir, main_dir)
     converted_dir_path = path_obj.converted_dir_path
     treatment_dir_path = path_obj.treatment_dir_path
     head_path = path_obj.head_path
     path_to_stocks_fig_folder = Path(treatment_dir_path, current_data_file)
-
-    dict_pic_IV = {
-        'pic_format': 'svg',
-        'flag': 0,  # Сохранение рисунка с подписью 'scan_stokes'
-        'title': 'Stokes Parameters ',
-        'title_add': 'Stokes I spectrum, s.f.u. ',
-        'ylabel_ax0': 'Stokes_I, s.f.u.',
-        'ylabel_ax1': 'Stokes_V, s.f.u.',
-        'ylabel_ax2': 'L&R polarizations, s.f.u.',
-        'xlabel_ax1': 'Sun angle, arcs',
-        'xlabel_ax2': 'Frequencies, MHz',
-        'line_labels': [f'f = {f1} MHz' for f1 in freq_mask0],
-        'legend_pos': 'upper right',
-        'legend_add_pos': [0.6, 0.9],
-        'path_fig_folder': path_to_stocks_fig_folder
-    }
 
     [s0, s3, mean_frame_ind, equalizing_factor] = stokes_coefficients(path_obj, current_data_file)
     mean_frame_ind_pol = np.copy(mean_frame_ind)
@@ -706,21 +716,34 @@ if __name__ == '__main__':
 
     s0_selected = s3[:, num_mask]
     mean_frame_time = mean_frame_ind_pol * 8.3886e-3
-    mean_frame_angle, s0_selected = time_to_angle(mean_frame_time, s0_selected,
-                                                  current_data_file[:10],
-                                                  int(current_data_file[-3::]))
-    mean_f_angle = np.array(mean_frame_angle)
+    mean_frame_pos, s0_selected = time_to_angle(mean_frame_time, s0_selected,
+                                                current_data_file[:10],
+                                                int(current_data_file[-3::]))
+    mean_f_pos = np.array(mean_frame_pos)
+    pos_select_num = [np.where(mean_f_pos > s)[0][0] for s in pos_select]
+
     #                   **********************************************
     #                       ****** Графический вывод данных ******
     #                   **********************************************
-    # twin_fig_plot()                               # График с двумя разномасштабными осями 0у (слева и справа)
 
-    # two_fig_plot(mean_frame_angle, s0[:, num_mask], s3[-1::-1, num_mask],
-    #              dict_pic_IV, head)  # Картинка с двумя графиками (I & V)
-
-    #                       *************************************
-    angle_select = -300, -250
-    angle_select_num = [np.where(mean_f_angle > s)[0][0] for s in angle_select]
+    dict_pic_IV = {
+        'pic_format': 'png',
+        'flag': 0,  # Сохранение рисунка с подписью 'scan_stokes'
+        'title': 'Stokes Parameters ',
+        'title_add': 'Stokes IV spectrum, s.f.u. ',
+        'ylabel_ax0': 'Stokes_I, s.f.u.',
+        'ylabel_ax1': 'Stokes_V, s.f.u.',
+        'ylabel_ax2': 'L&R polarizations, s.f.u.',
+        'xlabel_ax1': 'Sun angle, arcs',
+        'xlabel_ax2': 'Frequencies, MHz',
+        'line_labels': [f'f = {f1} MHz' for f1 in freq_mask0],
+        'legend_pos': 'upper right',
+        'legend_add_pos': [0.6, 0.9],
+        'pos_select': pos_select,
+        'line_labels_add': [f'pos = {a} arcs - I' for a in pos_select] +
+                           [f'pos = {a} arcs - V' for a in pos_select],
+        'path_fig_folder': path_to_stocks_fig_folder
+    }
 
     dict_pic_LR = {
         'pic_format': 'png',
@@ -735,40 +758,60 @@ if __name__ == '__main__':
         'line_labels': [f'f = {f1} MHz' for f1 in freq_mask0],
         'legend_pos': 'upper right',
         'legend_add_pos': [0.6, 0.9],
-        'pos_select': angle_select,
-        'line_labels_add': [f'pos = {a} arcs - left' for a in angle_select] +
-                           [f'pos = {a} arcs - right' for a in angle_select],
+        'pos_select': pos_select,
+        'line_labels_add': [f'pos = {a} arcs - left' for a in pos_select] +
+                           [f'pos = {a} arcs - right' for a in pos_select],
         'path_fig_folder': path_to_stocks_fig_folder
     }
-
-    args = [mean_frame_angle, c[:, num_mask], d[:, num_mask],
-            dict_pic_LR, head]
-    kwargs = {
-        '_x1': freq,
-        '_y3': np.vstack((c[angle_select_num, :], d[angle_select_num, :]))
-    }
-
-    two_fig_plot1(*args, **kwargs)  # Картинка с двумя графиками (L & R)
-    #                   *******************************************
-    arg_freq = freq
-    angle_mask = [-800, -300, 700]
-    angle_num = [np.where(mean_f_angle > a)[0][0] for a in angle_mask]
-
-    ord1 = c[angle_num, :]  #
-    ord2 = d[angle_num, :]  #
-
+    angle_num = [np.where(mean_f_pos > a)[0][0] for a in angle_mask]
+    pos_sp_select = []
+    freq_select = [1500, 2300, 2850]
+    freq_num_sel = [int((s - 1000 * (1 + 1 / n)) / df) for s in freq_select]
     dict_pic_spectrum = {
         'pic_format': 'png',
         'flag': 5,  # Сохранение рисунка с подписью 'spectrum_LR_polar'
         'title': 'Spectrum LR polarization ',
+        'title_add': 'Stokes I scan, s.f.u. ',
         'ylabel_ax0': 'Left polarization, s.f.u.',
         'ylabel_ax1': 'Right polarization, s.f.u.',
+        'ylabel_ax2': 'Stokes I, s.f.u.',
         'xlabel_ax1': 'Frequency, MHz',
+        'xlabel_ax2': 'Sun position, arcs',
         'line_labels': [f'pos = {f1} arcs' for f1 in angle_mask],
         'legend_pos': 'upper right',
+        'pos_spectrum_select': angle_mask,
+        'line_labels_add': [f'freq = {a} MHz' for a in freq_select],
         'path_fig_folder': path_to_stocks_fig_folder
     }
-    two_fig_plot(freq, ord1.T, ord2.T, dict_pic_spectrum, head)  # Картинка с двумя графиками (L & R)
+
+    if pic == 'LR':
+        args = [mean_frame_pos, c[:, num_mask], d[:, num_mask],
+                dict_pic_LR, head]
+        kwargs = {
+            '_x1': freq,
+            '_y3': np.vstack((c[pos_select_num, :], d[pos_select_num, :]))
+        }
+    elif pic == 'IV':
+        args = [mean_frame_pos, s0[:, num_mask], s3[:, num_mask],
+                dict_pic_IV, head]
+        kwargs = {
+            '_x1': freq,
+            '_y3': np.vstack((s0[pos_select_num, :], s3[pos_select_num, :]))
+        }
+
+    two_fig_plot1(*args, **kwargs)  # Картинка с двумя графиками (L & R)
+    #                   *******************************************
+
+    ord1 = c[angle_num, :]  #
+    ord2 = d[angle_num, :]  #
+    if pic_spectrum == 'y':
+        args = [freq, ord1.T, ord2.T, dict_pic_spectrum, head]
+        kwargs = {
+            '_x1': mean_f_pos,
+            '_y3': s0[:, freq_num_sel].T
+        }
+        two_fig_plot1(*args, **kwargs)  # Картинка с двумя графиками (L & R)
+    # two_fig_plot(freq, ord1.T, ord2.T, dict_pic_spectrum, head)  # Картинка с двумя графиками (L & R)
     # fig_multi_axes(np.transpose(s0_selected), mean_frame_time, inform,
     #                Path(path_obj.treatment_data_file_path, current_data_file), freq_mask0, head)
     pass
