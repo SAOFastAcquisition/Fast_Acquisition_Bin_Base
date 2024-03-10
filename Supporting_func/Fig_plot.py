@@ -22,7 +22,6 @@ from tkinter import messagebox as mb
 def save_fig(func):
     """ Функция-декоратор для сохранения в одноименную с файлом данных папку рисунков временных сканов и спектров
     в выделенные моменты времени."""
-
     def wrapper(*args):
         figure, file_name, flag, _format = func(*args)
         add_pass1 = path_to_pic(file_name, flag, _format)

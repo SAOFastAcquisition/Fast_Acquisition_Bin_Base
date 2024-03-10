@@ -153,7 +153,7 @@ def stokes_coefficients(_path_obj, _current_data_file):
         d1 = pol_intensity(b1, _mean_frame_ind_right)[: -1]
         c = np.hstack((c, c1))
         d = np.hstack((d, d1))
-        _mean_frame_ind = frame_ind_extend(_mean_frame_ind_left, _mean_frame_ind_right)
+        _mean_frame_ind = frame_ind_extend(_mean_frame_ind_left, _mean_frame_ind_right, c)
 
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
@@ -188,7 +188,7 @@ def stokes_coefficients(_path_obj, _current_data_file):
     return stokes_coeff
 
 
-def frame_ind_extend(_mean_frame_ind_right, _mean_frame_ind_left):
+def frame_ind_extend(_mean_frame_ind_right, _mean_frame_ind_left, _c):
     """
     Функция объединяет последовательности отсчетов, соответствующих центрам полупериодов переключения левой и
     правой поляризаций в одну последовательность
@@ -196,7 +196,7 @@ def frame_ind_extend(_mean_frame_ind_right, _mean_frame_ind_left):
     последовательность с чередующимися номерами отсчетов, соответствующих центрам полупериодов с левой
     и правой поляризациями
     """
-    _mean_frame_ind = [0] * np.shape(c)[0]
+    _mean_frame_ind = [0] * np.shape(_c)[0]
     _mean_frame_ind[::2] = _mean_frame_ind_right[:-1]
     _mean_frame_ind[1::2] = _mean_frame_ind_left[1:]
     return _mean_frame_ind
@@ -327,6 +327,15 @@ def legend_iter(_leg):
     yield from _leg
 
 
+def mod_plt(_key, _obj, *_args, **_kwargs):
+    dict_plt = {
+        'linear': _obj.plot,
+        'logy': _obj.semilogy
+    }
+    op_plot = dict_plt[_key]
+    return op_plot(*_args, **_kwargs)
+
+
 def two_fig_plot(*_args, _x1, _y3):
     """
     Функция выдает рисунок, состоящий из трех графиков: первые два - зависимости IV параметров Стокса или левой-правой
@@ -364,8 +373,12 @@ def two_fig_plot(*_args, _x1, _y3):
     _axes1 = plt.subplot(gs[2:, 0:3])
     _label1 = legend_iter(_dict_pic['line_labels'])
 
+    _key1 = _dict_pic['key1']
+    _key2 = _dict_pic['key2']
+
     for s1, s2 in zip(_y1, _y2):
         _axes0.plot(_x, s1, label=next(_label1))
+        # mod_plt(_key1, _axes0, _x, s1, label=next(_label1))
         _axes1.plot(_x, s2)
         _axes0.legend(loc=_dict_pic['legend_pos'])
 
@@ -391,6 +404,7 @@ def two_fig_plot(*_args, _x1, _y3):
         a = legend_iter(_dict_pic['line_labels_add'])
         for s in _y3:
             _axes2.plot(_x1, s, label=next(a))
+            # mod_plt(_key2, _axes2, _x1, s, label=next(a))
         if _pos_s:
             _y_max1 = np.nanmax(_y3)
             for s in _pos_s:
@@ -642,13 +656,14 @@ def zone_deletion(_len):
 
 if __name__ == '__main__':
     object_m = 'sun'
-    current_data_file = '2024-02-09_13-24'  # Имя файла с исходными текущими данными без расширения
+    current_data_file = '2024-02-22_13-24'  # Имя файла с исходными текущими данными без расширения
 
     freq_mask0 = np.array(freq_mask(8))  # Маска частот для основного рисунка со сканами
-    pos_select = [-300, -250]  # Выбор позиций на Солнце для вспомогательного рисунка со спектрами
-    angle_mask = [-1000, -300, 1000]  # Выбор позиций на Солнце для основного рисунка со спектрами
-    pic = 'LR'
-    pic_spectrum = 'y'
+    pos_select = [-300, 250]           # Выбор позиций на Солнце для вспомогательного графика рисунка со сканами
+    angle_mask = [-1000, -300, 1000]    # Выбор позиций на Солнце для основного рисунка со спектрами
+    freq_select = [1500, 2300, 2850]    # Маска частот для вспомогательного графика рисунка со спектрами
+    pic = 'LR'  # Выбор объектов для рисунка со сканами: 'LR' - левая и правая поляризации, 'IV' - параметры Стокса
+    pic_spectrum = 'y'  #
 
     main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
@@ -703,6 +718,8 @@ if __name__ == '__main__':
         'flag': 0,  # Сохранение рисунка с подписью 'scan_stokes'
         'title': 'Stokes Parameters ',
         'title_add': 'Stokes IV spectrum, s.f.u. ',
+        'key1': 'linear',
+        'key2': 'logy',
         'ylabel_ax0': 'Stokes_I, s.f.u.',
         'ylabel_ax1': 'Stokes_V, s.f.u.',
         'ylabel_ax2': 'L&R polarizations, s.f.u.',
@@ -722,6 +739,8 @@ if __name__ == '__main__':
         'flag': 4,  # Сохранение рисунка с подписью 'scan_LR_polar'
         'title': 'LR polarization ',
         'title_add': 'L&R spectrum, s.f.u. ',
+        'key1': 'linear',
+        'key2': 'logy',
         'ylabel_ax0': 'Left polarization, s.f.u.',
         'ylabel_ax1': 'Right polarization, s.f.u.',
         'ylabel_ax2': 'L&R polarizations, s.f.u.',
@@ -735,15 +754,19 @@ if __name__ == '__main__':
                            [f'pos = {a} arcs - right' for a in pos_select],
         'path_fig_folder': path_to_stocks_fig_folder
     }
+
     angle_num = [np.where(mean_f_pos > a)[0][0] for a in angle_mask]
     pos_sp_select = []
-    freq_select = [1500, 2300, 2850]
+
     freq_num_sel = [int((s - 1000 * (1 + 1 / n)) / df) for s in freq_select]
+
     dict_pic_spectrum = {
         'pic_format': 'png',
         'flag': 5,  # Сохранение рисунка с подписью 'spectrum_LR_polar'
         'title': 'Spectrum LR polarization ',
         'title_add': 'Stokes I scan, s.f.u. ',
+        'key1': 'logy',
+        'key2': 'linear',
         'ylabel_ax0': 'Left polarization, s.f.u.',
         'ylabel_ax1': 'Right polarization, s.f.u.',
         'ylabel_ax2': 'Stokes I, s.f.u.',

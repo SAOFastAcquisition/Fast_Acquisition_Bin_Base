@@ -473,7 +473,7 @@ def zone_deletion(_len):
 
 if __name__ == '__main__':
     object = 'sun'
-    current_primary_file = '2024-02-19_06+04'
+    current_primary_file = '2024-02-22_10-12'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -492,7 +492,9 @@ if __name__ == '__main__':
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
-    freq_spect_mask = freq_mask(8)
+    freq_spect_mask = freq_mask(3)
+    t0 = 218.22
+    spectrum_LR = 'y'
 
     # att_val = [i * 0.5 for i in range(64)]
     # att_dict = {s: 10 ** (s / 10) for s in att_val}
@@ -553,8 +555,11 @@ if __name__ == '__main__':
 
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
-    time_spect_mask = [(lambda i: (t_spect * (i + 0.05)) // 7)(i) for i in range(7)]
-    # time_spect_mask = [185.85, 186.1, 185.6, 185.35]  # az+20
+
+    if spectrum_LR == 'y':
+        time_spect_mask = [t0 + i * 0.25 for i in range(4)]  # az+20
+    else:
+        time_spect_mask = [(t_spect * (i + 0.05) // 7) for i in range(7)]
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
     shift = head['shift']
