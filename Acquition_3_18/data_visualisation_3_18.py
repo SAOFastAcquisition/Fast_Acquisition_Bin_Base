@@ -494,7 +494,7 @@ def simple_plot(_inp_data):
     plt.show()
 
 
-def freq_mask(_i):
+def freq_mask(_i: int):
     _n1 = 2
     _n2 = 4
     _freq_mask = [
@@ -536,7 +536,7 @@ if __name__ == '__main__':
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(1)
+    freq_spect_mask = freq_mask(0)
     # *****************************************************
     polar = 'both'
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'

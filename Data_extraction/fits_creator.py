@@ -15,42 +15,66 @@ dt = 8.3886e-3
 
 def head_creator(head_fits, head_data):
     #
-    _fits_words = import_fits_word()
+    _disc_dict = import_fits_word()
+    _df = 0.122 * _disc_dict['acquisition_parameters']['average_points']
+    _kurtosis = _disc_dict['acquisition_parameters']['kurtosis_upper_bound_12ghz']
+    _att1 = _disc_dict['acquisition_parameters']['attenuator_common']
+    _att2 = _disc_dict['acquisition_parameters']['attenuator_12ghz']
+    _att3 = _disc_dict['acquisition_parameters']['attenuator_23ghz']
+
+    _polarization = _disc_dict['acquisition_parameters']['polarization']
+    _polarization_switch = _disc_dict['acquisition_parameters']['auto_polarization_switch']
+    _polar = polar(_polarization, _polarization_switch)
+
+    _fits_words = _disc_dict['fits_words']
     _fits_words['OFF_TIME'] = _fits_words.pop('FEED_OFFSET_TIME')
     _a = _fits_words.keys()
     for _s in _a:
         head_fits[_s] = (_fits_words[_s])
 
-    head_fits['DATE'] = (head_data['date'], 'Date of observation')
+    # head_fits['DATE'] = (head_data['date'], 'Date of observation')
     head_fits['TELESCOP'] = ('RATAN_600', 'DM complex')
     # head_fits['MEASKIND'] = (head_data['measure_kind'], 'Object of observation')
     head_fits['UNITS'] = ('sfu', 'Data units')
-    head_fits['BAND'] = band(head_data['band_size'])
-    head_fits['POLAR'] = (head_data['polar'], 'Polarization')
+    head_fits['BAND'] = '1-3 GHz'
+    head_fits['POLAR'] = (_polar, 'Polarization')
     head_fits['CLEAN'] = ('no', 'Additional data cleaning')
-    head_fits['ALIGNPA'] = (head_data['align_file_path'], 'Align coefficients')
-    head_fits['ALIGNPOS'] = (head_data['align_coeff_pos'], 'Align coefficients position')
+    head_fits['ALIGNPA'] = ('align_file_path', 'Quiet sun alignment')
+    # head_fits['ALIGNPOS'] = (head_data['align_coeff_pos'], 'Align coefficients position')
 
-    head_fits['DTIME'] = (8.3886e-3, 'Time resolution, s')
-    head_fits['DFREQ'] = (df, 'Frequency resolution, MHz')
+    head_fits['DTIME'] = (8.3886e-3, 'Sampling time resolution, s')
+    head_fits['DACTIME'] = (float(f'{8.3886e-3 * 60: .2f}'), 'Actual time resolution, s')
+    head_fits['DFREQ'] = (_df, 'Frequency resolution, MHz')
 
-    head_fits['KURTOSIS'] = (head_data['kurtosis'], 'Half wide of kurtosis interval')
-    head_fits['ATT1'] = (head_data['att1'], 'Common attenuation')
-    head_fits['ATT2'] = (head_data['att2'], 'Attenuation in left channel')
-    head_fits['ATT3'] = (head_data['att3'], 'Attenuation in right channel')
+    head_fits['KURTOSIS'] = (_kurtosis, 'Half wide of kurtosis interval')
+    head_fits['ATT1'] = (_att1, 'Common attenuation')
+    head_fits['ATT2'] = (_att2, '1-2 GHz channel attenuation')
+    head_fits['ATT3'] = (_att3, '2_3 GHz channel attenuation')
     head_fits['COMMENT'] = ': NAXIS1 - IV-representation, I - ind 0, V - ind 1'
 
     return head_fits
 
 
 def head_f_creator(_head_fits):
-    _head_fits['COMMENT'] = ': Frequency (counts in MHz)'
+    _head_fits['COMMENT'] = ': Frequency scale, MHz'
     return _head_fits
 
 
 def head_pos_creator(_head_fits):
-    _head_fits['COMMENT'] = ': Position on Sun (counts in arcs)'
+    _head_fits['COMMENT'] = ': Position scale on Sun, arcs'
     return _head_fits
+
+
+def polar(_polarization, _polarization_switch):
+    if (not _polarization) and (not _polarization_switch):
+        _polar = 'Left'
+    elif _polarization and (not _polarization_switch):
+        _polar = 'Right'
+    elif (not _polarization) and _polarization_switch:
+        _polar = 'Left / Right'
+    else:
+        _polar = 'Error'
+    return _polar
 
 
 def import_fits_word():
@@ -60,8 +84,9 @@ def import_fits_word():
     ind = d.find('{')
     # Словарь с параметрами наблюдения
     res_dict = ast.literal_eval(d[ind:])
-
-    return res_dict['fits_words']
+    for key, word in res_dict.items():
+        print(f'{key}: {word}')
+    return res_dict
 
 
 def band(string):
@@ -103,7 +128,7 @@ def control(_path):
 
 if __name__ == '__main__':
 
-    data_file = '2024-01-05_11-16'
+    data_file = '2024-02-22_07+00'
     main_dir = data_file[0:4]
     data_dir = f'{data_file[0:4]}_{data_file[5:7]}_{data_file[8:10]}sun'
 
