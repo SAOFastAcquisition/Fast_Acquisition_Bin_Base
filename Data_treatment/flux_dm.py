@@ -177,6 +177,10 @@ FLUX_DM = np.array(
 
 
 def interpol_sfu(_n):
+    """
+
+    :rtype: ndarray, dtype=Float64
+    """
     # _n = len(_sc)
     df = 2000 / _n
     df_ref = 2000 / 1024
@@ -206,13 +210,13 @@ def interpol_sfu(_n):
                 # _nl = np.where(freq_ref < _f)[0][0]
                 _flux_n[i] = (FLUX_DM[_nl] + (FLUX_DM[_nr] - FLUX_DM[_nl]) / df_ref * (freq_ref[_nr] - _f))
             i += 1
-    # plt.plot(freq, _flux_n)
-    # plt.grid('on')
-    # plt.show()
+    plt.plot(freq, _flux_n)
+    plt.grid('on')
+    plt.show()
     return _flux_n
 
 
 if __name__ == '__main__':
     s_quiet = np.ones(1024)
-    interpol_sfu(s_quiet)
+    s_quiet: float = interpol_sfu(len(s_quiet))
 pass

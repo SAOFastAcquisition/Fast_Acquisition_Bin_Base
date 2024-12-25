@@ -473,7 +473,7 @@ def zone_deletion(_len):
 
 if __name__ == '__main__':
     object = 'sun'
-    current_primary_file = '2024-02-22_10-12'
+    current_primary_file = '2024-03-11_05+08'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -492,9 +492,9 @@ if __name__ == '__main__':
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3
-    freq_spect_mask = freq_mask(3)
-    t0 = 218.22
-    spectrum_LR = 'y'
+    freq_spect_mask = freq_mask(8)
+    t0 = 187
+    spectrum_LR = 'n'
 
     # att_val = [i * 0.5 for i in range(64)]
     # att_dict = {s: 10 ** (s / 10) for s in att_val}

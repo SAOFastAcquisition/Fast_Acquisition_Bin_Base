@@ -10,14 +10,12 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objs as go
 import matplotlib.font_manager as font_manager
-from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
+from Supporting_func import path_to_data
 # from Supporting_func import align_spectrum, path_to_data
 from Polyphase import low_freq_noise_spectrum, plot_low_freq_spec, plot_low_freq_spec_ab
-from Interface.window_handler import exec_app
 from Polyphase.cic_filter import signal_filtering
 # from test_statistic import low_noise_spectra_base
 from polys3d_demo import poly_graph3d
-from Help_folder.paths_via_class import DataPaths
 
 current_dir = Path.cwd()
 home_dir = Path.home()
@@ -35,7 +33,7 @@ class DataPaths(object):
 
     def __init__(self, _data_file, _data_dir, _main_dir):
         if _data_dir.find('test') != -1 or _data_dir.find('calibration') != -1 or _data_dir.find('calibr') != -1:
-            _main_dir = '2023'
+            _main_dir = f'{_main_dir}'
         self.data_file_name = _data_file
         self.data_file_prime = _data_file + '.bin'
         self.data_dir = _data_dir
@@ -110,29 +108,6 @@ def create_folder(_path):
         os.mkdir(_path)
 
 
-def parts_to_numpy(list_arr, len_list):
-    """ Функция превращает список в массив numpy.
-    Разбивает файл на меньшие части и обрабатывает их поотдельности. По ходу завершинея обработки частей
-    происходит объединение обработанных частей."""
-    n = int(len_list // 1e5)
-    k = int(len_list % 1e5)
-    numpy_arr = []
-    for i in range(n + 1):
-        if i == n:
-            auxiliary = list_arr[int(i * 1e5):int(i * 1e5 + k)]
-            auxiliary = np.array(auxiliary, dtype='int64')
-        else:
-            auxiliary = list_arr[int(i * 1e5):int((i + 1) * 1e5)]
-            auxiliary = np.array(auxiliary, dtype='int64')
-        l = np.size(numpy_arr)
-        if l:
-            numpy_arr = np.vstack([numpy_arr, auxiliary])
-        else:
-            numpy_arr = auxiliary
-
-    return numpy_arr
-
-
 def cut_spectrum(_spectrum, _n_aver):
     _spectrum.pop(-1)
     n_frame_last = _spectrum[-1][0]
@@ -144,22 +119,16 @@ def cut_spectrum(_spectrum, _n_aver):
     return _spectrum
 
 
-def line_legend(_freq_mask):
-    _legend_freq = [str(i) + 'MHz' for i in _freq_mask]
-    _legend_time = [str(i) + 'sed' for i in time_spect_mask]
-    return _legend_time, _legend_freq
-
-
 def band_map():
     bm = [
         [1000, 2900],
         [2900, 5200],
         [5200, 6500],
         [6500, 8800],
-        [8800, 11200],
-        [11200, 13500],
-        [13500, 15800],
-        [15800, 18100]
+        [8800, 11100],
+        [11100, 13400],
+        [13400, 15700],
+        [15700, 18000]
     ]
     return bm
 
@@ -171,7 +140,7 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
     """
     # Определение заполненных поддиапазонов
     _shape_sp = np.shape(_sp)
-    _map_sp = []    # Номера поддиапазонов, в которых проводилось наблюдение
+    _map_sp = []  # Номера поддиапазонов, в которых проводилось наблюдение
 
     for _i in range(_shape_sp[0]):
         for _j in range(_shape_sp[1]):
@@ -182,18 +151,24 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
                 _map_sp.append(_i)
 
     # Определение наличия данных для сканов на частоах из freq_spect_mask
-    _freq_map = {}                  # Частота анализа - ключ, номер поддиапазона - значение
+    _freq_map = {}  # Частота анализа - ключ, номер поддиапазона - значение
     _band_map = band_map()
     for _i in _map_sp:
         for _f in _freq_spect_mask_in:
             if _band_map[_i][0] <= _f <= _band_map[_i][1]:
                 _freq_map[_f] = _i
-    _freq_mask = list(_freq_map.keys())   # Частоты, для которых доступны сканы во времени
+    _freq_mask = list(_freq_map.keys())  # Частоты, для которых доступны сканы во времени
 
     # Словарь, в котором ключ - номер поддиапазона, значение - количество частотных отсчетов в нем
-    _N_col: dict = {int(_s): np.shape(_sp[_s, 1])[1] for _s in _map_sp}
+    try:
+        _N_col: dict = {int(_s): np.shape(_sp[_s, 0])[1] for _s in _map_sp}
+    except IndexError:
+        _N_col: dict = {int(_s): np.shape(_sp[_s, 1])[1] for _s in _map_sp}
     # Словарь, в котором ключ - номер поддиапазона, значение - количество временных отсчетов в нем
-    _N_raw: dict = {int(_s): np.shape(_sp[_s, 1])[0] for _s in _map_sp}
+    try:
+        _N_raw: dict = {int(_s): np.shape(_sp[_s, 0])[0] for _s in _map_sp}
+    except IndexError:
+        _N_raw: dict = {int(_s): np.shape(_sp[_s, 1])[0] for _s in _map_sp}
     _kf = int(freq_res / delta_f / aver_param)
     if not _kf:
         sys.exit(f'Frequency resolution freq_res={freq_res}MHz is too large. Decrease it, '
@@ -208,21 +183,25 @@ def form_spectrum(_sp, _freq_spect_mask_in=freq_spect_mask, _time_mask=time_spec
 def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
     """
     Формирование сканов с заданным разрешением по частоте и времени на фиксированных частотах из
-    _freq_spect_mask_in.  В результате формируется нумпай-матрица из строк, количество которых равно
+    _freq_spect_mask_in.  В результате формируется список из списков, количество которых равно
     удвоенному числу частот в _freq_spect_mask_in (удвоение из-за двух поляризаций),
-    первый столбец - частота скана,
+    первый элемент - частота скана,
     второй - поляризация (0 - левая, 1 - правая),
     третий - значения спектра скана,
-    четвертый - моменты времени, в которыйе берутся значения спектров скана
+    четвертый - моменты времени, в которые берутся значения спектров скана (шкала, аргумент)
+    и так для каждой частоты в маске
     j   - индекс частоты в маске
     _i  - индекс по поляризации (0 или 1)
     i   - индекс по моментам времени, взятым с заданным разрешением
-    :return:
+    :return: list, float64
     """
-    s_time = [[[] for i in range(4)] for j in range(len(_freq_mask) * 2)]
+    #   Заготовка выдаваемого списка
+    s_time = [
+        [[] for i in range(4)] for j in range(len(_freq_mask) * 2)
+    ]
+
     j = 0
     for _f in _freq_mask:
-
         ind = int((_f - _band_map[int(_freq_map[_f])][0] - delta_f * aver_param / 2) // (delta_f * aver_param))
         # - количество отсчетов по частоте в поддиапазоне с разрешением не лучше freq_res
         if ind > _n_col[int(_freq_map[_f])] - int(kf / 2) - 1:
@@ -240,13 +219,13 @@ def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
                 s_time[j][1] = _i
                 j += 1
             else:
-                if _freq_map[_f] == 2:
+                if _freq_map[_f] == 2:  # Для зоны 5100 - 6500 МГц разрешение по частоте и времени другое
                     _delta_t = 0.013981
                 else:
-                    _delta_t = 0.012428
-                while kt * (i + 1) < _n_raw[int(_freq_map[_f])]:
+                    _delta_t = 0.012428  # Стандартное разрешение по времени
+                while kt * (i + 1) < _n_col[int(_freq_map[_f])]:
                     if kf == 1:
-                        _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][_sp[i * kt:(i + 1) * kt, ind] > 40])
+                        _s_loc = np.sum(sp[i * kt:(i + 1) * kt, ind][sp[i * kt:(i + 1) * kt, ind] > 40])
                         n_mesh = (sp[i * kt: (i + 1) * kt, ind] > 40).sum()
 
                         if n_mesh == 0:
@@ -262,29 +241,49 @@ def scan_former(_sp, _freq_map, _freq_mask, _band_map, _n_col, _n_raw):
                             _s_loc = 2
                         else:
                             _s_loc /= n_mesh
-                    i += 1
-                    _s_loc1.append(_s_loc)
                     _time_count.append(kt * (i + 0.5) * _delta_t)
+                    _s_loc1.append(_s_loc)
+                    i += 1
 
-                s_time[j][0] = _f                       # scan frequency
-                s_time[j][1] = _i                       # scan polarization
-                s_time[j][2] = np.array(_s_loc1)        # scan
-                s_time[j][3] = np.array(_time_count)    # time sequence
+                s_time[j][0] = _f  # scan frequency
+                s_time[j][1] = _i  # scan polarization
+                s_time[j][2] = np.array(_s_loc1)  # scan
+                s_time[j][3] = np.array(_time_count)  # time sequence
 
                 j += 1
-    return np.array(s_time)
+    return s_time
 
 
 def spectrum_former(_sp, _freq_map, _time_mask, _band_map, _n_col, _n_raw):
-
-    _s_freq = [[[] for i in range(4)] for j in range(len(_time_mask) * 2)]
+    """
+    Формирование спектров с заданным разрешением по частоте и времени в фиксированные моменты времени  из
+    _time_mask.  В результате формируется список из списков, количество которых равно
+    удвоенному числу моментов времени в _time_mask (удвоение из-за двух поляризаций),
+    первый элемент - время взятия спектра (маска по времени),
+    второй - поляризация (0 - левая, 1 - правая),
+    третий - значения спектра,
+    четвертый - отсчеты частоты, на которых берутся значения спектров (частотная шкала, аргумент)
+    и так для каждого значения из _time_mask и для двух поляризаций.
+    _l  - индекс по поляризации (0 или 1)
+    i   - индекс по моментам времени в маске
+    :param _sp:
+    :param _freq_map:
+    :param _time_mask:
+    :param _band_map: карта границ поддиапазонов
+    :param _n_col:
+    :param _n_raw:
+    :return: list, float64
+    """
+    _s_freq = [
+        [[] for i in range(8)] for j in range(len(_time_mask) * 2)
+    ]
     i = 0
     for t in _time_mask:
         # _j - Номер частотного поддиапазона
         for _l in range(2):  # Цикл по поляризациям
             _s_loc1 = []
             _freq_count = []
-            for _j in range(5):  # Цикл по поддиапазонам
+            for _j in range(8):  # Цикл по поддиапазонам
                 _delta_f = 0.082397
                 if _j == 2:
                     _delta_f = 0.073242
@@ -324,15 +323,15 @@ def spectrum_former(_sp, _freq_map, _time_mask, _band_map, _n_col, _n_raw):
             _s_freq[i][2] = np.array(_s_loc1)
             _s_freq[i][3] = np.array(_freq_count)
             i += 1
-    return np.array(_s_freq)
+    return _s_freq
 
 
 def spectrum_construction(Spectr, kf, kt):
-    ''' Функция формирует спектр принятого сигнала с требуемым разрешением по частоте и времени. Максимальное
-    разрешение отсчетов по времени 8192 мкс и по частоте 7,8125 МГц. Путем суммирования и усреднерия по kt*kf
+    """ Функция формирует спектр принятого сигнала с требуемым разрешением по частоте и времени. Максимальное
+    разрешение отсчетов по времени порядка 12 мсек и по частоте 7,8125 МГц. Путем суммирования и усреднерия по kt*kf
     отсчетам разрешение по частоте и по времени в исходном спектре Spectr уменьшается в kf и kt раз,
     соответственно. Преобразованный спектр возвращается как S1. Для трехмерного изображения
-    '''
+    """
 
     N_col1 = n_col // kf
     N_row1 = n_row // kt
@@ -349,17 +348,6 @@ def spectrum_construction(Spectr, kf, kt):
                     S1[i, j] = S1[i, j] / N_mesh
                 if S1[i, j] == 0:
                     S1[i, j] = 2
-                # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
-                #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                # if robust_filter == 'y':
-                #     a = param_robust_filter
-                #     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                #         S1[i, j] = np.sum(S1[i - 1, j])
-                #     if (i > 3) & (S1[i, j] > a * np.sum(S1[i - 3:i - 1, j]) // 2):
-                #         # print(S1[i - 3:i+1, j])
-                #         S1[i, j] = np.sum(S1[i - 1, j])
-                #         # print(S1[i, j])
-                #         pass
 
             except IndexError as allert_message:
                 print(allert_message, 'ind i = ', i, 'ind j = ', j)
@@ -368,7 +356,7 @@ def spectrum_construction(Spectr, kf, kt):
                 print(value_message, 'ind i = ', i, 'ind j = ', j)
                 pass
 
-    return S1  # // kt // kf
+    return S1
 
 
 def path_to_fig(_path):
@@ -381,8 +369,7 @@ def path_to_fig(_path):
 
 
 def preparing_data():
-    """ Функция в зависимости от вида данных (полная полоса 1-3 ГГц, половинная полоса 1-2 или 2-3 ГГц,
-    с двумя поляризациями или одной) выдает данные для построения графиков"""
+    """ Функция выдает данные для построения графиков"""
 
     # Для k-ой полосы и двух возможных поляризаций выдает по спектру для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектры k = 3,4 - в обратном порядке
@@ -390,15 +377,13 @@ def preparing_data():
     _spectrum = np.load(_path1, allow_pickle=True)
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
         _head = pickle.load(inp)
-    _n_aver = _head['n_aver']
+    if '_n_aver' in _head:
+        _n_aver = _head['_n_aver']
+    else:
+        _n_aver = _head['n_aver']
     _polar = _head['polar']
 
     # Разделяем составляющие  записи в полной полосе и с возможными двумя поляризациями
-
-    # Выдает спектры для левой и правой поляризаций шириной по 1 ГГц. При нумерации спектров учитывается
-    # значение зоны Найквиста. С индексом "1" - 1-2 ГГц, с индексом "2" - 2-3 ГГц, как и для случая выше.
-    # На выходе формально все 4 спектра, но для незадействованной полосы они пустые
-
     return _spectrum, int(_n_aver), _polar
 
 
@@ -429,7 +414,10 @@ def band_separation(_s, _n_aver):
                 s1 = np.zeros((_N_row, _n_stop - _n_start))
                 s = _s[i, j]
                 for k in range(_N_row):
-                    s1[k, :] = s[k, _n_start:_n_stop]
+                    try:
+                        s1[k, :] = s[k, _n_start:_n_stop]
+                    except ValueError:
+                        s1[k, :] = s1[k, :].fill(2)
                 _s[i, j] = s1
 
     return _s
@@ -458,6 +446,24 @@ def treatment_null_mesh(_s, _n, _s0=0):
                 pass
                 _s[i] = 1
     return _s
+
+
+def plotly_form(*args):
+    _data, _legend, _info = args
+
+    _fig = go.Figure()
+    _m = len(_data)
+    _l = 0
+    for i in range(_m):
+        if len(_data[i][2]) > 2:
+            _fig.add_trace(go.Scatter(x=_data[i][3], y=_data[i][2], name=_legend[i]))
+            _l += 1
+    _fig.add_annotation(text=_info[0], xref="paper", yref="paper", x=1, y=0.95, showarrow=False)
+    _fig.add_annotation(text=_info[1], xref="paper", yref="paper", x=1, y=0.9, showarrow=False)
+    _fig.add_annotation(text=_info[4], xref="paper", yref="paper", x=1, y=0.85, showarrow=False)
+
+    _fig.update_yaxes(type="log")
+    _fig.show(renderer='browser')
 
 
 def simple_plot(_inp_data):
@@ -494,12 +500,13 @@ def simple_plot(_inp_data):
     plt.show()
 
 
-def freq_mask(_i: int):
+def freq_mask(_i):
     _n1 = 2
     _n2 = 4
     _freq_mask = [
-        [3000, 3600, 4500, 5100, 6600, 7500, 8200, 8600],   # [0]
-        [3700, 4850, 6350, 6500, 7000, 7100]                            # [1]
+        [3000, 3600, 4500, 5100, 6600, 7500, 8200, 8600],  # [0]
+        [3700, 4850, 6350, 6500, 7000, 7100],  # [1]
+        [5100, 6400, 7000, 8500, 9000, 1000, 11000, 13000]  # [2]
     ]
     return _freq_mask[_i]
 
@@ -507,9 +514,9 @@ def freq_mask(_i: int):
 if __name__ == '__main__':
 
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
-    current_primary_file = '2023-06-25_03'
-    current_primary_dir = '2023_06_25test'
-    main_dir = '2023'
+    current_primary_file = '2024-04-10_01'
+    current_primary_dir = '2024_04_10test'
+    main_dir = '2024'
     date = current_primary_dir[0:10]
     adr1 = DataPaths(current_primary_file, current_primary_dir, main_dir)
     converted_data_file_path = adr1.converted_data_file_path
@@ -529,14 +536,15 @@ if __name__ == '__main__':
     # !!!! ******************************************* !!!!
     # ****** Блок исходных параметров для обработки *******
 
-    freq_res = 11  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    freq_res = 4  # Установка разрешения по частоте в МГц
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения delta_t
     delta_t = 12.427567e-3  # sec
-    delta_f = 0.082397461   # MHz
+    delta_f = 0.082397461  # MHz
 
     att_val = [i * 0.5 for i in range(64)]
     att_dict = {s: 10 ** (s / 10) for s in att_val}
-    freq_spect_mask = freq_mask(0)
+    pol_dict = {0: 'left', 1: 'right'}
+    freq_spect_mask = freq_mask(2)
     # *****************************************************
     polar = 'both'
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
@@ -548,7 +556,7 @@ if __name__ == '__main__':
     # или извлечение спектров из исходных записей
     spectrum, n_aver, polar = preparing_data()
     print('Data are prepared')
-    aver_param = n_aver
+    aver_param = n_aver  # Количество усредняемых частотных бинов для разрешения по частоте в записи
     kf = int(freq_res / delta_f / n_aver)  # Установка разрешения по частоте в единицах максимального разрешения
     # для данного наблюдения delta_f*aver_param, где delta_f = 0.082397461 МГц
     with open(Path(str(converted_data_file_path) + '_head.bin'), 'rb') as inp:
@@ -557,13 +565,6 @@ if __name__ == '__main__':
     # Приведение порядка следования отсчетов по частоте к нормальному,
     # условно, требуют смены порядка записи 1 и 4 - по совокупности признаков
     shape_sp = np.shape(spectrum)
-
-    # s11 = spectrum[1][1]
-    # s21 = spectrum[2][1]
-    # plt.semilogy(s11[:, 100])
-    # plt.show()
-    # plt.semilogy(s11[130, :])
-    # plt.show()
     for i in range(shape_sp[0]):
         for j in range(shape_sp[1]):
             if np.size(spectrum[i, j]) and i in [2]:
@@ -574,7 +575,6 @@ if __name__ == '__main__':
                     s[k, :] = s[k, -1::-1]
                 spectrum[i, j] = s
                 s1 = spectrum[i, j]
-                # aver_param = int(32768 / _n_col)
 
     # Отбрасывание отсчетов защитной зоны поддиапазона наблюдения
     spectrum = band_separation(spectrum, n_aver)
@@ -589,54 +589,35 @@ if __name__ == '__main__':
 
     # Формирование спектров и сканов по маскам freq_spect_mask и time_spect_mask
     spectrum_f, scan = form_spectrum(spectrum, freq_spect_mask, time_spect_mask)
-    # line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
-    # for i in range(4):
-    #     spectr_freq[i, :] = spectr_freq[2 * i + 1, :] - spectr_freq[2 * i, :]
-    #     line_legend_time[i] = line_legend_time[2 * i + 1]
-    # spectr_freq[0, :] = (spectr_freq[0, :] + spectr_freq[2, :]) / 2
-    # spectr_freq[1, :] = spectr_freq[1, :] - spectr_freq[0, :]
-    # spectr_freq[0, :] = spectr_freq[0, :] / 1000
-    # line_legend_time = line_legend_time[0:2]
-    # spectr_freq = spectr_freq[0:2, :]
+
     n_freq = len(time_spect_mask)
     n_time = len(freq_spect_mask)
 
     print('spectr_freq, spectr_time are formed')
-    # Формирование строк-аргументов по времени и частоте и легенды
-    freq = spectrum_f[1][3]
-    timeS = scan[1][3]
 
     # ************************** !!! Вывод данных !!! ***********************
-    # line_legend_time, line_legend_freq = line_legend(freq_spect_mask[:10])
 
-    info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
-                ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-                ('polarisation ' + polar), 'align: ' + '1', 'kurtosis quality = ' + str(head['good_bound'])]
+    info_txt = [f'time resol = {delta_t * kt:.3f} sec',
+                f'freq resol = {delta_f * aver_param * kf:.1f} MHz',
+                f'polarisation {polar}', 'align: ' + '1', 'kurtosis quality = ' + str(head['good_bound'])]
     path1 = data_treatment_file_path
 
-
     # if output_picture_mode == 'y':
-    sp = spectrum_f[1:6, 2]
-
+    # sp = spectrum_f[1:6]
+    # sp1 = [s[2] for s in sp]
     # simple_plot(spectrum_f)
     # simple_plot(scan)
     unit = [' sec', ' MHz']
     _t = 1
-    if spectrum_f[0, 0] < 1000:
+    if spectrum_f[0][0] < 1000:
         _t = 0
-    legend = [str(i) + unit[_t] for i in spectrum_f[:, 0]]
-    fig = go.Figure()
-    m = np.shape(spectrum_f)[0]
-    l = 0
-    for i in range(m):
-        if len(spectrum_f[i][2]) > 2:
-            fig.add_trace(go.Scatter(x=spectrum_f[i][3], y=spectrum_f[i][2], name=legend[i]))
-            l += 1
-    # fig.add_trace(go.Scatter(x=spectrum_f[1][3], y=spectrum_f[1][2]))
-    fig.update_yaxes(type="log")
-    fig.show()
-    # fp.fig_plot(spectrum_f[1][2], 0, freq, 1, info_txt, path1, head)
-    # fp.fig_plot(scan[1][2], 0, timeS, 0, info_txt, path1, head)
+    legend_sp = [str(s[0]) + unit[0] + ' ' + pol_dict[s[1]] for s in spectrum_f]    # for spectrum
+    legend_sc = [str(s[0]) + unit[1] + ' ' + pol_dict[s[1]] for s in scan]          # for scans
+    plotly_form(spectrum_f, legend_sp, info_txt)
+    plotly_form(scan, legend_sc, info_txt)
+
+
+
     # *********************************************************
     # ***            Многооконный вывод данных             ****
     # *********************************************************
@@ -645,13 +626,6 @@ if __name__ == '__main__':
     # ***        Вывод данных двумерный и трехмерный       ****
     # *********************************************************
     # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-
-    # Информация о временном и частотном резрешениях
-    info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
-                ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
-                ('polarisation ' + polar)]
-
-
 
     stop = datetime.now()
     print('\n Total time = ', stop - start)

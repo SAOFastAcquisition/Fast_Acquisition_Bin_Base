@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
 from numpy import int64
+import gzip
 
 from Supporting_func import Fig_plot as fp, align_spectrum, path_to_data
 # from Supporting_func import align_spectrum, path_to_data
@@ -220,7 +221,13 @@ def preparing_data():
     # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
     # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     _path1 = Path(converted_data_file_path, current_primary_file + '_spectrum.npy')
-    spectrum = np.load(_path1, allow_pickle=True)
+    # spectrum = np.load(_path1, allow_pickle=True)
+    if os.path.exists(f'{str(_path1)}.gz'):
+        filename_out = f'{str(_path1)}.gz'
+        with gzip.open(filename_out, "rb") as fin:
+            spectrum = np.load(fin, allow_pickle=True)
+    else:
+        spectrum = np.load(_path1, allow_pickle=True)
     with open(Path(converted_data_file_path, current_primary_file + '_head.bin'), 'rb') as inp:
         head = pickle.load(inp)
     n_aver = head['n_aver']
@@ -400,18 +407,18 @@ if __name__ == '__main__':
     # current_data_dir = parameters['file_folder']          # Папка с текущими данными
     # freq_res = parameters['freq_res']  # Установка разрешения по частоте в МГц
     # kt = parameters['time_res'] // 8  # Установка разрешения по времени в единицах минимального разрешения
-    # 8.1925e-3 сек
+    # # 8.1925e-3 сек
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
-    align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
+    # align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_data_dir = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_data_dir = '2023'
+    current_data_dir = '2024'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2023_10_20sun'
-    current_primary_file = '2023-10-20_02+12'
+    current_primary_dir = '2024_11_12sun'
+    current_primary_file = '2024-11-12_01+24'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:

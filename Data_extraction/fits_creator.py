@@ -128,7 +128,7 @@ def control(_path):
 
 if __name__ == '__main__':
 
-    data_file = '2024-02-22_07+00'
+    data_file = '2024-02-22_08-04'
     main_dir = data_file[0:4]
     data_dir = f'{data_file[0:4]}_{data_file[5:7]}_{data_file[8:10]}sun'
 

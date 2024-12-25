@@ -58,7 +58,7 @@ def extract_whole_band():
                     break
             # ******************************************************************************
 
-            # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра = 2^_n_aver)
+            # Выделение длины усреднения (количество усредняемых на ПЛИС отсчетов спектра _n_aver)
             # Выделение промежутка для значения куртозиса = [2 - bound_left/128, 2 + bound_right/128])
 
             _n_aver = (frame_int & 0xFF00000000) >> 32
@@ -81,10 +81,10 @@ def extract_whole_band():
                 att01 = att_1
                 att02 = att_2
                 att03 = att_3
-            if antenna == 0:
-                polarization = 'left'
-            else:
+            if antenna:
                 polarization = 'right'
+            else:
+                polarization = 'left'
             pass
 
             frame1 = f_in.read(8 * 128)
@@ -135,8 +135,8 @@ def extract_whole_band():
             spectrum_len[j].loc[i] = len(spectrum[j].loc[i])
     polar, measure_kind = status_func(spectrum_len)
 
-    head = {'_date': date,
-            'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца, Луны, калибровка АЧХ
+    head = {'date': date,
+            'measure_kind': measure_kind,  # Вид измерений: наблюдение Солнца (sun), Луны (moon), калибровка АЧХ (test)
             'polar': polar,  # Принимает значения поляризаций: 'both', 'left', 'right'
             'cleaned': 'no',
             '_n_aver': _n_aver,
@@ -178,7 +178,11 @@ def status_func(_sp_len):
 
 
 def save_spectrum(_spectrum, _head):
-    n_aver = _head['n_aver']
+
+    if '_n_aver' in _head:
+        n_aver = _head['_n_aver']
+    else:
+        n_aver = _head['n_aver']
 
     for j in [0, 1, 2, 3, 4]:
         for i in ['left', 'right']:
@@ -214,10 +218,13 @@ def cut_spectrum(_spectrum, n_aver):
 
 
 def convert_to_matrix(S_total, counter, n_aver):
-    """Функция принимает список списков S, который формируется в extract(file_name0) и превращает его в матрицу,
-    строки которой - спектры с разрешением 7.8125/(2**(6-n_aver)) МГц, а столбцы - зависимость значения
-    спектра на фиксированной частоте от времени. Разрешение по времени - 8192 мкс. Вместо пропущенных пакетов
-    вставляет значение 2"""
+    """
+    Функция принимает список списков S, который формируется в extract(file_name0) и превращает его в матрицу,
+    строки которой - спектры с разрешением 0.073242 * n_aver МГц для поддиапазона 2 и 0.082397 * n_aver МГц
+    для всех других поддиапазонов, а столбцы - зависимость значения
+    спектра на фиксированной частоте от времени. Разрешение по времени - 0.013981 с для поддиапазона 2 и 0.012428 для
+    всех других поддиапазонов. Вместо пропущенных пакетов вставляет значение 2
+    """
 
     S = [[int(2)] * 128 for i in range(int(counter))]
     for s in S_total:
@@ -251,11 +258,9 @@ def convert_to_matrix(S_total, counter, n_aver):
 
 
 def preparing_data():
-    """ Функция в зависимости от вида данных (полная полоса 1-3 ГГц, половинная полоса 1-2 или 2-3 ГГц,
-    с двумя поляризациями или одной) выдает данные для построения графиков"""
+    """ Функция проверяет существует ли файл данных, конвертированный в *.npy. Если такого файла нет, вызывает
+    функцию выделения данных из бинарного файла и конвертации в файл *.npy с сохранением"""
 
-    # Для полосы 1-3 ГГц и двух возможных поляризаций выдает по два спектра (1-2 и 2-3 ГГц) для каждой поляризации.
-    # Если поляризация не задействована, то соответствующие спектры - пустые. Спектр 1-2 ГГц - в обратном порядке
     path1 = Path(converted_data_file_path, current_primary_file + '_spectrum.npy')
     if not os.path.isfile(path1):
         extract_whole_band()
@@ -274,7 +279,7 @@ if __name__ == '__main__':
     data_treatment_dir = 'Data_treatment_3_18'  # Каталог для записи результатов обработки, рисунков
 
     current_primary_dir = '2023_06_25test'
-    current_primary_file = '2023-06-25_02'
+    current_primary_file = '2023-06-25_01'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
     #         or current_primary_dir.find('calibr') != -1:
