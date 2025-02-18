@@ -326,10 +326,14 @@ def ngi_temperature(_f, _case_id, _path):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    t_cal0, t_cal1 = 0.2, 4.7  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 5.5, 11.  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 0.2, 4.7  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 5.5, 11.
+    # t_cal0, t_cal1 = 0.2, 4.7  # Интервал Импульса ГШ, сек
+    # t_ground1, t_ground2 = 5.5, 11.  # Интервал определения фона, сек
+    # t_cal0r, t_cal1r = 0.2, 4.7  # Интервал Импульса ГШ, сек
+    # t_ground1r, t_ground2r = 5.5, 11.
+    t_cal0, t_cal1 = 65, 85  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 33, 53.  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 65, 85  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 33, 53.
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -721,8 +725,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    object = 'sun'
-    current_primary_file = '2024-08-28_07+00'
+    object = 'test'
+    current_primary_file = '2025-02-13_01'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -747,7 +751,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -771,7 +775,7 @@ if __name__ == '__main__':
     lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
     low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
     graph_3d_perm = 'n'
-    contour_2d_perm = 'y'
+    contour_2d_perm = 'n'
     poly3d_perm = 'n'
     ab = 'n'  # Подготовка рисунков к публикации в АБ
 

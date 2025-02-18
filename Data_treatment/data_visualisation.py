@@ -412,17 +412,17 @@ if __name__ == '__main__':
     # align_file_name = 'Align_coeff.bin'         # Имя файла с текущими коэффициентами выравнивания АЧХ
     # current_data_dir = r'2021/Results'           # Текущий каталог (за определенный период, здесь - год)
 
-    current_data_dir = '2024'
+    current_data_dir = '2025'
     primary_data_dir = 'Primary_data'           # Каталог исходных данных (за определенный период, здесь - год)
     converted_data_dir = 'Converted_data'       # Каталог для записи результатов конвертации данных и заголовков
     data_treatment_dir = 'Data_treatment'       # Каталог для записи результатов обработки, рисунков
 
-    current_primary_dir = '2024_11_12sun'
-    current_primary_file = '2024-11-12_01+24'
+    current_primary_dir = '2025_02_17test'
+    current_primary_file = '2025-02-17_05'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
-        current_data_dir = '2023/Test_and_calibration'
+        current_data_dir = current_primary_dir[:4] + '/Test_and_calibration'
     current_converted_dir = current_primary_dir + '_conv'
     current_converted_path = Path(converted_data_dir, current_converted_dir)
     current_treatment_dir = current_primary_dir + '_treat'
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 4  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     N_Nyq = 3

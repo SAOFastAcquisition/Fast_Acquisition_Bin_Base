@@ -16,7 +16,7 @@ def path_to_data():
     Определяет путь на конкретной машине к корню каталога данных.
     """
     head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
-    head_path1a = Path(r'E:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
+    head_path1a = Path(r'G:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'D:\Fast_acquisition')  # Путь к каталогу данных для ноута ВМ
     head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
@@ -45,7 +45,7 @@ class DataPaths(object):
 
     def __init__(self, _data_file, _data_dir, _main_dir):
         if _data_dir.find('test') != -1 or _data_dir.find('calibration') != -1 or _data_dir.find('calibr') != -1:
-            _main_dir = '2022/Test_and_calibration'
+            _main_dir = '2025/Test_and_calibration'
         self.data_file_name = _data_file
         self.data_file_prime = _data_file + '.bin'
         self.data_dir = _data_dir

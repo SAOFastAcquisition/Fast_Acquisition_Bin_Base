@@ -118,13 +118,15 @@ def convert_to_txt(path_to_align, _index):
 
 
 # ******************** Путь к исходным данным *********************
-current_data_file = '2022-10-24_03'  # Имя файла с исходными текущими данными без расширения
-current_data_dir = '2022_10_24test_conv'  # Папка с текущими данными
+current_data_file = '2025-02-13_03'  # Имя файла с исходными текущими данными без расширения
+current_data_dir = '2025_02_13test_conv'  # Папка с текущими данными
 align_file_name = 'Align_coeff.bin'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 if current_data_file[0:4] == '2021':
     current_catalog = r'2021\Results'  # Текущий каталог (за определенный период, здесь - год)
 if current_data_file[0:4] == '2022':
     current_catalog = r'2022/Test_and_calibration/Converted_data'
+if current_data_file[0:4] == '2025':
+    current_catalog = r'2025/Test_and_calibration/Converted_data'
 
 file_path_data, head_path = path_to_data(current_catalog, current_data_dir)
 
@@ -211,7 +213,7 @@ calibrate_row_ser = pd.Series(calibrate_row)
 
 if not 'polar' in calibration_frame.columns:
     calibration_frame.polar = ''
-idx = calibration_frame.loc[(calibration_frame._date == head['_date'])
+idx = calibration_frame.loc[(calibration_frame.date == head['_date'])
                             & (calibration_frame.att1 == head['att1'])
                             & (calibration_frame.att2 == head['att2'])
                             & (calibration_frame.att3 == head['att3'])
