@@ -316,8 +316,8 @@ def unite_spectrum(spec):
 def ngi_temperature(_f, _case_id, _path):
     with open(_path, 'rb') as _inp:
         _data_saved = pickle.load(_inp)
-    _arr_av_left = _data_saved['polyval_coeff'][data['case_id'] == _case_id][data['polar'] == 'left'].iloc[0]
-    _arr_av_right = _data_saved['polyval_coeff'][data['case_id'] == _case_id][data['polar'] == 'right'].iloc[0]
+    _arr_av_left = _data_saved['polyval_coeff'][_data_saved['case_id'] == _case_id][_data_saved['polar'] == 'left'].iloc[0]
+    _arr_av_right = _data_saved['polyval_coeff'][_data_saved['case_id'] == _case_id][_data_saved['polar'] == 'right'].iloc[0]
     _temp_interp_left = np.polyval(_arr_av_left, _f)
     _temp_interp_right = np.polyval(_arr_av_right, _f)
 

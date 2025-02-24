@@ -82,18 +82,34 @@ def temperature_nge(_f, t0=300):
     """ Функция возвращает шумовую температуру внешнего поверочного ГШ в зависимости от
     частоты в МГц, t0 - температура окружающей среды ГШ (по умолчанию 300К) На отрезках
     между известными значениями ИОШТ - линейная аппроксимация"""
-    n_1000 = 32.06  # ИОШТ для 1000 МГц
-    n_2000 = 31.44  # ИОШТ для 2000 МГц
-    n_3000 = 29.89  # ИОШТ для 3000 МГц
-    k1 = n_1000 - n_2000
-    k2 = n_2000 - n_3000
 
-    if 1000 <= _f <= 2000:
-        t_nge = (n_1000 - k1 * (_f / 1000 - 1)) * t0
-    elif 2000 < _f <= 3000:
-        t_nge = (n_2000 - k2 * (_f / 1000 - 2)) * t0
+    _state = False
+    #        ***   Расчет шумовой температуры по паспорту ГШ  ***
+    if _state:
+        n_1000 = 32.06  # ИОШТ для 1000 МГц
+        n_2000 = 31.44  # ИОШТ для 2000 МГц
+        n_3000 = 29.89  # ИОШТ для 3000 МГц
+        k1 = n_1000 - n_2000
+        k2 = n_2000 - n_3000
 
-    return t_nge
+        if 1000 <= _f <= 2000:
+            _t_nge = (n_1000 - k1 * (_f / 1000 - 1)) * t0
+        elif 2000 < _f <= 3000:
+            _t_nge = (n_2000 - k2 * (_f / 1000 - 2)) * t0
+    else:
+        #       *** Расчет шумовой температуры внешнего ГШ по аппроксимации результатов измерений на АС
+        # _p_micran = np.array([-2.05263431503711e-38, 6.30918305193933e-34, -8.73958036297908e-30, 7.20854618568729e-26,
+        #                       -3.94039454002255e-22, 1.50318787787416e-18, -4.10364443557718e-15, 8.08533974877552e-12,
+        #                       -1.14436758060165e-08, 1.14285781151358e-05, -0.00777970746228338, 3.39639846380515
+        #                       - 847.790543087551, 100976.166515191])
+
+        _p_micran = np.array([2.69737307432699e-39, - 1.27301953265095e-34, 2.32771189465054e-30, - 2.33556788580858e-26,
+                              1.47235644689694e-22, - 6.22922112163193e-19, 1.82914703936382e-15, - 3.78337462244082e-12,
+                              5.52068719527499e-09, - 5.62624041598661e-06, 0.00391059468154173, - 1.76917915397330,
+                              471.234308153513, - 45768.9717934577])
+        _t_nge = np.polyval(_p_micran, _f)
+
+    return _t_nge
 
 
 def average_ngi(_data):
@@ -158,7 +174,7 @@ def plot_ngi(_data):
     df0 = _delta_f / aver_param_noise
     f0 = np.array([1000 + df0 / 2 + i * df0 for i in range(1024)])
     f1 = np.array([2000 + df0 / 2 + i * df0 for i in range(1024)])
-    f = np.hstack([f0,f1])
+    f = np.hstack([f0, f1])
     x, y = _data['low_band'][_data['polar'] == 'left'], _data['upper_band'][_data['polar'] == 'left']
     index_x, index_y = x.index, y.index
     array_x, array_y = x[index_x[0]], y[index_y[0]]
@@ -211,8 +227,8 @@ if __name__ == '__main__':
     для каждого экземпляра ГШ ***nge_temperature_base_name***, среднее значение шумовой температуры
     от этого ГШ по всем измерениям записывается в файл ***nge_temperature_file_name***'''
 
-    current_data_file = '2025-02-13_01'  # Имя файла с исходными текущими данными без расширения
-    current_primary_dir = '2025_02_13test'
+    current_data_file = '2025-02-21_01'  # Имя файла с исходными текущими данными без расширения
+    current_primary_dir = '2025_02_21test'
     current_data_dir = current_primary_dir + '_conv'  # Папка с текущими данными
     current_catalog = r'2025/Test_and_calibration/Converted_data'  # Текущий каталог (за определенный период, здесь - год)
 
@@ -227,7 +243,7 @@ if __name__ == '__main__':
     timing = [0, 30, 60, 90]
     ngi_temperature_base_path = Path(head_path, 'Alignment', ngi_temperature_base_name)
     ngi_temperature_path = Path(head_path, 'Alignment', ngi_temperature_file_name)
-    columns_names_base = ['nge_id', '_date', 'att1', 'att2', 'att3',
+    columns_names_base = ['nge_id', 'date', 'att1', 'att2', 'att3',
                           'polar', 'attempt_num', 'low_band', 'upper_band']
     columns_names = ['ngi_id', 'polar', 'temperature', 'case_id', 'note']
     if not os.path.isfile(ngi_temperature_base_path):
@@ -244,7 +260,7 @@ if __name__ == '__main__':
     r = temperature_ngi(spectrum, head['polar'], timing)
     attempt_num = current_data_file[11:13]
     idx = ngi_temperature_base.loc[(ngi_temperature_base.nge_id == ngi_id)
-                                   & (ngi_temperature_base._date == head['_date'])
+                                   & (ngi_temperature_base.date == head['_date'])
                                    & (ngi_temperature_base.att1 == head['att1'])
                                    & (ngi_temperature_base.att2 == head['att2'])
                                    & (ngi_temperature_base.att3 == head['att3'])
@@ -259,6 +275,11 @@ if __name__ == '__main__':
                            'low_band': r[0], 'upper_band': r[1]
                            }
         ngi_temperature_base = ngi_temperature_base.append(temperature_row, ignore_index=True)
+        if os.path.isfile(ngi_temperature_base_path):
+            print("Файл существует")
+        else:
+            print("Файл не существует")
+
         with open(ngi_temperature_base_path, 'wb') as out:
             pickle.dump(ngi_temperature_base, out)
     else:
@@ -269,12 +290,14 @@ if __name__ == '__main__':
     # раздельно для каналов левой и правой поляризаций.
     pw = input('Обновить усредненную шумовую температуру ГШ на входе РМ?\t')
     idx_drop = ngi_temperature_base.loc[ngi_temperature_base.att3 == 15].index
+
     if len(idx_drop):
         for n in idx_drop:
             ngi_temperature = ngi_temperature_base.drop([n])
     if pw == 'y':
-        ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['_date']
-                                                                                           # == '2022-11-24']
+        ngi_selected1 = ngi_temperature_base[
+            ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['_date']
+        # == '2022-11-24']
         head['polar'] = 'right'
         ngi_selected1l = ngi_selected1[ngi_selected1['polar'].isin([head['polar']])]
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
@@ -283,8 +306,9 @@ if __name__ == '__main__':
         ngi_temperature_update(ngi_selected1l, ngi_id, case_id)
 
     #               *** Picture ***
-    ngi_selected1 = ngi_temperature_base[ngi_temperature_base['nge_id'].isin([ngi_id])]#[ngi_temperature_base['_date']
-                                                                                       # == '2022-11-24']
+    ngi_selected1 = ngi_temperature_base[
+        ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['_date']
+    # == '2022-11-24']
     plot_ngi(ngi_selected1)
 
     # *******************************************
