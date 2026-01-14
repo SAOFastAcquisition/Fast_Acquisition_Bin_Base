@@ -281,8 +281,8 @@ if __name__ == '__main__':
     current_primary_dir = '2023_06_25test'
     current_primary_file = '2023-06-25_01'
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
-    # if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
-    #         or current_primary_dir.find('calibr') != -1:
+    # if _current_primary_dir.find('test') != -1 or _current_primary_dir.find('calibration') != -1 \
+    #         or _current_primary_dir.find('calibr') != -1:
     #     current_data_dir = '2022/Test_and_calibration'
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'

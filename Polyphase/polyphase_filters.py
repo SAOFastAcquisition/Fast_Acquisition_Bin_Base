@@ -34,9 +34,9 @@ if __name__ == '__main__':
                             # Исходная последовательность
     x = [np.sin((2*np.pi*((i+1)*0.20))) + np.sin((2*np.pi*((i+1)*0.24))) for i in range(0, n)]   #  + np.sin((2*np.pi*((i+1)*0.160)))
     w = [0.54 - 0.46 * np.cos(2 * np.pi * i / (n - 1)) for i in range(0, n)]    # Окно
-    # x_wind = [x[i] * w[i] for i in range(0,n)]          # Взвешенная входная последовательность
+    # x_wind = [_x[i] * w[i] for i in range(0,n)]          # Взвешенная входная последовательность
 
-    h_rect = [1 for i in range(0, 128)]          # Отклик фильтра с АЧХ типа sin(x)/x
+    h_rect = [1 for i in range(0, 128)]          # Отклик фильтра с АЧХ типа sin(_x)/_x
     h, fft_h = ftr.synt_filter(512, 256, 128)    # Отклик прямоугольного модельного фильтра
     n_filter = len(h)
     h_short =h[n_filter // 2 - m // 2:n_filter // 2 + m // 2]   # Выбор количества значений отклика, соответствующего

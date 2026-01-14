@@ -1,6 +1,7 @@
 from astropy.io import fits
 import numpy as np
 from pathlib import Path
+import matplotlib.pyplot as plt
 import os
 import gzip
 import ast
@@ -120,10 +121,10 @@ def control(_path):
     _data2 = hdu_pos.data
     head2 = hdu_list[2].header
     print(*repr(head2))
-    # plt.imshow(f_spectrum.data[:, :, 0], origin='lower')
-    # plt.show()
-    # plt.imshow(f_spectrum.data[:, :, 1], origin='lower')
-    # plt.show()
+    plt.imshow(f_spectrum.data[:, :, 0], origin='lower')
+    plt.show()
+    plt.imshow(f_spectrum.data[:, :, 1], origin='lower')
+    plt.show()
 
 
 if __name__ == '__main__':

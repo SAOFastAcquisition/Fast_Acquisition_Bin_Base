@@ -26,7 +26,8 @@ sys.path.insert(0, Path(current_dir, 'Interface'))
 sys.path.insert(0, Path(current_dir, 'Polyphase'))
 start = datetime.now()
 
-freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+# freq_spect_mask = [1171, 1380, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920]
+freq_spect_mask = [1200 + i * 20 for i in range(10)]
 time_spect_mask = [47, 84.4, 104, 133, 133.05, 177.02, 177.38]
 
 
@@ -188,7 +189,7 @@ def spectr_construction(Spectr, kf, kt):
                     S1[i, j] = 2
                 # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
                 #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                # if robust_filter == 'y':
+                # if robust_filter == '_y':
                 #     a = param_robust_filter
                 #     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
                 #         S1[i, j] = np.sum(S1[i - 1, j])
@@ -326,14 +327,14 @@ def ngi_temperature(_f, _case_id, _path):
 
 def noise_self_calibration(_spectrum, _ngi_temperature_path):
     # Временные интервалы для калибровки по внутреннему ГШ
-    # t_cal0, t_cal1 = 0.2, 4.7  # Интервал Импульса ГШ, сек
-    # t_ground1, t_ground2 = 5.5, 11.  # Интервал определения фона, сек
-    # t_cal0r, t_cal1r = 0.2, 4.7  # Интервал Импульса ГШ, сек
-    # t_ground1r, t_ground2r = 5.5, 11.
-    t_cal0, t_cal1 = 65, 85  # Интервал Импульса ГШ, сек
-    t_ground1, t_ground2 = 33, 53.  # Интервал определения фона, сек
-    t_cal0r, t_cal1r = 65, 85  # Интервал Импульса ГШ, сек
-    t_ground1r, t_ground2r = 33, 53.
+    t_cal0, t_cal1 = 0.2, 4.7  # Интервал Импульса ГШ, сек
+    t_ground1, t_ground2 = 5.5, 11.  # Интервал определения фона, сек
+    t_cal0r, t_cal1r = 0.2, 4.7  # Интервал Импульса ГШ, сек
+    t_ground1r, t_ground2r = 5.5, 11.
+    # t_cal0, t_cal1 = 65, 85  # Интервал Импульса ГШ, сек
+    # t_ground1, t_ground2 = 33, 53.  # Интервал определения фона, сек
+    # t_cal0r, t_cal1r = 65, 85  # Интервал Импульса ГШ, сек
+    # t_ground1r, t_ground2r = 33, 53.
 
     # Закрузка шумовой калибровочной температуры на входе приемника
     with open(_ngi_temperature_path, 'rb') as _inp:
@@ -670,17 +671,17 @@ def receiver_noise_temperature(_path, _n, _case):
 
 def freq_mask(_i):
     _n1 = 1
-    _n2 = 2
+    _n2 = 1
     _freq_mask = [
         [2424],  # [0]
         [1245, 1375, 2500, 2820],  # [1] article to 'ab' Crab and 3C273
         [1080, 1140, 1360, 1420, 1620, 1780, 1980],  # [2]
-        [1000 * _n1 + 100 * _n2 + 0 + 20 * i for i in range(10)],  # [3]
+        [1000 * _n1 + 100 * _n2 + 0 + 40 * i for i in range(10)],  # [3]
         [1050, 1465, 1535, 1600, 1700, 2265, 2550, 2700, 2800, 2920],  # [4]
         [1245, 1375, 2260, 2360, 2500, 2720, 2820, 2940],  # [5]
         [1140, 1420, 1480, 2460, 2500, 2780],  # for Crab '2021-06-28_03+14'    # [6]
         [1220, 1540, 1980, 2060, 2500, 2780],  # for Crab '2021-06-28_04+12'    # [7]
-        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2860],  # [8]
+        [1200, 1380, 1465, 1600, 1700, 2265, 2490, 2710, 2800, 2840],  # [8]
         [1200, 1380, 2265, 2800]  # [9] article to 'ab' Sun
     ]
     return _freq_mask[_i]
@@ -690,11 +691,11 @@ def data_poly3d_prep(_spectrum_extr):
     _k, _m = np.shape(_spectrum_extr)
     freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]  # Маска для выбора спектров из трех диапазонов частот
     freq_mask_singles = [1100, 1200, 1300, 1700, 1780, 2080, 2300, 2500, 2720, 2800, 2920]  # Маска для одиночных частот
-    mask_poly = 'y'
+    mask_poly = '_y'
     _data_poly3d = []
     num_mask = []
 
-    if mask_poly == 'y':
+    if mask_poly == '_y':
         i = 0
         _n = [0] * 6
         for s in freq_mask_poly:
@@ -725,8 +726,8 @@ if __name__ == '__main__':
     # output_picture_mode = parameters['output_picture_mode'] == 'yes'
     align_file_name = 'antenna_temperature_coefficients.npy'  # Имя файла с текущими коэффициентами выравнивания АЧХ
 
-    object = 'test'
-    current_primary_file = '2025-02-13_01'
+    object = 'sun'
+    current_primary_file = '2025-06-15_04+12'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     main_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -751,7 +752,7 @@ if __name__ == '__main__':
     # ****** Блок исходных параметров для обработки *******
 
     freq_res = 4  # Установка разрешения по частоте в МГц
-    kt = 64  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
+    kt = 2  # Установка разрешения по времени в единицах минимального разрешения 8.3886e-3 сек
     delta_t = 8.3886e-3
     delta_f = 7.8125
     t_cal0, t_cal1 = 55, 85  # Интервал нагрузки на черное тело, сек
@@ -767,13 +768,13 @@ if __name__ == '__main__':
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'y'
-    align = 'y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: 'y' / 'n'
-    noise_calibr = 'y'
+    output_picture_mode = '_y'
+    align = '_y'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ: '_y' / 'n'
+    noise_calibr = '_y'
     black_body_calibr = 'n'
-    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    save_data = 'n'  # Сохранение сканов в формате *.npy: '_y' / 'n'
+    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): '_y' / 'n'
+    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: '_y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
     poly3d_perm = 'n'
@@ -792,7 +793,7 @@ if __name__ == '__main__':
         head = pickle.load(inp)
 
     # Выравнивание спектров по результатам шумовых измерений АЧХ
-    if align == 'y':
+    if align == '_y':
         if head['att3'] == 0:
             pos = 0
         elif head['att3'] == 5:
@@ -821,9 +822,9 @@ if __name__ == '__main__':
 
     spectrum = pd.Series([spectr_extr_left1, spectr_extr_left2, spectr_extr_right1, spectr_extr_right2])
 
-    if noise_calibr == 'y':
+    if noise_calibr == '_y':
         spectrum = noise_self_calibration(spectrum, ngi_temperature_path)
-    if black_body_calibr == 'y':
+    if black_body_calibr == '_y':
         spectrum = noise_black_body_calibration(spectrum, receiver_temperature_path)
 
     united_spectrum = unite_spectrum(spectrum)
@@ -850,7 +851,7 @@ if __name__ == '__main__':
     # time_spect_mask = [152.2, 153.2, 157.2]  # Максимальная вспышка 03.03.23
     # time_spect_mask = [141.8, 142.05, 142.3, 142.55]  # az+24
     # time_spect_mask = [136.125, 136.375, 252.54, 252.79]    # az+20
-    # time_spect_mask = [136.0, 182, 252.0]  # az+20
+    # time_spect_mask = [130.0, 130.25, 147, 147.25, 150, 150.25]  # az+20
     # time_spect_mask = [205.05, 205.30, 204.8, 204.55]  # az+20
     # if band_size == 'whole':
     #      freq_spect_mask = []
@@ -889,7 +890,7 @@ if __name__ == '__main__':
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
-    # path_npy1 = Path(str(converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
+    # path_npy1 = Path(str(_converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
     path_npy2 = Path(str(converted_data_file_path) + '_scan_freq.npy')  # Сканы на фиксированных частотах
     path_npy_time = Path(str(converted_data_file_path) + '_time_count.npy')
     # print(path_txt)
@@ -912,7 +913,7 @@ if __name__ == '__main__':
                 f'polarisation {polar}', 'align: noise gen.', f'kurtosis quality = {a}']
     path1 = data_treatment_file_path
     # ********************** Сохранение сканов в формате *.npy **************
-    if save_data == 'y':
+    if save_data == '_y':
         np.save(path1, spectr_time)
         path_mesh = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed')
         path_mesh1 = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed' + '.npy')
@@ -923,12 +924,12 @@ if __name__ == '__main__':
             spectrum_mesh = spectr_construction(spectrum_extr, kf, kt)
             np.save(path_mesh, spectrum_mesh)
     # ***********************************************************************
-    if lf_filter == 'y':
+    if lf_filter == '_y':
         spectr_time = signal_filtering(spectr_time, 1.0)
 
     # ***********************************************************************
     #               ****** Low noise spectra ******
-    if low_noise_spectrum == 'y':
+    if low_noise_spectrum == '_y':
         spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768 // 4)
         if kt == 1 & kf == 1:
             m, n = spectrum_signal_av.shape
@@ -937,14 +938,14 @@ if __name__ == '__main__':
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
         # np.save(Path(path1, 'LN_spectrum'), spectrum_signal_av)
-        if ab == 'y':
+        if ab == '_y':
             plot_low_freq_spec_ab(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
         else:
             plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
     #                       *****************************
 
-    if output_picture_mode == 'y':
-        if ab == 'y':
+    if output_picture_mode == '_y':
+        if ab == '_y':
             # fp.fig_plot_ab(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
             fp.fig_plot_ab(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
         else:
@@ -956,7 +957,7 @@ if __name__ == '__main__':
     if output_picture_mode == 'no':
         t_start, t_stop = 50, 180
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
-        if ab == 'y':
+        if ab == '_y':
             fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
                                  path1, freq_spect_mask, head)
         else:
@@ -967,14 +968,14 @@ if __name__ == '__main__':
     # ***        Вывод данных двумерный и трехмерный       ****
     # *********************************************************
     # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-    if graph_3d_perm == 'y' or contour_2d_perm == 'y' or poly3d_perm == 'y':
+    if graph_3d_perm == '_y' or contour_2d_perm == '_y' or poly3d_perm == '_y':
         spectr_extr1 = spectr_construction(spectrum_extr, kf, kt)
     # Информация о временном и частотном резрешениях
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
                 ('polarisation ' + polar)]
 
-    if graph_3d_perm == 'y':
+    if graph_3d_perm == '_y':
         t_start, t_stop = 175, 195
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
         f_start = 1000
@@ -983,13 +984,13 @@ if __name__ == '__main__':
         nf_stop = int((f_stop - 1000) / freq_res)
         fp.graph_3d(freq[nf_start:nf_stop], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:nf_stop],
                     3, path1, head)
-    if contour_2d_perm == 'y':
-        if ab == 'y':
+    if contour_2d_perm == '_y':
+        if ab == '_y':
             fp.graph_contour_2d_ab(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
         else:
             fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
 
-    if poly3d_perm == 'y':
+    if poly3d_perm == '_y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
         poly_graph3d(timeS, data_poly3d, freq_mask)
 

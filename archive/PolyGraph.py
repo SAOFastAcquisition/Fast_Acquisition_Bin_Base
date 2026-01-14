@@ -29,9 +29,9 @@ def poly_graph(xs, y, zs):
         ys = y[i, :]
         verts.append(list(zip(xs, ys)))
 
-    poly = PolyCollection(verts, facecolors=['r', 'g', 'c', 'y'])
+    poly = PolyCollection(verts, facecolors=['r', 'g', 'c', '_y'])
     poly.set_alpha(0.7)
-    ax.add_collection3d(poly, zs=zs, zdir='y')
+    ax.add_collection3d(poly, zs=zs, zdir='_y')
 
     ax.set_xlabel('X')
     ax.set_xlim3d(132, 134)

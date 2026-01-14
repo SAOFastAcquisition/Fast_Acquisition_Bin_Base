@@ -18,7 +18,7 @@ from Help_folder.paths_via_class import DataPaths
 #         self.main_dir = _main_dir
 #         self.head_path = path_to_data()
 #         self.primary_dir_path, self.primary_data_file_path = self.primary_paths()
-#         self.converted_dir_path, self.converted_data_file_path = self.converted_paths()
+#         self.converted_dir_path, self._converted_data_file_path = self.converted_paths()
 #         self.treatment_dir_path, self.treatment_data_file_path = self.treat_paths()
 #
 #     def primary_paths(self):
@@ -95,7 +95,7 @@ def create_folder(_path):
 if __name__ == '__main__':
     start = datetime.now()
 
-    date = '2024-08-28'
+    date = '2025-12-17'
     spect = 'sun'        # Вид наблюдений: 'sun', 'test', 'calibr'
     main_dir = date[0:4]
     data_dir = f'{date[0:4]}_{date[5:7]}_{date[8:]}{spect}'

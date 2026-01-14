@@ -425,7 +425,7 @@ if __name__ == '__main__':
     if len(idx_drop):
         for n in idx_drop:
             ngi_temperature = ngi_temperature_base.drop([n])
-    if pw == 'y':
+    if pw == '_y':
         ngi_selected1 = ngi_temperature_base[
             ngi_temperature_base['nge_id'].isin([ngi_id])]  # [ngi_temperature_base['_date']
         # == '2022-11-24']

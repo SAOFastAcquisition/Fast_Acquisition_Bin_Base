@@ -17,11 +17,11 @@ def simplest_fig(_x, _y, _z):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
     angle = np.array([t * angle_per_sample for t in range(n_angle)])
 
-    main_lobe1 = gauss(angle, 50 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
-    main_lobe2 = gauss(angle, 20 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe1 = gauss(angle, 100 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
+    main_lobe2 = gauss(angle, 30 / 3600 / 57.2, 300, n_angle_center * angle_per_sample)
     for i in range(len(main_lobe1)):
         if main_lobe1[i] < 1e-4:
             main_lobe1[i] = 1e-4

@@ -30,9 +30,9 @@ def poly_graph(xs, y, zs):
         ys = y[i, :]
         verts.append(list(zip(xs, ys)))
 
-    poly = PolyCollection(verts, facecolors=['r', 'g', 'c', 'y'])
+    poly = PolyCollection(verts, facecolors=['r', 'g', 'c', '_y'])
     poly.set_alpha(0.7)
-    ax.add_collection3d(poly, zs=zs, zdir='y')
+    ax.add_collection3d(poly, zs=zs, zdir='_y')
 
     ax.set_xlabel('X')
     ax.set_xlim3d(132, 134)
@@ -196,7 +196,7 @@ aver_param = 1
 
 poly_gr = 'n'
 lin_gr = 'n'
-multi_gr = 'y'
+multi_gr = '_y'
 
 head_path = path_to_YaDisk()
 file_name0 = head_path + '\\Measure\\Fast_Acquisition\\2020_03_19sun\\20200319-1209_+02-3'
@@ -267,7 +267,7 @@ for i in range(l):
     scan_init_burn1[i, :] = scan_init[i, n_spec_start:n_spec_stop]/background[i]
 
 
-if multi_gr == 'y':
+if multi_gr == '_y':
     scan_init_burn2 = np.zeros((l, n_spec_stop - n_spec_start))
     k = 0
     for i in range(4, 14):
@@ -275,7 +275,7 @@ if multi_gr == 'y':
         k += 1
     fp.fig_plot(scan_init_burn2[4:14, :], flare, timeS1, 0, info_txt, file_name0, line_legend_freq[4:14])
 pass
-if poly_gr == 'y':
+if poly_gr == '_y':
     poly_graph(timeS, scan_init_burn, freq_spect_mask)
-if lin_gr == 'y':
+if lin_gr == '_y':
     lin_graph_3d(timeS1, freq_spect_mask, scan_init_burn1)

@@ -27,7 +27,7 @@ def fig_plot(x, y):
                                        weight='bold',
                                        style='normal', size=20)
     ax.legend(prop=font)
-    # ax.plot(x, y, 'ro-', label='Time = 0.2 sec') # Запись попроще, почти как в Матлаб
+    # ax.plot(_x, _y, 'ro-', label='Time = 0.2 sec') # Запись попроще, почти как в Матлаб
     # ax.plot()
     # ax.legend()
 

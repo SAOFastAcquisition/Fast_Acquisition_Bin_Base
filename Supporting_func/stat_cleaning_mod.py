@@ -36,7 +36,7 @@ def clean_func(data, frame_centers_loc, length_frame):
     #                               **************************
     # Сканы для двух частот (используются при отладке) работают вместе с отображением
     # их на рисунках  до статистической обработки и после нее
-    if debugging == 'y':
+    if debugging == '_y':
         n = 213
         m = 214
         data01 = np.array(data[:, n], dtype=float)
@@ -72,7 +72,7 @@ def clean_func(data, frame_centers_loc, length_frame):
 
     #                              **************************
     # Отображения сканов для двух частот (используются при отладке)
-    if debugging == 'y':
+    if debugging == '_y':
         fig, ax = plt.subplots(1, figsize=(12, 6))
         data1 = np.array(data[:, n], dtype=float)
         data2 = np.array(data[:, m], dtype=float)
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     n_aver = int(head['n_aver'])
     freq_resolution = 7.8125e6 / 2 ** (6 - n_aver)
     spectrum_out = [[], [], [], []]
-    debugging = 'y'
+    debugging = '_y'
 
     # Если запись содержит две поляризации, то длина отрезка разбиения (полупериод переключения
     # поляризаций) равна 34, если поляризация одна то длина отрезка - 63
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     print('calc over')
     head['cleaned'] = 'yes'
     path_to_data0 = str(Path(file_path_data, current_data_file))
-    if not debugging == 'y':
+    if not debugging == '_y':
         if not Path(file_path_data, current_data_file + '_spectrum_prime.npy').is_file():
             os.rename(path_to_data0 + '_spectrum.npy', path_to_data0 + '_spectrum_prime.npy')
             np.save(path_to_data0 + '_spectrum', spectrum_out)

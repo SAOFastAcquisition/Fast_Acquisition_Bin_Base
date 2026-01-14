@@ -72,7 +72,7 @@ def sun_az_speed(_date, _az):
     speed_calc = [p(z) for z in x]
     # fig, axes = plt.subplots(1, 1, figsize=(12, 12))
     # axes.plot(x_az, _sun_speed)
-    # axes.plot(x, speed_calc)
+    # axes.plot(_x, speed_calc)
     # axes.grid('on')
     # plt.show()
     return p(_az)

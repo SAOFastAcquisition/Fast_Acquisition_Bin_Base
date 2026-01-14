@@ -45,7 +45,7 @@ def some_fig_plot(_data, _path_to_fig_folder=None):
         _axes[_j].plot(_freq, _data[_j, :])
         _axes[_j].grid()
         _axes[_j].grid(which='minor',
-                       axis='x',
+                       axis='_x',
                        color='k',
                        linestyle=':')
     _sum = np.sum(_data, axis=0)
@@ -64,7 +64,7 @@ def some_fig_plot(_data, _path_to_fig_folder=None):
     #     axes[2].minorticks_on()
     #     axes[2].grid()
     #     axes[2].grid(which='minor',
-    #                  axis='x',
+    #                  axis='_x',
     #                  color='k',
     #                  linestyle=':')
     # y1 = y_max - 2 * (y_max - y_min) / 10
@@ -292,7 +292,7 @@ if __name__ == '__main__':
     # Загрузка исходных данных в виде спектров в фиксированные моменты времени '_spectrum_time.npy'
     # или сканов на фиксированных частотах '_scan_freq.npy'
     #                               **************************
-    # path_npy = Path(str(converted_data_file_path) + '_spectrum_time.npy')
+    # path_npy = Path(str(_converted_data_file_path) + '_spectrum_time.npy')
     path_npy = Path(str(converted_data_file_path) + '_scan_freq.npy')
     tag = 0
     if 'spectrum_time' in str(path_npy):

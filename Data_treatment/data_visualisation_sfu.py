@@ -192,7 +192,7 @@ def spectr_construction(Spectr, kf, kt):
                     S1[i, j] = 2
                 # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
                 #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                # if robust_filter == 'y':
+                # if robust_filter == '_y':
                 #     a = param_robust_filter
                 #     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
                 #         S1[i, j] = np.sum(S1[i - 1, j])
@@ -386,11 +386,11 @@ def data_poly3d_prep(_spectrum_extr):
     _k, _m = np.shape(_spectrum_extr)
     freq_mask_poly = [1100, 1200, 1700, 1800, 2800, 2900]  # Маска для выбора спектров из трех диапазонов частот
     freq_mask_singles = [1100, 1200, 1300, 1700, 1780, 2080, 2300, 2500, 2720, 2800, 2920]  # Маска для одиночных частот
-    mask_poly = 'y'
+    mask_poly = '_y'
     _data_poly3d = []
     num_mask = []
 
-    if mask_poly == 'y':
+    if mask_poly == '_y':
         i = 0
         _n = [0] * 6
         for s in freq_mask_poly:
@@ -505,10 +505,10 @@ if __name__ == '__main__':
     # band_size = 'whole'   Параметр 'whole' означает работу в диапазоне 1-3 ГГц, 'half' - диапазон 1-2 или 2-3 ГГц
     # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
     # *****************************************************
-    output_picture_mode = 'y'
-    save_data = 'n'  # Сохранение сканов в формате *.npy: 'y' / 'n'
-    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): 'y' / 'n'
-    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: 'y' / 'n'
+    output_picture_mode = '_y'
+    save_data = 'n'  # Сохранение сканов в формате *.npy: '_y' / 'n'
+    lf_filter = 'n'  # Применение НЧ фильтра для сглаживания сканов (скользящее среднее и др.): '_y' / 'n'
+    low_noise_spectrum = 'n'  # Вывод графика НЧ спектра шумовой дорожки: '_y' / 'n'
     graph_3d_perm = 'n'
     contour_2d_perm = 'n'
     poly3d_perm = 'n'
@@ -556,7 +556,7 @@ if __name__ == '__main__':
     # Динамическая маска (зависит от длины записи во времени)
     t_spect = N_row * delta_t
 
-    if spectrum_LR == 'y':
+    if spectrum_LR == '_y':
         time_spect_mask = [t0 + i * 0.25 for i in range(4)]  # az+20
     else:
         time_spect_mask = [(t_spect * (i + 0.05) // 7) for i in range(7)]
@@ -595,7 +595,7 @@ if __name__ == '__main__':
 
     # ***************!! Вывод данных в текстовой форме !!*********************
     # path_txt = str(Path(converted_dir_path, current_data_file, '_scan.txt'))
-    # path_npy1 = Path(str(converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
+    # path_npy1 = Path(str(_converted_data_file_path) + '_spectrum_time.npy') # Спектры в фиксированные моменты времени
     path_npy2 = Path(str(converted_data_file_path) + '_scan_freq.npy')  # Сканы на фиксированных частотах
     path_npy_time = Path(str(converted_data_file_path) + '_time_count.npy')
     # print(path_txt)
@@ -618,7 +618,7 @@ if __name__ == '__main__':
                 f'polarisation {polar}', 'align: quiet Sun', f'kurtosis quality = {a}']
     path1 = data_treatment_file_path
     # ********************** Сохранение сканов в формате *.npy **************
-    if save_data == 'y':
+    if save_data == '_y':
         np.save(path1, spectr_time)
         path_mesh = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed')
         path_mesh1 = Path(data_treatment_file_path, 'Meshed_Spectrum', current_primary_file + '_meshed' + '.npy')
@@ -629,12 +629,12 @@ if __name__ == '__main__':
             spectrum_mesh = spectr_construction(spectrum_extr, kf, kt)
             np.save(path_mesh, spectrum_mesh)
     # ***********************************************************************
-    if lf_filter == 'y':
+    if lf_filter == '_y':
         spectr_time = signal_filtering(spectr_time, 1.0)
 
     # ***********************************************************************
     #               ****** Low noise spectra ******
-    if low_noise_spectrum == 'y':
+    if low_noise_spectrum == '_y':
         spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 32768 // 4)
         if kt == 1 & kf == 1:
             m, n = spectrum_signal_av.shape
@@ -643,14 +643,14 @@ if __name__ == '__main__':
             arg = np.linspace(f_min, f_max, n)
             low_noise_spectra_base(spectrum_signal_av, head, freq_spect_mask, arg, current_primary_file)
         # np.save(Path(path1, 'LN_spectrum'), spectrum_signal_av)
-        if ab == 'y':
+        if ab == '_y':
             plot_low_freq_spec_ab(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
         else:
             plot_low_freq_spec(spectrum_signal_av, delta_t * kt, path1, line_legend_freq)
     #                       *****************************
 
-    if output_picture_mode == 'y':
-        if ab == 'y':
+    if output_picture_mode == '_y':
+        if ab == '_y':
             # fp.fig_plot_ab(spectr_freq, 0, freq, 1, info_txt, path1, head, line_legend_time)
             fp.fig_plot_ab(spectr_time, 0, timeS, 0, info_txt, path1, head, line_legend_freq)
         else:
@@ -662,7 +662,7 @@ if __name__ == '__main__':
     if output_picture_mode == 'no':
         t_start, t_stop = 50, 180
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
-        if ab == 'y':
+        if ab == '_y':
             fp.fig_multi_axes_ab(spectr_time[:10, n_start:n_stop], timeS[n_start:n_stop], info_txt,
                                  path1, freq_spect_mask, head)
         else:
@@ -673,14 +673,14 @@ if __name__ == '__main__':
     # ***        Вывод данных двумерный и трехмерный       ****
     # *********************************************************
     # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-    if graph_3d_perm == 'y' or contour_2d_perm == 'y' or poly3d_perm == 'y':
+    if graph_3d_perm == '_y' or contour_2d_perm == '_y' or poly3d_perm == '_y':
         spectr_extr1 = spectr_construction(spectrum_extr, kf, kt)
     # Информация о временном и частотном резрешениях
     info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
                 ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
                 ('polarisation ' + polar)]
 
-    if graph_3d_perm == 'y':
+    if graph_3d_perm == '_y':
         t_start, t_stop = 175, 195
         n_start, n_stop = int(t_start / delta_t / kt), int(t_stop / delta_t / kt)
         f_start = 1000
@@ -689,13 +689,13 @@ if __name__ == '__main__':
         nf_stop = int((f_stop - 1000) / freq_res)
         fp.graph_3d(freq[nf_start:nf_stop], timeS[n_start:n_stop], spectr_extr1[n_start:n_stop, nf_start:nf_stop],
                     3, path1, head)
-    if contour_2d_perm == 'y':
-        if ab == 'y':
+    if contour_2d_perm == '_y':
+        if ab == '_y':
             fp.graph_contour_2d_ab(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
         else:
             fp.graph_contour_2d(freq, timeS, spectr_extr1, 0, info_txt, path1, head)
 
-    if poly3d_perm == 'y':
+    if poly3d_perm == '_y':
         data_poly3d, freq_mask = data_poly3d_prep(spectr_extr1)
         poly_graph3d(timeS, data_poly3d, freq_mask)
 

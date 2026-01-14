@@ -52,8 +52,8 @@ band_size_init = 'whole'
 # polar = 'both'        Принимает значения поляризаций: 'both', 'left', 'right'
 robust_filter = 'n'
 param_robust_filter = 1.1
-align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('y' / 'n')
-low_noise_spectrum = 'т'    # Вывод графика НЧ спектра шумовой дорожки ('y' / 'n')
+align = 'n'  # Выравнивание АЧХ усилительного тракта по калибровке от ГШ ('_y' / 'n')
+low_noise_spectrum = 'т'    # Вывод графика НЧ спектра шумовой дорожки ('_y' / 'n')
 noise_calibr = 'n'
 graph_3d_perm = 'n'
 contour_2d_perm = 'n'
@@ -702,7 +702,7 @@ def spectr_construction(Spectr, kf, kt):
                     S1[i, j] = 2
                 # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
                 #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                if robust_filter == 'y':
+                if robust_filter == '_y':
                     a = param_robust_filter
                     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
                         S1[i, j] = np.sum(S1[i - 1, j])
@@ -848,7 +848,7 @@ with open(Path(file_path_data, current_data_file + '_head.bin'), 'rb') as inp:
     head = pickle.load(inp)
 
 # Выравнивание спектров по результатам шумовых измерений АЧХ
-if align == 'y':
+if align == '_y':
     if head['att3'] == 5:
         pos = 1
     elif head['att3'] == 0:
@@ -879,7 +879,7 @@ if len(ser_ind) == 2:
 else:
     spectrum_extr = united_spectrum[0]
 
-# if noise_calibr == 'y':
+# if noise_calibr == '_y':
 #     spectr_time = calibration(t_cal, spectr_time)
 
 # # ***********************************************
@@ -921,7 +921,7 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('freq resol = ' + str(delta_f / aver_param * kf) + 'MHz'),
             ('polarisation ' + polar), 'align: ' + align]
 
-if low_noise_spectrum == 'y':
+if low_noise_spectrum == '_y':
     spectrum_signal_av = low_freq_noise_spectrum(spectr_time, 8192)
     plot_low_freq_spec(spectrum_signal_av, delta_t * kt, (Path(file_path_data, current_data_file)),
                        line_legend_freq)
@@ -942,7 +942,7 @@ if parameters['output_picture_mode'] == 'no':
 # ***        Вывод данных двумерный и трехмерный       ****
 # *********************************************************
 # Укрупнение  разрешения по частоте и времени для вывода в 2d и 3d
-if graph_3d_perm == 'y' or contour_2d_perm == 'y':
+if graph_3d_perm == '_y' or contour_2d_perm == '_y':
     spectr_extr1 = spectr_construction(spectrum_extr, kf, kt)
 # Информация о временном и частотном резрешениях
 info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
@@ -950,16 +950,16 @@ info_txt = [('time resol = ' + str(delta_t * kt) + 'sec'),
             ('polarisation ' + polar)]
 path_to_fig()
 
-if graph_3d_perm == 'y':
+if graph_3d_perm == '_y':
     fp.graph_3d(freq, timeS, spectr_extr1, 0, current_data_file, head)
-if contour_2d_perm == 'y':
+if contour_2d_perm == '_y':
     fp.graph_contour_2d(freq, timeS, spectr_extr1, 0)
 
-# if align == 'y':
-#     align_coeff1 = align_func1(spectr_freq[1, :], 'y', aver_param)
+# if align == '_y':
+#     align_coeff1 = align_func1(spectr_freq[1, :], '_y', aver_param)
 #     spectr_extr = spectr_extr * align_coeff1
 
-# if graph_3d_perm == 'y':
+# if graph_3d_perm == '_y':
 #     graph_3d(freq, timeS[n_start_flame:n_stop_flame], spectr_extr1[n_start_flame:n_stop_flame, :], 0)
 # fp.fig_multi_axes(spectr_time[:10, n_start_flame:n_stop_flame], timeS[n_start_flame:n_stop_flame],
 #                   info_txt, file_name0, freq_spect_mask[:10])

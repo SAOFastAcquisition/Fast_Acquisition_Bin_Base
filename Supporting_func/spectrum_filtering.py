@@ -24,7 +24,7 @@ def model_signal():
 
 
 def kernel_cell(n, m):
-    """ Функция отдает двумерное сверточное ядро размером (m x n) на основании максимально плоского фильтра"""
+    """ Функция отдает двумерное сверточное ядро размером (m _x n) на основании максимально плоского фильтра"""
     w_inter_freq = np.array(flattop(n))
     w_inter_time = np.array(flattop(m))
     kernel_in = np.ones((m, n), dtype=np.float64)
@@ -65,14 +65,14 @@ if __name__ == '__main__':
     в имени. 
     """
     model = 'n'
-    visualization = 'y'
+    visualization = '_y'
     n = 32  # Фильтрация по частоте (постоянная фильтра примерно 2*n/3 отсчетов)
     m = 128   # Фильтрация по времени (постоянная фильтра примерно 2*m/3 отсчетов)
     current_data_file = '2021-06-28_03+14'  # Имя файла с исходными текущими данными без расширения
     current_data_dir = '2021_06_28crab'      # Папка с текущими данными
     current_catalog = r'2021\Results'       # Текущий каталог (за определенный период, здесь - год)
 
-    if model == 'y':
+    if model == '_y':
         signal_rand = model_signal()
         scan_loc = np.reshape(signal_rand, (-1, 1024))  # Разбиваем на реализации длиной 1024 отсчетов
         spectrum_loc = np.abs(fft(scan_loc, 1024, axis=1) ** 2)
@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     # kernel = np.outer(_signal.gaussian(70, 8), _signal.gaussian(70, 8))
 
-    if visualization == 'y':
+    if visualization == '_y':
         some_visualisation()
     path1 = Path(file_path_data, current_data_file + '_kernel_spectrum')
     np.save(path1, spectrum)

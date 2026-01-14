@@ -153,6 +153,7 @@ def path_to_data(current_catalog_in, current_data_dir_in):
     """
     head_path1 = Path(r'H:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path1a = Path(r'G:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
+    head_path1b = Path(r'I:\Fast_Acquisition')  # Путь к каталогу данных для домашнего ноута
     head_path2 = Path(r'/media/anatoly/Samsung_T5/Fast_Acquisition')  # Путь к каталогу данных для рабочего компа
     head_path3 = Path(r'D:\Fast_acquisition')  # Путь к каталогу данных для ноута ВМ
     head_path4 = Path(r'J:\Fast_Acquisition')  # Путь к каталогу данных для notebook 'Khristina'
@@ -161,6 +162,8 @@ def path_to_data(current_catalog_in, current_data_dir_in):
         head_path_out = head_path1
     elif head_path1a.is_dir():
         head_path_out = head_path1a
+    elif head_path1b.is_dir():
+        head_path_out = head_path1b
     elif head_path2.is_dir():
         head_path_out = head_path2
     elif head_path3.is_dir():
@@ -239,11 +242,11 @@ def two_fig_plot(_path_to_fig_folder):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -315,7 +318,7 @@ def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv, _head=None):
         axes[2].minorticks_on()
         axes[2].grid()
         axes[2].grid(which='minor',
-                     axis='x',
+                     axis='_x',
                      color='k',
                      linestyle=':')
     y1 = y_max - 2 * (y_max - y_min) / 10
@@ -326,11 +329,11 @@ def some_fig_plot(_path_to_fig_folder, _s_i, _s_v, _s_dv, _head=None):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -361,11 +364,11 @@ def simplest_fig(_x, _y, _z):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -379,10 +382,10 @@ def twin_fig_plot():
     for j in num_mask:
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()  # Создание второй оси ординат (справа). Ось абсцисс общая
-        ax1.plot(mean_frame_ind_pol, s0[:, j], label='x(t)')
-        ax2.plot(mean_frame_ind_pol, s3[:, j], label='y(t)', color='darkred')
-        # ax1.plot([i for i in range(m)], s0[:, j], label='x(t)')
-        # ax2.plot([i for i in range(m)], s3[:, j], label='y(t)', color='darkred')
+        ax1.plot(mean_frame_ind_pol, s0[:, j], label='_x(t)')
+        ax2.plot(mean_frame_ind_pol, s3[:, j], label='_y(t)', color='darkred')
+        # ax1.plot([i for i in range(m)], s0[:, j], label='_x(t)')
+        # ax2.plot([i for i in range(m)], s3[:, j], label='_y(t)', color='darkred')
         ax1.set_ylabel('Stokes_I')
         ax2.set_ylabel('Stokes_V', color='darkred')
         ax1.minorticks_on()
@@ -393,7 +396,7 @@ def twin_fig_plot():
         ax1.grid()
         ax2.grid()
         ax1.grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
         plt.show()
@@ -542,8 +545,8 @@ def time_to_angle(_time, _data, _path=None, _az=0):
 
 
 if __name__ == '__main__':
-    align = 'y'
-    channel_align = 'y'
+    align = '_y'
+    channel_align = '_y'
     noise_int_calibration = 'n'
     v_deviation = 'n'
     object_m = 'sun'
@@ -585,7 +588,7 @@ if __name__ == '__main__':
 
         #               **********************************************
 
-        if align == 'y':
+        if align == '_y':
             path = Path(head_path, 'Alignment', align_file_name)
             spectrum1 = align_spectrum(spectrum[0], spectrum[1], spectrum[2], spectrum[3], head,
                                        path, 2)
@@ -614,7 +617,7 @@ if __name__ == '__main__':
         ind_c1 = [s[4] <= el <= s[5] for el in mean_frame_ind]
         #                               ****************
         # Вычисление выравнивающий коэффициентов по калибровочному сигналу - калибровочный сигнал д.б. неполяризованным
-        if channel_align == 'y':
+        if channel_align == '_y':
             av_c_cal = np.nanmean(c[ind_c1, :], axis=0)
             av_d_cal = np.nanmean(d[ind_c1, :], axis=0)
             noise_coeff = av_c_cal / av_d_cal
@@ -658,7 +661,7 @@ if __name__ == '__main__':
     #                         *************************************
     #   *************** Калибровка антенной температуры по внутреннему ГШ *************
     #                         *************************************
-    if noise_int_calibration == 'y':
+    if noise_int_calibration == '_y':
         ind_c = [s[0] <= el <= s[1] or s[2] <= el <= s[3] for el in mean_frame_ind]
         for j in range(np.size(freq_mask0)):
             av_c_cal = np.nanmean(c[ind_c, num_mask[j]])
@@ -675,7 +678,7 @@ if __name__ == '__main__':
               'align: ' + 'yes',
               'kurtosis quality = ' + str(head['good_bound'])]
 
-    if v_deviation == 'y':
+    if v_deviation == '_y':
         s3_dv = stokes_v_deviation(s3[:, num_mask], 31)
     else:
         s3_dv = None
@@ -695,7 +698,7 @@ if __name__ == '__main__':
     s3f = np.ones(np.shape(s3))
     for i in range(np.shape(s3)[1]):
         s3f[:, i] = maf_fir(s3[:, i], 9)
-    if v_deviation == 'y':
+    if v_deviation == '_y':
         some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3[-1::-1, num_mask], s3_dv[-1::-1, :])
     else:
         some_fig_plot(path_to_stocks_fig_folder, s0[-1::-1, num_mask], s3f[-1::-1, num_mask], s3_dv)

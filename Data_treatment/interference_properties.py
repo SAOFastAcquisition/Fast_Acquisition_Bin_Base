@@ -244,7 +244,7 @@ def some_fig_plot(_data1, _data2, _path_to_fig_folder=None):
     _axes.axhline(y=_r_level, xmin=0.05, xmax=0.95, color='r')
     _axes.grid()
     _axes.grid(which='minor',
-               axis='x',
+               axis='_x',
                color='k',
                linestyle=':')
     # _sum = np.sum(_data, axis=0)
@@ -263,7 +263,7 @@ def some_fig_plot(_data1, _data2, _path_to_fig_folder=None):
     #     axes[2].minorticks_on()
     #     axes[2].grid()
     #     axes[2].grid(which='minor',
-    #                  axis='x',
+    #                  axis='_x',
     #                  color='k',
     #                  linestyle=':')
     # y1 = y_max - 2 * (y_max - y_min) / 10

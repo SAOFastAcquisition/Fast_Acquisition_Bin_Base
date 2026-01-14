@@ -94,7 +94,7 @@ class MafFilter:
         return lfilter(bpass, 1, self.x)
 
 
-def signal_filtering(_signal, delta_f):
+def signal_filtering(_signal, delta_f=0.025):
     _p = 7
     _f = MafFilter(_signal)
     _filt = _f.maf_fir(_p)
@@ -146,13 +146,13 @@ if __name__ == '__main__':
     for i in range(LM):
         # res[:, i] = filt.maf_conv(m=M[i])
         # res[:, i] = filt.maf_iir()  # m=M[i]
-        res[:, i] = signal_filtering(sig, 0.0025)
+        res[:, i] = signal_filtering(sig)
     std = np.std(sig - res[:, 0])
     sig1 = np.zeros(lns)
     sig1 = sig.copy()
     sig[abs(sig[:] - res[:, 0]) > 2 * std] = res[abs(sig[:] - res[:, 0]) > 2 * std, 0]
     res1 = np.zeros(lns)
-    res1 = signal_filtering(sig, 0.0025)
+    res1 = signal_filtering(sig)
     std1 = np.std(res1 - sig)
     # Calculate Frequency responce:
     hfq = np.zeros((lns, LM))

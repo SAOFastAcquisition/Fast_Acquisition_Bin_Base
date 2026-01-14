@@ -133,7 +133,7 @@ def plotly_pic(_x, _y):
             name=f'freq={_f[i]:4.0f}'
         ))
         i += 1
-    # Set the y-axis to log scale
+    # Set the _y-axis to log scale
     fig.update_layout(
         yaxis_type='log',
         xaxis_title='X',
@@ -241,13 +241,13 @@ if __name__ == '__main__':
         head = pickle.load(inp)
 
     reformat_stokes = 'n'
-    pic_demonstrate = 'y'
+    pic_demonstrate = '_y'
     az = [-24, -20, -16]
 
-    if reformat_stokes == 'y':
+    if reformat_stokes == '_y':
         save_reformat_stokes(path_obj, path_stokes_base)
 
-    if pic_demonstrate == 'y':
+    if pic_demonstrate == '_y':
         if os.path.isfile(f'{path_stokes_base}.gz'):
             with gzip.open(f'{path_stokes_base}.gz', "rb") as inp:
                 stokes_base = pickle.load(inp)

@@ -42,8 +42,8 @@ def align_spectrum(spectrum1, spectrum2, spectrum3, spectrum4, path_calibration)
         s = len_freq_spectrum / len_calibr
 
         print(f"Вам надо уменьшить разрешение по частоте в {s} раз")
-        consent = str(input('Продолжить выполнение без выравнивания АЧХ (y/n)?'))
-        if consent == 'y':
+        consent = str(input('Продолжить выполнение без выравнивания АЧХ (_y/n)?'))
+        if consent == '_y':
             return spectrum1, spectrum2, spectrum3, spectrum4
         else:
             pass

@@ -414,7 +414,8 @@ def save_spectrum(spectrum_extr, head, _k):
         pickle.dump(head, out)
     jsn.dump(head, open(Path(converted_data_file_path, current_primary_file + '_head.txt'), "w"))
 
-    return print(f'Data in {current_primary_file} converted to numpy file and saved successfully')
+    return print(f'Data in {current_primary_file} converted to numpy file and saved successfully '
+                 f'to {converted_data_file_path, current_primary_file}')
 
 
 def cut_spectrum(spectrum, n_aver):
@@ -489,7 +490,7 @@ if __name__ == '__main__':
     Скрипт последовательно считывает первичную запись сеанса и по признаку включения калибровочных импульсов ГШ 
     выделяет записи в азимутах и сохраняет в каталоге 'Converted_data' в формате .numpy. Каждую запись 
     ограничивают два импульса ГШ - в начале и конце записи. 
-    Для присвоения имени выделяемым файлам записей должен в current_primary_dir присутствовать файл 
+    Для присвоения имени выделяемым файлам записей должен в _current_primary_dir присутствовать файл 
     azimuth_file_name с именем вида '2022-06-22_01+28-28az.txt', содержащий колонку с заголовком "azimuth" с 
     перечислением наблюдаемых азимутов в виде csv-файла с разделителем ",". Азимут записывается в виде _хх+az, 
     где хх - порядковый номер наблюдения, az - значение азимута со знаком + или -. 
@@ -503,7 +504,7 @@ if __name__ == '__main__':
     az_dict = {'+24': '_01', '+20': '_02', '+16': '_03', '+12': '_04', '+08': '_05', '+04': '_06', '+00': '_07',
                '-04': '_08', '-08': '_09', '-12': '_10', '-16': '_11', '-20': '_12', '-24': '_13'}
     object = 'sun'
-    current_primary_file = '2024-08-30_01+24'
+    current_primary_file = '2025-12-29_03+16'
     current_primary_dir = current_primary_file[0:4] + '_' + current_primary_file[5:7] + '_' + \
                           current_primary_file[8:10] + object
     current_data_dir = current_primary_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
@@ -511,7 +512,7 @@ if __name__ == '__main__':
     # Переопределение каталога всех данных при калибровочных и тестовых наблюдениях
     if current_primary_dir.find('test') != -1 or current_primary_dir.find('calibration') != -1 \
             or current_primary_dir.find('calibr') != -1:
-        current_data_dir = '2022/Test_and_calibration'
+        current_data_dir = '2025/Test_and_calibration'
 
     current_primary_path = Path(primary_data_dir, current_primary_dir)
     current_converted_dir = current_primary_dir + '_conv'
@@ -556,7 +557,10 @@ if __name__ == '__main__':
     else:
         paths = gb.glob(str(Path(primary_data_file_path, "*.bin")))
         for s in paths:
-            current_primary_file = s[-20:-4]
+            if object == 'test':
+                current_primary_file = s[-17:-4]
+            else:
+                current_primary_file = s[-20:-4]
             preparing_data()
     stop = datetime.now()
     print(f'Process duration = {stop - start} sec')

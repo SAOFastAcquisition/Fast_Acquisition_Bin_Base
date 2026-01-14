@@ -7,7 +7,7 @@ Demonstrates the placement of text annotations on a 3D plot.
 
 Functionality shown:
 - Using the text function with three types of 'zdir' values: None,
-  an axis name (ex. 'x'), or a direction tuple (ex. (1, 1, 0)).
+  an axis name (ex. '_x'), or a direction tuple (ex. (1, 1, 0)).
 - Using the text function with the color keyword.
 - Using the text2D function to place text on a fixed position on the ax object.
 '''
@@ -22,7 +22,7 @@ fig = plt.figure()
 ax = fig.gca(projection='3d')
 
 # Demo 1: zdir
-zdirs = (None, 'x', 'y', 'z', (1, 1, 0), (1, 1, 1))
+zdirs = (None, '_x', '_y', 'z', (1, 1, 0), (1, 1, 1))
 xs = (1, 4, 4, 9, 4, 1)
 ys = (2, 5, 8, 10, 1, 2)
 zs = (10, 3, 8, 9, 1, 8)

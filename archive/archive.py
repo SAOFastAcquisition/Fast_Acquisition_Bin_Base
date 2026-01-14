@@ -73,7 +73,7 @@ def fig_plot(x, y):
     ax.set_title('Graffics', fontsize=24)
 
     ax.plot(x, y, color='green', marker='o', markerfacecolor='red', label='Time = 0.2 sec')
-    # ax.plot(x, y, 'ro-', label='Time = 0.2 sec') # Запись попроще, почти как в Матлаб
+    # ax.plot(_x, _y, 'ro-', label='Time = 0.2 sec') # Запись попроще, почти как в Матлаб
     ax.plot()
     ax.legend()
 
@@ -104,7 +104,7 @@ def spectr_construction(Spectr, kf, kt):
                     S1[i, j] = 2
                 # if (j > 3) & (S1[i, j] > 1.5 * np.sum(S1[i, j-3:j])//3):
                 #     S1[i, j] = np.sum(S1[i, j-3:j])//3
-                if robust_filter == 'y':
+                if robust_filter == '_y':
                     a = param_robust_filter
                     if (i > 3) & (S1[i, j] < 1 / a * np.sum(S1[i - 3:i - 1, j]) // 2):
                         S1[i, j] = np.sum(S1[i - 1, j])
@@ -208,7 +208,7 @@ def image_filter(img_src):
 
 
 def low_freq_filter(x, h):
-    """ФНЧ с импульсной характеристикой h. Входная последовательность - x"""
+    """ФНЧ с импульсной характеристикой h. Входная последовательность - _x"""
 
     n_input = len(x)
     n_filter = len(h)

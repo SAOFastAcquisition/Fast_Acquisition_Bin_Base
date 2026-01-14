@@ -300,11 +300,11 @@ def two_fig_plot1(_x, _y1, _y2, _dict_pic, _head):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -417,7 +417,7 @@ def two_fig_plot(*_args, _x1, _y3):
         _axes2.minorticks_on()
         _axes2.grid()
         _axes2.grid(which='minor',
-                    axis='x',
+                    axis='_x',
                     color='k',
                     linestyle=':')
         _axes2.tick_params(axis='both',  # Применяем параметры к обеим осям
@@ -448,11 +448,11 @@ def two_fig_plot(*_args, _x1, _y3):
     _axes0.grid()
     _axes1.grid()
     _axes0.grid(which='minor',
-                axis='x',
+                axis='_x',
                 color='k',
                 linestyle=':')
     _axes1.grid(which='minor',
-                axis='x',
+                axis='_x',
                 color='k',
                 linestyle=':')
 
@@ -484,11 +484,11 @@ def simplest_fig(_x, _y, _z):
     axes[0].grid()
     axes[1].grid()
     axes[0].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     axes[1].grid(which='minor',
-                 axis='x',
+                 axis='_x',
                  color='k',
                  linestyle=':')
     plt.show()
@@ -663,7 +663,7 @@ if __name__ == '__main__':
     angle_mask = [-1000, -300, 1000]    # Выбор позиций на Солнце для основного рисунка со спектрами
     freq_select = [1500, 2300, 2850]    # Маска частот для вспомогательного графика рисунка со спектрами
     pic = 'LR'  # Выбор объектов для рисунка со сканами: 'LR' - левая и правая поляризации, 'IV' - параметры Стокса
-    pic_spectrum = 'y'  #
+    pic_spectrum = '_y'  #
 
     main_dir = current_data_file[0:4]  # Каталог всех данных (первичных, вторичных) за год
     current_primary_dir = f'{main_dir}_{current_data_file[5:7]}_{current_data_file[8:10] + object_m}'
@@ -799,7 +799,7 @@ if __name__ == '__main__':
 
     ord1 = c[angle_num, :]  #
     ord2 = d[angle_num, :]  #
-    if pic_spectrum == 'y':
+    if pic_spectrum == '_y':
         args = [freq, ord1, ord2, dict_pic_spectrum, head]
         kwargs = {
             '_x1': mean_f_pos,

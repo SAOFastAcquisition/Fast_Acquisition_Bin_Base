@@ -602,7 +602,7 @@ if __name__ == '__main__':
                 f'polarisation {polar}', 'align: ' + '1', 'kurtosis quality = ' + str(head['good_bound'])]
     path1 = data_treatment_file_path
 
-    # if output_picture_mode == 'y':
+    # if output_picture_mode == '_y':
     # sp = spectrum_f[1:6]
     # sp1 = [s[2] for s in sp]
     # simple_plot(spectrum_f)

@@ -50,9 +50,9 @@ def poly_graph3d_model():
         verts.append(list(zip(xs, ys)))
 
     poly = PolyCollection(verts, facecolors=[cc('r'), cc('g'), cc('b'),
-                                             cc('y')])
+                                             cc('_y')])
     poly.set_alpha(0.7)
-    ax.add_collection3d(poly, zs=zs, zdir='y')
+    ax.add_collection3d(poly, zs=zs, zdir='_y')
 
     ax.set_xlabel('Time, sec')
     # ax.set_xlim3d(0, 10)
@@ -86,15 +86,15 @@ def poly_graph3d(*args):
         colours_map[2 * i + 1] = cc('b')
         if _l % 2:
             colours_map[_l - 1] = cc('r')
-    # colours_map = [cc('r'), cc('g'), cc('b'), cc('y'),
-    #                cc('r'), cc('g'), cc('b'), cc('y'), cc('g'),
+    # colours_map = [cc('r'), cc('g'), cc('b'), cc('_y'),
+    #                cc('r'), cc('g'), cc('b'), cc('_y'), cc('g'),
     #                cc('r'), cc('g'), cc('b'),
-    #                cc('y')]
+    #                cc('_y')]
 
     poly = PolyCollection(verts, facecolors=colours_map)
     # poly = PolyCollection(verts)
     poly.set_alpha(0.6)
-    ax.add_collection3d(poly, zs=zs, zdir='y')
+    ax.add_collection3d(poly, zs=zs, zdir='_y')
 
     ax.set_xlabel('Time, sec')
     ax.set_xlim3d(0, 400)

@@ -526,7 +526,7 @@ def fig_multi_axes_ab(spectr1, argument, inform, file_name0path, freq_mask, head
     # line_colore = ['green', 'blue', 'purple', 'lime', 'black', 'red', 'olivedrab', 'lawngreen',
     # 'magenta', 'dodgerblue']
 
-    # fig.suptitle(title2 + ' scan ' + title1, y=1.0, fontsize=24)
+    # fig.suptitle(title2 + ' scan ' + title1, _y=1.0, fontsize=24)
     up_lim = [0]*4
     for i_freq in range(freq_line_sp1):
         axes[i_freq // 2, i_freq % 2].tick_params(axis='both',  # Применяем параметры к обеим осям
